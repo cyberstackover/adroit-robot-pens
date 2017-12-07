@@ -1,0 +1,750 @@
+#include "Include/Line_Follower.c"
+#include "Include/Wall_Follower.c"
+
+#define Diameter_Roda   6.4  //Diameter dalam CM
+#define Pulse_PerRotasi 283
+#define Keliling_Roda   (PI*Diameter_Roda)
+#define Pulse_PerCM     Pulse_PerRotasi/Keliling_Roda
+#define CM_PerPulse     Keliling_Roda/Pulse_PerRotasi
+
+#define Jarak_Roda      19.5 //Jarak dalam CM
+
+#define Lengan          SudutServo6
+#define Capit1          SudutServo7
+#define Capit2          SudutServo8 
+
+uint8_t notasi_bebas[5],notasi_dinding[5],notasi_buzzer[4],notasi_lcd[17],notasi_gripper[3],notasi_garis[4],notasi_obyek[5],notasi_delay[1],notasi_tes[5];
+uint8_t temp_char[3],xstring[16];
+uint8_t i,j,k;
+uint8_t flag_aksi;
+
+int16_t pwmki,pwmka;
+
+void Greeting()
+{
+    Lengan(160); //turun
+    Capit1(90);
+    SudutServo8 (90);
+    delay_ms(500);    
+     
+    //==========Nada==========//
+    Lengan(160);
+    Capit1(90);
+    SudutServo8 (160);
+    for(i=0;i<3;i++)
+    {
+        Buzzer(Melodi[i],Tempo[i]*13);
+    }
+    
+    Lengan(160);
+    Capit1(20);
+    SudutServo8(160);
+    for(i=3;i<5;i++)
+    {
+        Buzzer(Melodi[i],Tempo[i]*13);
+    }
+    
+    Lengan(70);
+    Capit1(20);
+    SudutServo8(160);
+    for(i=5;i<8;i++)
+    {
+        Buzzer(Melodi[i],Tempo[i]*13);
+    }
+    
+    Lengan(70);
+    Capit1(90);
+    SudutServo8(90);
+    for(i=8;i<12;i++)
+    {
+        Buzzer(Melodi[i],Tempo[i]*13);
+    }
+    
+    Lengan(160);
+    Capit1(90);
+    SudutServo8(90);
+    for(i=12;i<16;i++)
+    {
+        Buzzer(Melodi[i],Tempo[i]*13);
+    }
+    //========================//        
+    
+    LCD_Hapus();
+    LCD_GotoXY(0,0);
+    LCD_TulisTengah(0,"   -=WELCOME=-  "); 
+    delay_ms(1000);
+    LCD_TulisTengah(0,"                "); 
+    LCD_TulisTengah(0,"  -=ROBOVIPER=- ");
+    delay_ms(500);
+    LCD_TulisKiri(1,"  READY........ ");
+    delay_ms(1000);
+}
+
+void Bebas()
+{
+    LCD_Hapus();
+                
+    notasi_bebas[0]=getchar();
+    notasi_bebas[1]=getchar();
+    notasi_bebas[2]=getchar();
+    notasi_bebas[3]=getchar();
+                
+    /////--Maju--/////
+    if(notasi_bebas[0]==0x00)
+    {                        
+        if(notasi_bebas[1]==0x00) //Waktu
+        {
+            notasi_bebas[4]=getchar();
+            
+            LCD_TulisF(0,"MAJU-WAKTU");
+            sprintf(xstring,"%d %d %d",notasi_bebas[2],notasi_bebas[3],notasi_bebas[4]);
+            //LCD_Text(1,xstring);
+            
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_bebas[3]);                        
+            LCD_GotoXY(8,1);    LCD_Angka3(notasi_bebas[4]);                        
+            
+            //SetDataMotorPWM(notasi_bebas[3],notasi_bebas[4]);
+            SetDataMotorPID(notasi_bebas[3],notasi_bebas[4]);
+                        
+            delay_ms(notasi_bebas[2]*1000);
+            
+            //SetDataMotorPWM(0,0); //Menghentikan Motor                           
+            SetDataMotorPID(0,0); //Menghentikan Motor    
+        }
+        else if(notasi_bebas[1]==0x01) //Jarak
+        {
+            int16_t Enkoder_t=0;    
+            Enkoder1=0;Enkoder2=0;
+            
+            LCD_TulisF(0,"MAJU-JARAK");
+            sprintf(xstring,"%d %d %d",notasi_bebas[2],notasi_bebas[3],notasi_bebas[4]);
+            //LCD_TulisF(1,xstring);
+            
+            LCD_GotoXY(13,0);    LCD_Angka3(notasi_bebas[2]);                        
+            LCD_GotoXY(13,1);    LCD_Angka3(notasi_bebas[2]*Pulse_PerCM);                        
+            
+            //SetDataMotorPWM(notasi_bebas[3],notasi_bebas[3]);
+            SetDataMotorPID(notasi_bebas[3],notasi_bebas[3]);
+            
+            while(Enkoder_t <= notasi_bebas[2]*Pulse_PerCM)
+            {
+                Enkoder_t = (Enkoder1+Enkoder2)/2;
+                LCD_GotoXY(0,1);    LCD_Angka4(Enkoder1);   LCD_Data(' ');
+                LCD_GotoXY(6,1);    LCD_Angka4(Enkoder2);   LCD_Data(' ');
+            }
+            
+            //SetDataMotorPWM(0,0); //Menghentikan Motor                           
+            SetDataMotorPID(0,0); //Menghentikan Motor            
+        }
+    }
+                
+    /////--Mundur--/////
+    else if(notasi_bebas[0]==0x01)
+    {            
+        int16_t tempki,tempka;
+        if(notasi_bebas[1]==0x00) //Waktu
+        {
+            notasi_bebas[4]=getchar();
+            
+            LCD_TulisF(0,"MUNDUR-WAKTU");
+            sprintf(xstring,"%d %d %d",notasi_bebas[2],notasi_bebas[3],notasi_bebas[4]);
+            //LCD_TulisF(1,xstring);
+            
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_bebas[3]);                        
+            LCD_GotoXY(8,1);    LCD_Angka3(notasi_bebas[4]);
+            
+            tempki=notasi_bebas[3];
+            tempka=notasi_bebas[4];
+            //SetDataMotorPWM(tempki*-1,tempka*-1);
+            SetDataMotorPID(tempki*-1,tempka*-1);
+                                    
+            delay_ms(notasi_bebas[2]*1000);
+            //SetDataMotorPWM(0,0); //Menghentikan Motor                            
+            SetDataMotorPID(0,0); //Menghentikan Motor
+        }
+        else if(notasi_bebas[1]==0x01) //Jarak
+        {
+            int16_t Enkoder_t=0;    
+            Enkoder1=0;Enkoder2=0;
+            
+            LCD_TulisF(0,"MUNDUR-JARAK");
+            sprintf(xstring,"%d %d %d",notasi_bebas[2],notasi_bebas[3],notasi_bebas[4]);
+            //LCD_TulisF(1,xstring);
+            
+            LCD_GotoXY(13,0);    LCD_Angka3(notasi_bebas[2]);                        
+            LCD_GotoXY(13,1);    LCD_Angka3(notasi_bebas[2]*Pulse_PerCM);                                              
+            
+            tempki=notasi_bebas[3];
+            tempka=notasi_bebas[3];
+            //SetDataMotorPWM(tempki*-1,tempka*-1);
+            SetDataMotorPID(tempki*-1,tempka*-1);
+            
+            while(Enkoder_t <= notasi_bebas[2]*Pulse_PerCM)
+            {
+                Enkoder_t = ((Enkoder1+Enkoder2)/2)*-1;
+                LCD_GotoXY(0,1);    LCD_Angka4(Enkoder1);   LCD_Data(' ');
+                LCD_GotoXY(6,1);    LCD_Angka4(Enkoder2);   LCD_Data(' ');
+            }
+            
+            //SetDataMotorPWM(0,0); //Menghentikan Motor                           
+            SetDataMotorPID(0,0); //Menghentikan Motor
+        }
+    }
+                
+    /////--Kanan--/////
+    else if(notasi_bebas[0]==0x02)
+    {                        
+        int16_t tempka;
+        if(notasi_bebas[1]==0x00) //Waktu
+        {
+            notasi_bebas[4]=getchar();
+            
+            LCD_TulisF(0,"KANAN-WAKTU");
+            sprintf(xstring,"%d %d %d",notasi_bebas[2],notasi_bebas[3],notasi_bebas[4]);
+            //LCD_TulisF(1,xstring);
+            
+            tempka=notasi_bebas[4];
+                        
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_bebas[3]);                        
+            LCD_GotoXY(8,1);    LCD_Angka3(notasi_bebas[4]);
+            //SetDataMotorPWM(notasi_bebas[3],(tempka*-1));
+            SetDataMotorPID(notasi_bebas[3],(tempka*-1));
+                        
+            delay_ms(notasi_bebas[2]*1000);
+            //SetDataMotorPWM(0,0); //Menghentikan Motor
+            SetDataMotorPID(0,0); //Menghentikan Motor 
+        }
+        else if(notasi_bebas[1]==0x01) //Sudut
+        {
+            int16_t Enkoder_t=0;
+            float wL,wR,heading=0,teta=0;    
+            Enkoder1=0;Enkoder2=0;
+            
+            LCD_TulisF(0,"KANAN-DERAJAT");
+            sprintf(xstring,"%d %d %d",notasi_bebas[2],notasi_bebas[3],notasi_bebas[4]);
+            //LCD_TulisF(1,xstring);
+            
+            LCD_GotoXY(13,1);    LCD_Angka3(notasi_bebas[2]);                        
+            
+            tempka=notasi_bebas[3];
+            
+            SetDataMotorPID(0,0); //Stop Sejenak untuk Akurasi Perhitungan
+            delay_ms(500);
+            
+            //SetDataMotorPWM(notasi_bebas[3],(tempka*-1));
+            SetDataMotorPID(notasi_bebas[3],(tempka*-1));
+            
+            while(heading <= notasi_bebas[2])
+            {
+                Enkoder_t = ((Enkoder1+(Enkoder2*-1))/2);
+                //LCD_GotoXY(0,1);    LCD_Angka4(Enkoder1);      LCD_Data(' ');
+                //LCD_GotoXY(6,1);    LCD_Angka4(Enkoder2*-1);   LCD_Data(' ');
+                
+                wL=Enkoder1*CM_PerPulse;
+                wR=Enkoder2*CM_PerPulse;
+                
+                teta=(wL-wR)/Jarak_Roda;
+                heading=teta*RAD2DEG;
+                
+                LCD_GotoXY(0,1);    LCD_Angka4(teta);      LCD_Data(' ');
+                LCD_GotoXY(6,1);    LCD_Angka4(heading);   LCD_Data(' ');
+            }
+            
+            SetDataMotorPID(0,0); //Menghentikan Motor            
+        }
+    }
+                
+    /////--Kiri--/////
+    else if(notasi_bebas[0]==0x03)
+    {                        
+        int16_t tempki;
+        if(notasi_bebas[1]==0x00) //Waktu
+        {
+            notasi_bebas[4]=getchar();
+            
+            LCD_TulisF(0,"KIRI-WAKTU");
+            sprintf(xstring,"%d %d %d",notasi_bebas[2],notasi_bebas[3],notasi_bebas[4]);
+            //LCD_TulisF(1,xstring);
+                                    
+            tempki=notasi_bebas[3];
+            
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_bebas[3]);                        
+            LCD_GotoXY(8,1);    LCD_Angka3(notasi_bebas[4]);
+            //SetDataMotorPWM((tempki*-1),notasi_bebas[4]);
+            SetDataMotorPID((tempki*-1),notasi_bebas[4]);
+                        
+            delay_ms(notasi_bebas[2]*1000);
+            //SetDataMotorPWM(0,0); //Menghentikan Motor 
+            SetDataMotorPID(0,0); //Menghentikan Motor 
+        }
+                    
+        else if(notasi_bebas[1]==0x01) // Sudut
+        {
+            int16_t Enkoder_t=0;
+            float wL,wR,heading=0,teta=0;    
+            Enkoder1=0;Enkoder2=0;
+            
+            LCD_TulisF(0,"KIRI-DERAJAT");
+            sprintf(xstring,"%d %d %d",notasi_bebas[2],notasi_bebas[3],notasi_bebas[4]);
+            //LCD_TulisF(1,xstring);
+            
+            LCD_GotoXY(13,1);    LCD_Angka3(notasi_bebas[2]);                        
+            
+            SetDataMotorPID(0,0); //Stop Sejenak untuk Akurasi Perhitungan
+            delay_ms(500);
+            
+            tempki=notasi_bebas[3];
+            //SetDataMotorPWM((tempki*-1),notasi_bebas[3]);
+            SetDataMotorPID((tempki*-1),notasi_bebas[3]);
+            
+            while(heading <= notasi_bebas[2])
+            {
+                Enkoder_t = ((Enkoder1+(Enkoder2*-1))/2);
+                //LCD_GotoXY(0,1);    LCD_Angka4(Enkoder1);      LCD_Data(' ');
+                //LCD_GotoXY(6,1);    LCD_Angka4(Enkoder2*-1);   LCD_Data(' ');
+                
+                wL=Enkoder1*CM_PerPulse;
+                wR=Enkoder2*CM_PerPulse;
+                
+                teta=((wL-wR)/Jarak_Roda)*-1;
+                heading=teta*RAD2DEG;
+                
+                LCD_GotoXY(0,1);    LCD_Angka4(teta);      LCD_Data(' ');
+                LCD_GotoXY(6,1);    LCD_Angka4(heading);   LCD_Data(' ');
+            }
+            
+            SetDataMotorPID(0,0); //Menghentikan Motor
+        }
+    }
+}
+
+void Dinding()
+{
+    LCD_Hapus();
+                
+    notasi_dinding[0]=getchar(); //Acuan Kiri/Kanan
+    notasi_dinding[1]=getchar(); //Garis   //  Waktu
+    notasi_dinding[2]=getchar(); //nGaris  //  Waktu Tempuh
+    notasi_dinding[3]=getchar(); //   Jarak Dinding
+    notasi_dinding[4]=getchar(); //     Kecepatan 
+            
+    /////--Kiri--/////
+    if(notasi_dinding[0]==0x00)
+    {                        
+        int16_t SpeedWall = notasi_dinding[4]*4;
+
+        if(notasi_dinding[1]==0x00) //Garis
+        {
+            LCD_Hapus();
+            LCD_TulisF(0,"GARIS-KIRI");
+            
+            for(i=notasi_dinding[2];i>0;i--)
+            {
+                GarisDindingKi(SpeedWall,notasi_dinding[3],pBacaSensorR);
+                Buzzer(C6,20);
+            }                       
+        }
+        else if(notasi_dinding[1]==0x01) //Waktu
+        {
+            LCD_Hapus();
+            LCD_TulisF(0,"WAKTU-KIRI");
+            WaktuDindingKi(SpeedWall,notasi_dinding[3],notasi_dinding[2]);
+            Buzzer(C6,20);                      
+        }
+    }
+                
+    /////--Kanan--/////
+    else if(notasi_dinding[0]==0x01)
+    {            
+        int16_t SpeedWall = notasi_dinding[4]*4;
+
+        if(notasi_dinding[1]==0x00) //Garis
+        {
+            LCD_Hapus();
+            LCD_TulisF(0,"GARIS-KANAN");
+            
+            for(i=notasi_dinding[2];i>0;i--)
+            {
+                GarisDindingKa(SpeedWall,notasi_dinding[3],pBacaSensorR);
+                Buzzer(C6,20);               
+            }
+        }
+        else if(notasi_dinding[1]==0x01) //Waktu
+        {
+            LCD_Hapus();
+            LCD_TulisF(0,"WAKTU-KANAN");
+            
+            WaktuDindingKa(SpeedWall,notasi_dinding[3],notasi_dinding[2]);
+            Buzzer(C6,20);           
+        }
+    }    
+}
+
+void Garis()
+{
+    LCD_Hapus();
+                
+    notasi_garis[0]=getchar();
+    notasi_garis[1]=getchar();
+    notasi_garis[2]=getchar();
+                
+    /////--Pertigaan Kanan--/////
+    if(notasi_garis[0]==0x00)
+    {                        
+        if(notasi_garis[1]==0x00) //KANAN
+        {
+            int16_t SpeedGaris;
+            LCD_Hapus();
+            LCD_TulisF(0,"3KANAN-KANAN");
+            
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_garis[2]);
+            
+            SpeedGaris = notasi_garis[2]*4;
+            
+            Scan3Kanan(SpeedGaris,pBacaSensorR,pBacaSensorR);
+            LCD_GotoXY(8,1);    LCD_Angka3(1);
+            Buzzer(C6,20);
+            //Scan3Kanan(notasi_garis[2],pBacaSensorR,pBacaSensorR);
+            //LCD_GotoXY(8,1);    LCD_Angka3(2);
+            //Buzzer(C6,20);
+            BelKaPWM(SpeedGaris,-SpeedGaris,pBacaSensorR);
+            LCD_GotoXY(8,1);    LCD_Angka3(2);
+            Buzzer(C6,20);   
+        }
+        else if(notasi_garis[1]==0x01) // LURUS
+        {
+            int16_t SpeedGaris;
+            LCD_Hapus();
+            LCD_TulisF(0,"3KANAN-LURUS");
+            
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_garis[2]);
+            
+            SpeedGaris = notasi_garis[2]*4;
+            
+            Scan3Kanan(SpeedGaris,pBacaSensorR,pBacaSensorR);
+            LCD_GotoXY(8,1);    LCD_Angka3(1);
+            //Scan3Kanan(notasi_garis[2],pBacaSensorR,pBacaSensorR);
+            //LCD_GotoXY(8,1);    LCD_Angka3(2);
+            Buzzer(C6,20);            
+        }
+    }
+                
+    /////--Pertigaan Kiri--/////
+    else if(notasi_garis[0]==0x01)
+    {            
+        if(notasi_garis[1]==0x00) //KIRI
+        {
+            int16_t SpeedGaris;
+            LCD_Hapus();
+            LCD_TulisF(0,"3KIRI-KIRI");
+            
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_garis[2]);
+            
+            SpeedGaris = notasi_garis[2]*4;
+            Buzzer(C6,20);
+            
+            Scan3Kiri(SpeedGaris,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-SpeedGaris,SpeedGaris,pBacaSensorR);
+            Buzzer(C6,20);            
+        }
+        else if(notasi_garis[1]==0x01) // LURUS
+        {
+            int16_t SpeedGaris;
+            LCD_Hapus();
+            LCD_TulisF(0,"3KIRI-LURUS");
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_garis[2]);
+            
+            SpeedGaris = notasi_garis[2]*4;
+            
+            Scan3Kiri(SpeedGaris,pBacaSensorR,pBacaSensorR);
+            Buzzer(C6,20);            
+        }
+    }
+                
+    /////--Perempatan--/////
+    else if(notasi_garis[0]==0x02)
+    {
+        if(notasi_garis[1]==0x00) //KANAN
+        {
+            int16_t SpeedGaris;
+            LCD_Hapus();
+            LCD_TulisF(0,"PEREMPATAN-KANAN");
+            
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_garis[2]);
+            
+            SpeedGaris = notasi_garis[2]*4;
+            Buzzer(C6,20);
+            
+            ScanPerempatan(SpeedGaris,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(SpeedGaris,-SpeedGaris,pBacaSensorR);
+            Buzzer(C6,20);   
+        }
+        else if(notasi_garis[1]==0x01) //KIRI
+        {
+            int16_t SpeedGaris;
+            LCD_Hapus();
+            LCD_TulisF(0,"PEREMPATAN-KIRI");
+            
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_garis[2]);
+            
+            SpeedGaris = notasi_garis[2]*4;
+            Buzzer(C6,20);
+            
+            ScanPerempatan(SpeedGaris,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-SpeedGaris,SpeedGaris,pBacaSensorR);
+            Buzzer(C6,20);            
+        }
+        else if(notasi_garis[1]==0x02) // LURUS
+        {
+            int16_t SpeedGaris,Enkoder_t=0;    
+            Enkoder1=0;Enkoder2=0;
+            
+            LCD_Hapus();
+            LCD_TulisF(0,"PEREMPATAN-LURUS");
+            LCD_GotoXY(0,1);    LCD_Angka3(notasi_garis[2]);
+            
+            SpeedGaris = notasi_garis[2]*4;
+            Buzzer(C6,20);
+            
+            ScanPerempatan(SpeedGaris,pBacaSensorR,pBacaSensorR);
+            SetDataMotorPWM(SpeedGaris,SpeedGaris);
+            while(Enkoder_t <= 2*Pulse_PerCM)
+            {
+                Enkoder_t = (Enkoder1+Enkoder2)/2;
+                LCD_GotoXY(0,1);    LCD_Angka4(Enkoder1);   LCD_Data(' ');
+                LCD_GotoXY(6,1);    LCD_Angka4(Enkoder2);   LCD_Data(' ');
+            }
+            SetDataMotorPWM(0,0);
+            
+            Buzzer(C6,20);            
+        }        
+    }
+                
+    /////--Jalan Bebas--/////
+    else if(notasi_garis[0]==0x03)
+    {
+        uint16_t i,TimeJalanBebas,SpeedGaris;
+        LCD_Hapus();
+        LCD_TulisF(0,"JALAN BEBAS");   
+            
+        TimeJalanBebas=notasi_garis[1];
+        SpeedGaris = notasi_garis[2]*4;
+            
+        for(i=0;i<TimeJalanBebas;i++)
+        {
+            usCounter=0;
+            while(usCounter<=40000) //1000uS/25uS=40 -> proses selama 1ms
+            {
+                ScanGaris(SpeedGaris,pBacaSensorR);
+            }
+        }
+        
+        SetDataMotorPWM(0,0);
+        Buzzer(C6,20);
+    }
+}
+
+void Alarm()
+{
+    uint16_t Freq_Alarm = C6;
+    
+    LCD_Hapus();
+    notasi_buzzer[0]=getchar();
+                
+    /////--Monostable--/////
+    if(notasi_buzzer[0]==0)
+    {
+        notasi_buzzer[1]=getchar();
+        LCD_TulisF(0,"Buzzer Status:");
+        LCD_TulisF(1,"ON");
+                    
+        Buzzer(Freq_Alarm,notasi_buzzer[1]*1000);
+                    
+        LCD_Hapus();
+        LCD_TulisF(0,"Buzzer Status:");
+        LCD_TulisF(1,"OFF");    
+    }
+                
+    /////--Astable--/////
+    if(notasi_buzzer[0]==1)
+    {
+        notasi_buzzer[1]=getchar();
+        notasi_buzzer[2]=getchar();
+        notasi_buzzer[3]=getchar();
+                    
+        for(i=0;i<notasi_buzzer[3];i++)
+        {
+            LCD_Hapus();
+            LCD_TulisF(0,"Buzzer Status:");
+            LCD_TulisF(1,"ON");
+            LCD_GotoXY(14,1);
+            LCD_Data(i+48);
+                        
+            Buzzer(Freq_Alarm,notasi_buzzer[1]*1000);
+                        
+            LCD_Hapus();
+            LCD_TulisF(0,"Buzzer Status:");
+            LCD_TulisF(1,"OFF");
+            LCD_GotoXY(14,1);
+            LCD_Data(i+49);
+                        
+            delay_ms(notasi_buzzer[2]*1000);
+        }     
+    }
+    
+    /////--Lagu--/////
+    if(notasi_buzzer[0]==2)
+    {
+        LCD_Hapus();
+        LCD_TulisF(0," -=Buzzer Nada=-");
+            
+        for(i=0;i<78;i++)
+        {
+            Buzzer(Melodi[i],Tempo[i]*13);
+        }        
+    }    
+}
+
+void Lcd()
+{
+    if(flag_aksi==0x08)
+    {
+        LCD_Hapus();
+        LCD_TulisF(0,"PESAN :");
+                    
+        notasi_lcd[0]=getchar();
+        for(i=0;i<notasi_lcd[0];i++)
+        {
+            notasi_lcd[i+1]=getchar();
+            LCD_GotoXY(i,1);
+            LCD_Data(notasi_lcd[i+1]);                        
+        }                               
+    }
+}
+
+void Tunda()
+{
+    LCD_Hapus();
+    LCD_TulisF(0,"DELAY");
+                
+    notasi_delay[0]=getchar();                        
+    for(i=notasi_delay[0];i>0;i--)
+    {
+        LCD_GotoXY(0,1);
+        LCD_Angka3(i-1);                        
+        delay_ms(1000);   
+    }
+    
+}
+
+void Gripper()
+{
+    LCD_Hapus();
+    
+    notasi_gripper[0]=getchar();
+    notasi_gripper[1]=getchar();
+                
+    /////--CAPIT--/////
+    if(notasi_gripper[0]==0)
+    {
+        if(notasi_gripper[1]==0)
+        {
+            LCD_TulisF(0,"GRIPPER:");
+            LCD_TulisF(1,"BUKA ");
+            Capit1(60);
+            Capit2(120);  
+        }
+        else if(notasi_gripper[1]==1)
+        {
+            LCD_TulisF(0,"GRIPPER:");
+            LCD_TulisF(1,"TUTUP");
+            Capit1(120);
+            Capit2(60);              
+        }
+        else if(notasi_gripper[1]==2)
+        {
+            notasi_gripper[2]=getchar();  
+            
+            LCD_TulisF(0,"GRIPPER:");
+            LCD_TulisF(1,"VARIATIF : ");
+            LCD_Angka3(notasi_gripper[2]);
+            Capit1(notasi_gripper[2]);  
+        }
+    }
+                
+    /////--LENGAN--/////
+    if(notasi_gripper[0]==1)
+    {
+        if(notasi_gripper[1]==0)
+        {
+            LCD_TulisF(0,"LENGAN:");
+            LCD_TulisF(1,"NAIK");
+            Lengan(70);  
+        }
+        else if(notasi_gripper[1]==1)
+        {
+            LCD_TulisF(0,"LENGAN:");
+            LCD_TulisF(1,"TURUN");
+            Lengan(160);  
+        }
+        else if(notasi_gripper[1]==2)
+        {
+            notasi_gripper[2]=getchar();  
+            
+            LCD_TulisF(0,"LENGAN:");
+            LCD_TulisF(1,"SUDUT : ");
+            LCD_Angka3(notasi_gripper[2]);
+            Lengan(notasi_gripper[2]);  
+        }
+    }
+    
+    /////--POLA--/////
+    if(notasi_gripper[0]==2)
+    {
+        if(notasi_gripper[1]==0)
+        {
+            LCD_TulisF(0,"POLA:");
+            LCD_TulisF(1,"ANGKAT");
+            
+            delay_ms(1000);
+            
+            Lengan(160);         //1. Lengan Turun
+            Capit1(20);        //2. Buka Capit
+            Capit2(160);
+            
+            delay_ms(500);
+            SetDataMotorPID(1,1);delay_ms(500);SetDataMotorPID(0,0); //3. Maju
+            Capit1(120);        //4. Tutup Capit
+            Capit2(60);
+            delay_ms(500);
+            
+            for(i=160;i>70;i--)
+            {
+                Lengan(i);
+                delay_ms(15);
+            }
+            //Lengan(70);         //5. Lengan Angkat
+            delay_ms(500);    
+        }
+        else if(notasi_gripper[1]==1)
+        {
+            LCD_TulisF(0,"POLA:");
+            LCD_TulisF(1,"TARUH");
+            
+            //Lengan(2);         //1. Lengan Turun
+            for(i=70;i<160;i++)
+            {
+                Lengan(i);
+                delay_ms(15);
+            }
+            delay_ms(500);
+            Capit1(20);        //2. Buka Capit
+            Capit2(160);
+            delay_ms(500);
+            SetDataMotorPID(-1,-1);delay_ms(500);SetDataMotorPID(0,0); //3. Mundur
+            Capit1(120);        //4. Tutup Capit
+            Capit2(60);
+            delay_ms(500);
+        }
+    }
+}

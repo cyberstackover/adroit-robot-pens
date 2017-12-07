@@ -1,0 +1,784 @@
+/*
+    #if UsePIDmotor==1
+        PIDMotorOn = 1;
+    #endif
+    
+    ImuStart = 0;       // menonaktifkan mode balancing
+    
+    delay_ms(500);
+    
+    LCD_Hapus();
+    while(PB1)    
+    {   LCD_GotoXY(0,0);
+        BacaSensor(0,pBacaSensorR);
+        if(BacaSerial1(5000)==pBacaSensorR)
+        {   LCD_Biner(BacaSerial1(5000));
+            
+        }
+    }       
+    
+    while(PB4)    
+    {   KalibrasiHitamPutih(0,pKalibrasiHPR);       // kalibrasi warna hitam dan putih dengan LED merah   
+    }
+    */
+    /*
+    if (PB4==0) KalibrasiHitamPutih(0,pKalibrasiHPR);       // kalibrasi warna hitam dan putih dengan LED merah
+    LCD_Hapus();
+
+    while(PB1)    
+    {   LCD_GotoXY(0,0);
+        BacaSensor(0,pBacaSensorR);
+        if(BacaSerial1(5000)==pBacaSensorR)
+        {   LCD_Biner(BacaSerial1(5000));
+            
+        }
+    }       
+    LCD_Hapus();
+    delay_ms(500); 
+    while(PB2)    
+    {       LCD_GotoXY(0,0);    LCD_Angka4(Enkoder1);   LCD_Data(' ');
+            LCD_GotoXY(6,0);    LCD_Angka4(Enkoder2);   LCD_Data(' ');
+            LCD_GotoXY(0,1);    LCD_uByte(dSpeed1);
+            LCD_GotoXY(4,1);    LCD_uByte(dSpeed2);   
+            LCD_GotoXY(8,1);    LCD_uByte(WaktuEksekusi);
+            LCD_GotoXY(13,1);   LCD_Angka3(MODE);   
+            }
+    LCD_Hapus();
+    delay_ms(500);    
+    while(PB2)
+    {   //ScanGaris(15);
+       //ScanGaris(15);
+       
+       Scan(300);
+       //SetDataMotorPWM(200,50);
+       //BelKa(12,5);
+       //Scan(15);
+       //BelKi();
+       //while(PB1);
+       //delay_ms(250);
+        //break;  
+    }
+    while(PB2)
+    {   
+        while((ScanGaris(15)|0B11000011)!=0B11000011);
+        SetDataMotorPWM(-200,400);
+        delay_ms(100);
+        while((BacaSensorMerah()|0xFE)!=0xFE);
+        //       while((ScanGaris(10)|0B11000011)!=0B11000011);
+        //       SetDataMotorPID(5,-5);
+        //       while((BacaSensorMerah|0xFE)!=0xFE);
+    }
+    */            
+}   
+                
+                
+                
+                
+    /*case    0B01111111: SetDataMotorPID(10,-2);
+                        break;
+    case    0B00111111: SetDataMotorPID(10,1);
+                        break;
+    case    0B10111111: SetDataMotorPID(12,2);
+                        break;
+    case    0B10011111: SetDataMotorPID(12,3);
+                        break;
+    case    0B11011111: SetDataMotorPID(15,5);
+                        break;
+    case    0B11001111: SetDataMotorPID(15,8);
+                        break;
+    case    0B11101111: SetDataMotorPID(16,10);
+                        break;
+    case    0B11100111: SetDataMotorPID(16,16);
+                        break;
+    case    0B11110111: SetDataMotorPID(10,16);
+                        break;
+    case    0B11110011: SetDataMotorPID(8,15);
+                        break;
+    case    0B11111011: SetDataMotorPID(5,15);
+                        break;
+    case    0B11111001: SetDataMotorPID(3,12);
+                        break;
+    case    0B11111101: SetDataMotorPID(2,12);
+                        break;
+    case    0B11111100: SetDataMotorPID(1,10);
+                        break;
+    case    0B11111110: SetDataMotorPID(-2,10);
+                        break;*/    
+    /*
+    LCD_Hapus();         
+    while(PB2)    
+    {       LCD_GotoXY(0,0);    LCD_Angka4(Enkoder1);   LCD_Data(' ');
+            LCD_GotoXY(6,0);    LCD_Angka4(Enkoder2);   LCD_Data(' ');
+            LCD_GotoXY(0,1);    LCD_uByte(dSpeed1);
+            LCD_GotoXY(4,1);    LCD_uByte(dSpeed2);   
+            LCD_GotoXY(8,1);    LCD_uByte(WaktuEksekusi);
+            LCD_GotoXY(13,1);   LCD_Angka3(MODE);
+    }
+    
+//    uint8_t TungguTombolKalibrasi(uint8_t Alamat, uint8_t Protokol);
+//    void PesanKalibrasiBerhasil(void);
+//    void PesanKalibrasiGagal(void);
+//    int8_t KalibrasiRGB(uint8_t Alamat);
+
+    LCD_Hapus();
+    LCD_TulisF(0,"ModeBalancing ON");
+    ImuStart = 1;       // menonaktifkan mode balancing
+    
+    LaguOn = 1;
+    
+    while(PB3)   
+    {       LCD_HapusKiri(1);
+            if(PB3) TargetSpeedB=0;    SteerB = 0;       
+            if(PB3) LCD_TulisKanan(1,"<<<<< Putar Kiri");
+            for(i=0;i<10;i++)
+            {   if(!PB3)     break;
+                TargetSpeedB=0;    SteerB = -120;       delay_ms(200);
+            }
+            if(PB3) TargetSpeedB=3;    SteerB = -80;    delay_ms(200);
+            if(PB3) TargetSpeedB=0;    SteerB = 30;       
+            if(PB3) LCD_HapusKanan(1);
+            if(PB3) TargetSpeedB=0;    SteerB = 0;       
+            if(PB3) LCD_TulisKiri(1,">>>> Putar Kanan");
+            for(i=0;i<10;i++)
+            {   if(!PB3)     break;
+                TargetSpeedB=-0;    SteerB = 120;       delay_ms(200);
+            }
+            if(PB3) TargetSpeedB=-3;    SteerB = 80;    delay_ms(200);
+            if(PB3) TargetSpeedB=-0;    SteerB = -30;   
+    }        
+    
+    
+    LCD_Hapus();
+    LCD_TulisF(0,"BalanTracer Mode");
+    ImuStart = 1;       // menonaktifkan mode balancing
+    TargetSpeedB=-5;    SteerB = 40;
+    while(PB4)   
+    {  BacaSensor(0,pBacaSensorR);
+       if(BacaSerial1(5000)==pBacaSensorR)
+       {    LCD_GotoXY(0,1);
+            sensor = BacaSerial1(5000);
+            LCD_Biner(sensor);
+            switch(sensor)
+            {   case 0B01111111: TargetSpeedB=-1;    SteerB = -50; break;
+                case 0B10111111: TargetSpeedB=-1;    SteerB = -30; break;
+                case 0B11011111: TargetSpeedB=-3;    SteerB = -20; break;
+                case 0B11101111: TargetSpeedB=-3;    SteerB = -10; break;
+                case 0B11110111: TargetSpeedB=-3;    SteerB = 10; break;
+                case 0B11111011: TargetSpeedB=-3;    SteerB = 20; break;
+                case 0B11111101: TargetSpeedB=-1;    SteerB = 30; break;
+                case 0B11111110: TargetSpeedB=-1;    SteerB = 50; break;
+            }
+       }            
+    }
+    
+            
+    while(1)
+    {   TargetSpeedB=0;    SteerB = 0; 
+        if ((MODE)==15)
+        {   
+            #if ModeBalancing == 1
+            LCD_TulisF(0,"ModeBalancing ON");
+            SudutServo1(0);     SudutServo2(0);     SudutServo3(0);     SudutServo4(0);
+            SudutServo5(0);     SudutServo6(0);     SudutServo7(0);     SudutServo8(0);
+            TargetSpeedB=0;    SteerB = -120;       delay_ms(1000);
+            TargetSpeedB=0;    SteerB = -40;       delay_ms(100);
+            TargetSpeedB=0;    SteerB = 20;       
+            LCD_HapusKanan(1);
+            LCD_TulisKiri(1,">>>> Putar Kanan");
+            SudutServo1(180);     SudutServo2(180);     SudutServo3(180);     SudutServo4(180);
+            SudutServo5(180);     SudutServo6(180);     SudutServo7(180);     SudutServo8(180);
+            TargetSpeedB=0;    SteerB = 120;        delay_ms(1000);
+            TargetSpeedB=0;    SteerB = 40;       delay_ms(100);
+            TargetSpeedB=0;    SteerB = -20;
+            LCD_HapusKiri(1);
+            LCD_TulisKanan(1,"<<<<< Putar Kiri");
+            #endif
+        }
+        else if ((MODE)==14)
+        {   LCD_TulisF(0,"Mode Walking ON.");
+            LCD_TulisF(1,"MKI Depan Mundur");
+            for (i=135,j=70;i>70;i--,j++)
+            {   SudutServo1(90);         SudutServo2(j);    
+                SudutServo3(135);        SudutServo4(j);
+                SudutServo5(135);        SudutServo6(i);
+                SudutServo7(90);         SudutServo8(i);    
+                delay_ms(5);  
+            }   
+            //step kanan depan  mundur 
+            LCD_TulisF(1,"MKA Depan Mundur");
+            for (i=70,j=135;i<135;j--,i++)
+            {   SudutServo1(45);         SudutServo2(j);    
+                SudutServo3(90);         SudutServo4(j);
+                SudutServo5(90);         SudutServo6(i);
+                SudutServo7(45);         SudutServo8(i);
+                delay_ms(5);  
+            }
+        }
+        else
+        {   SetDataMotorPWM(100,100);
+            LCD_GotoXY(0,0);    LCD_Angka4(Enkoder1);
+            LCD_GotoXY(5,0);    LCD_Angka4(Enkoder2);
+            LCD_GotoXY(10,0);   LCD_Angka3(MODE);
+            LCD_GotoXY(0,1);    LCD_uByte(dSpeed1);
+            LCD_GotoXY(4,1);    LCD_uByte(dSpeed2);   
+            LCD_GotoXY(8,1);    LCD_uByte(WaktuEksekusi);
+            
+        }  
+        LED1 = ~PB1;
+        LED2 = ~PB2;
+        LED3 = ~PB3;
+        LED4 = ~PB4; 
+        
+        
+        
+        //SetDataMotorPID(KalmanRoll/5,KalmanPitch/5);
+        if(MODE1)
+        {
+            LCD_GotoXY(0,0);    LCD_Angka4((int)(Roll));
+            LCD_GotoXY(6,0);    LCD_Angka4((int)(Pitch));
+            LCD_GotoXY(0,1);    LCD_Angka4((int)(Yaw));
+        }
+        else
+        {   LCD_GotoXY(0,0);    LCD_Angka4(Gx);
+            LCD_GotoXY(8,0);    LCD_Angka4(Gy);
+            LCD_GotoXY(0,1);    LCD_Angka4(Gz);
+        }
+        LCD_GotoXY(6,1);    LCD_uByte(WaktuEksekusi);
+        LCD_GotoXY(12,0);   LCD_Angka4(dCounter1);
+        LCD_GotoXY(12,1);   LCD_Angka4(dCounter2);   
+        
+        delay_ms(10);
+     
+    };*/
+        
+    //dServo1 = 20;
+    //dServo2 = 80;
+    /*SudutServo1(0);
+    SudutServo2(45);
+    SudutServo3(90);
+    SudutServo4(135);
+    SudutServo5(180); 
+    SudutServo6(180); 
+    SudutServo7(0); 
+    SudutServo8(90);  */
+    /*LCD_GotoXY(0,0);    LCD_Angka3(dServo1);
+    LCD_GotoXY(4,0);    LCD_Angka3(dServo2);
+    LCD_GotoXY(8,0);    LCD_Angka3(dServo3);
+    LCD_GotoXY(12,0);   LCD_Angka3(dServo4);
+    LCD_GotoXY(0,1);    LCD_Angka3(dServo5);
+    LCD_GotoXY(4,1);    LCD_Angka4(dServo6);
+    LCD_GotoXY(8,1);    LCD_Angka4(dServo7);
+    LCD_GotoXY(12,1);   LCD_Angka4(BacadServo8); 
+    */
+           
+    //Nada1();
+    
+    /*
+    while (1)
+      {
+      // Place your code here
+        
+         LCD_BackLight = 1;  
+         //if (!PB3) KalibrasiRGB(0);  
+         if (!PB1) Nada1();  
+         if (!PB2) Nada2();  
+         if (!PB3) Nada3();  
+         if (!PB4) Nada4();  
+         
+         i = SysTick;
+         do{    BacaSensor(0,pBacaSensorRGB);//  putchar1(pBacaSensorRGB);
+         }  while(BacaSerial1(5000)!=pBacaSensorRGB);
+         r = BacaSerial1(5000);
+         g = BacaSerial1(5000);
+         b = BacaSerial1(5000);
+         if(SysTick>i)    i = SysTick - i;
+         else             i = 0xFF - i + SysTick + 1;
+         
+         if (FlagSerial)
+         {  LCD_GotoXY(0,0);
+            LCD_uByte(r);  LCD_Data(' ');
+            LCD_uByte(g);  LCD_Data(' ');
+            LCD_uByte(b);  LCD_Data(' ');
+         }
+         else   
+         {  LCD_TulisF(0, "TimeOut"); }
+         LCD_GotoXY(0,1);
+         LCD_uByte(i);
+         
+         LCD_Data(' ');
+         LCD_sByte(getchar1());
+         LCD_Data(' ');
+         LCD_sByte(getchar1());
+         */
+      
+      
+        //Stop();  
+       /* SetDataMotorPWM(300,300);
+        for(i=0;i<1000;i++)
+        {   //PIDTick=0; while(PIDTick<10); 
+            //PIDmotor();
+            LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+            LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+            LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+            LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+        }
+        SetDataMotorPWM(100,100);
+        for(i=0;i<1000;i++)
+        {   //PIDTick=0; while(PIDTick<10); 
+            //PIDmotor();
+            LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+            LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+            LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+            LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+        }
+        SetDataMotorPWM(0,0);
+        for(i=0;i<500;i++)
+        {   //PIDTick=0; while(PIDTick<10); 
+            //PIDmotor();
+            LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+            LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+            LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+            LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+        }
+        SetDataMotorPID(-10,-10);
+        for(i=0;i<1000;i++)
+        {   //PIDTick=0; while(PIDTick<10); 
+            //PIDmotor();
+            LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+            LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+            LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+            LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+        }
+        SetDataMotorPID(-3,-3);
+        for(i=0;i<1000;i++)
+        {   //PIDTick=0; while(PIDTick<10); 
+            //PIDmotor();
+            LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+            LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+            LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+            LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+        }
+        SetDataMotorPID(0,0);
+        for(i=0;i<500;i++)
+        {   //PIDTick=0; while(PIDTick<10); 
+            //PIDmotor();
+            LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+            LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+            LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+            LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+        }
+             
+  } */
+
+
+========================LINE FOLLOWER===============================
+//#define Bit(x,y) (x & (1<<y))
+/*
+void ScanGarisLepas(int16_t TopSpeed, unsigned char WarnaGaris)
+{   unsigned char sensor,flag_lepas=0;
+    int16_t MKi, MKa, Error, dError, u;   
+    static int16_t LastError;
+    //LCD_GotoXY(0,0);
+    BacaSensor(0,WarnaGaris);
+    if(BacaSerial1(5000)==WarnaGaris)
+        {   sensor = BacaSerial1(5000);
+            //LCD_Biner(sensor);
+            switch (sensor)
+            {   case    0B01111111: Error = -7;    break;
+                case    0B00111111: Error = -6;    break;
+                case    0B10111111: Error = -5;    break;
+                case    0B10011111: Error = -4;    break;
+                case    0B11011111: Error = -3;    break;
+                case    0B11001111: Error = -2;    break;
+                case    0B11101111: Error = -1;    break;
+                case    0B11100111: Error = -0;    break;
+                case    0B11110111: Error = 1;      break;
+                case    0B11110011: Error = 2;      break;
+                case    0B11111011: Error = 3;      break;
+                case    0B11111001: Error = 4;      break;
+                case    0B11111101: Error = 5;      break;
+                case    0B11111100: Error = 6;      break;
+                case    0B11111110: Error = 7;      break;
+                case    0B11111111: flag_lepas = 1; break;
+                case    0B11110000: flag_lepas = 2; break;
+                case    0B11111000: flag_lepas = 2; break;
+                case    0B00001111: flag_lepas = 3; break;
+                case    0B00011111: flag_lepas = 3; break;
+                
+                default:            Error=LastError;break;
+            }    
+                
+            if(flag_lepas>=1)
+            {
+                if(LastError>0 || flag_lepas==2)
+                {
+                    LCD_TulisF(0,"KANAN");
+                    SetDataMotorPWM(150,-150);
+                        
+                    do{sensor = BacaSensorWarna(0,WarnaGaris);}
+                        while(sensor==0xFF);
+                        
+                    /*FlagBelok=1;
+                    // menunggu sensor kanan ke 1 atau ke 2 keluar garis
+                    delay_ms(50);
+                    do{ sensor = BacaSensorWarna(0,WarnaGaris);   
+                      } while(Bit(sensor,0)==0 || Bit(sensor,1)==0 ); 
+                    // menunggu sensor kanan ke 1 atau ke 2 masuk garis
+                    do{ sensor = BacaSensorWarna(0,WarnaGaris);   
+                      } while(Bit(sensor,0)!=0 && Bit(sensor,1)!=0);*/   
+                }
+                else if(LastError<0 || flag_lepas==3)
+                {
+                    LCD_TulisF(0,"KIRI ");
+                    SetDataMotorPWM(-150,150);
+                        
+                    do{sensor = BacaSensorWarna(0,WarnaGaris);}
+                        while(sensor==0xFF);
+                        
+                    /*FlagBelok=1;
+                    // menunggu sensor kanan ke 6 atau ke 7 keluar garis
+                    delay_ms(50);
+                    do{ sensor = BacaSensorWarna(0,WarnaGaris);   
+                      } while(Bit(sensor,7)==0 || Bit(sensor,6)==0 );
+                    // menunggu sensor kanan ke 6 atau ke 7 masuk garis
+                    do{ sensor = BacaSensorWarna(0,WarnaGaris);   
+                      } while(Bit(sensor,7)!=0 && Bit(sensor,6)!=0);*/ 
+                }
+                    
+                flag_lepas=0;
+            }
+                
+            else
+            {
+
+                LCD_TulisF(0,"LURUS");    
+
+                dError = Error-LastError;
+                //iError += (float)Error/5;
+                    
+                //if(iError>300)iError=300;
+                //else if (iError<-300)iError=-300;
+                    
+                LastError = Error;
+                if (TopSpeed>=300)
+                    u = ((20 * Error + 150*dError));
+                else
+                    u = ((20 * Error + 120*dError));
+                    
+                MKi = TopSpeed + u;
+                MKa = TopSpeed - u;
+                if (MKi>400) MKi = 400;
+                else if (MKi<-400) MKi = -400;
+                if (MKa>400) MKa = 400;
+                else if (MKa<-400) MKa = -400;
+                SetDataMotorPWM(MKi,MKa);
+                //LCD_GotoXY(0,1);        LCD_sByte(MKi);     LCD_Data(' ');
+                //LCD_GotoXY(8,1);        LCD_sByte(MKa);     LCD_Data(' ');
+            }
+       }
+}
+*/
+
+
+==============================MAIN PROGRAM===========================
+
+/*
+     while(0)
+    {
+        LCD_TulisF(1,"MASUK");
+        
+        if (PBEx1==0) 
+        {
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);            
+        }
+        
+        else if(PBEx2==0)
+        {
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+        }
+        
+        else if(PBEx3==0)
+        {
+            BelKiPWM(-150,150,pBacaSensorR);
+            /*
+            while(PBEx1==1)
+            {
+                int16_t timeout,us3,us,count;
+                
+                DDRF=0b00000100;
+                PORTF=0x00;delay_us(10);PORTF=0x04;delay_us(10);PORTF=0x00;
+                //timeout=0;
+                //while(!echo3&&timeout<=2000){timeout++;}
+                count=0;
+                //while (PINF.0==0){}
+                while ((PINF.1==1)&&count<=8850){count++;}
+                us3=count/0.017;
+                //us=us3;
+                LCD_GotoXY(0,0);   LCD_Angka3(us3);
+                
+                delay_ms(500);
+                Buzzer(C6,10);
+            }
+            */
+                       }
+     
+        
+        else if(PBEx4==0)
+        {
+            BelKaPWM(150,-150,pBacaSensorR); 
+        }
+    }
+    
+    while(0)
+    {
+        if (PBEx1==0) 
+        {
+            KalibrasiHitamPutihEx(0,pKalibrasiHPR);       // kalibrasi warna hitam dan putih dengan LED merah
+        }
+        
+        else if(PBEx2==0)
+        {
+            delay_ms(1000);
+            
+            while(1)
+            {
+                if (PBEx1==0) 
+                {
+                    ScanPerempatan(100,pBacaSensorR,pBacaSensorR);            
+                }
+                
+                else if(PBEx2==0)
+                {
+                    Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+                }
+                
+                else if(PBEx3==0)
+                {
+                    BelKiPWM(-150,150,pBacaSensorR);                            
+                }
+                
+                else if(PBEx4==0)
+                {
+                    BelKaPWM(150,-150,pBacaSensorR); 
+                } 
+            }                    
+        }
+        
+        else if(PBEx3==0)
+        {
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+            Buzzer(C6,10);
+            
+            /*
+            delay_ms(1000);
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+            
+            while(PB1==1){}
+            */
+            /*
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            Buzzer(C6,10);
+            
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+            Buzzer(C6,10);
+            
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            Buzzer(C6,10);
+            
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+            Buzzer(C6,10);
+            
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+            Buzzer(C6,10);    
+            
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            */
+                
+            for(i=0;i<12;i++)
+            {
+                Buzzer(Melodi[i],Tempo[i]*13);
+            }
+        }
+        
+        else if(PBEx4==0)
+        {
+            delay_ms(1000);
+            LCD_TulisF(0,"START");
+            
+            LCD_Hapus();
+            LCD_TulisF(0,"GOOO....");
+            delay_ms(500);
+                
+            /*
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+                
+            //ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            //BelKaPWM(150,-150,pBacaSensorR);
+                
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+            */
+                
+            Buzzer(C6,10);
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+                
+                
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+                
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+                
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+                
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+                
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+                
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            Buzzer(C6,10);
+            
+            /*    
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+            Buzzer(C6,10);
+            */
+                
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+            BelKiPWM(-150,150,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            BelKaPWM(150,-150,pBacaSensorR);
+            Buzzer(C6,10);
+                
+            ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+                
+            for(i=0;i<12;i++)
+            {
+                Buzzer(Melodi[i],Tempo[i]*13);
+            }
+                
+            /*
+            while(1){
+            if(PB1==0)
+            {
+                LCD_TulisF(0,"START");
+                Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+                
+                LCD_TulisF(0,"2");
+                Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+                BelKaPWM(150,-150,pBacaSensorR);
+                
+                LCD_TulisF(0,"3");
+                ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+                BelKaPWM(150,-150,pBacaSensorR);
+                
+                LCD_TulisF(0,"4");
+                Scan3Kanan(100,pBacaSensorR,pBacaSensorR);
+            }
+            
+            else if(PB2==0)
+            {
+                Scan3Kiri(100,pBacaSensorR,pBacaSensorR);
+                //BelKiPWM(-150,150,pBacaSensorR);
+            }
+            
+            else if(PB3==0)
+            {
+                ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+                BelKiPWM(-150,150,pBacaSensorR);
+            }
+            
+            else if(PB4==0)
+            {
+                ScanPerempatan(100,pBacaSensorR,pBacaSensorR);
+                BelKaPWM(150,-150,pBacaSensorR);
+            }
+            
+            LCD_TulisF(0,"STOPT");
+            }*/
+        }
+    }
+        
+    while(0)
+    {       
+        LED1=0;
+        while(PB1==0)
+        {
+            LED1=1;
+            delay_ms(500);
+            for(j=0;j<1;j++)
+            {
+                LCD_GotoXY(0,0);
+                LCD_Angka3(j);
+                delay_ms(1000);
+                for(i=0;i<5;i++)
+                {
+                    LCD_GotoXY(0,1);
+                    LCD_Angka3(Bank_Data[i][j]);
+                    delay_ms(1000);
+                }
+            }       
+        }
+        
+        /*
+        for(i=0;i<5;i++)
+        {
+            LCD_GotoXY(13,1);
+            LCD_Angka3(i);
+            LCD_GotoXY(0,1);
+            LCD_Angka3(Bank_Data[i][0]);
+            delay_ms(1000);
+        }*/
+    }
+*/

@@ -1,0 +1,7744 @@
+
+;CodeVisionAVR C Compiler V2.05.0 Professional
+;(C) Copyright 1998-2010 Pavel Haiduc, HP InfoTech s.r.l.
+;http://www.hpinfotech.com
+
+;Chip type                : ATmega128
+;Program type             : Application
+;Clock frequency          : 16,000000 MHz
+;Memory model             : Medium
+;Optimize for             : Speed
+;(s)printf features       : int, width
+;(s)scanf features        : int, width
+;External RAM size        : 0
+;Data Stack size          : 2048 byte(s)
+;Heap size                : 0 byte(s)
+;Promote 'char' to 'int'  : No
+;'char' is unsigned       : No
+;8 bit enums              : Yes
+;global 'const' stored in FLASH: Yes
+;Enhanced core instructions    : On
+;Smart register allocation     : On
+;Automatic register allocation : On
+
+	#pragma AVRPART ADMIN PART_NAME ATmega128
+	#pragma AVRPART MEMORY PROG_FLASH 131072
+	#pragma AVRPART MEMORY EEPROM 4096
+	#pragma AVRPART MEMORY INT_SRAM SIZE 4351
+	#pragma AVRPART MEMORY INT_SRAM START_ADDR 0x100
+
+	#define CALL_SUPPORTED 1
+
+	.LISTMAC
+	.EQU UDRE=0x5
+	.EQU RXC=0x7
+	.EQU USR=0xB
+	.EQU UDR=0xC
+	.EQU SPSR=0xE
+	.EQU SPDR=0xF
+	.EQU EERE=0x0
+	.EQU EEWE=0x1
+	.EQU EEMWE=0x2
+	.EQU EECR=0x1C
+	.EQU EEDR=0x1D
+	.EQU EEARL=0x1E
+	.EQU EEARH=0x1F
+	.EQU WDTCR=0x21
+	.EQU MCUCR=0x35
+	.EQU RAMPZ=0x3B
+	.EQU SPL=0x3D
+	.EQU SPH=0x3E
+	.EQU SREG=0x3F
+	.EQU XMCRA=0x6D
+	.EQU XMCRB=0x6C
+
+	.DEF R0X0=R0
+	.DEF R0X1=R1
+	.DEF R0X2=R2
+	.DEF R0X3=R3
+	.DEF R0X4=R4
+	.DEF R0X5=R5
+	.DEF R0X6=R6
+	.DEF R0X7=R7
+	.DEF R0X8=R8
+	.DEF R0X9=R9
+	.DEF R0XA=R10
+	.DEF R0XB=R11
+	.DEF R0XC=R12
+	.DEF R0XD=R13
+	.DEF R0XE=R14
+	.DEF R0XF=R15
+	.DEF R0X10=R16
+	.DEF R0X11=R17
+	.DEF R0X12=R18
+	.DEF R0X13=R19
+	.DEF R0X14=R20
+	.DEF R0X15=R21
+	.DEF R0X16=R22
+	.DEF R0X17=R23
+	.DEF R0X18=R24
+	.DEF R0X19=R25
+	.DEF R0X1A=R26
+	.DEF R0X1B=R27
+	.DEF R0X1C=R28
+	.DEF R0X1D=R29
+	.DEF R0X1E=R30
+	.DEF R0X1F=R31
+
+	.EQU __SRAM_START=0x0100
+	.EQU __SRAM_END=0x10FF
+	.EQU __DSTACK_SIZE=0x0800
+	.EQU __HEAP_SIZE=0x0000
+	.EQU __CLEAR_SRAM_SIZE=__SRAM_END-__SRAM_START+1
+
+	.MACRO __CPD1N
+	CPI  R30,LOW(@0)
+	LDI  R26,HIGH(@0)
+	CPC  R31,R26
+	LDI  R26,BYTE3(@0)
+	CPC  R22,R26
+	LDI  R26,BYTE4(@0)
+	CPC  R23,R26
+	.ENDM
+
+	.MACRO __CPD2N
+	CPI  R26,LOW(@0)
+	LDI  R30,HIGH(@0)
+	CPC  R27,R30
+	LDI  R30,BYTE3(@0)
+	CPC  R24,R30
+	LDI  R30,BYTE4(@0)
+	CPC  R25,R30
+	.ENDM
+
+	.MACRO __CPWRR
+	CP   R@0,R@2
+	CPC  R@1,R@3
+	.ENDM
+
+	.MACRO __CPWRN
+	CPI  R@0,LOW(@2)
+	LDI  R30,HIGH(@2)
+	CPC  R@1,R30
+	.ENDM
+
+	.MACRO __ADDB1MN
+	SUBI R30,LOW(-@0-(@1))
+	.ENDM
+
+	.MACRO __ADDB2MN
+	SUBI R26,LOW(-@0-(@1))
+	.ENDM
+
+	.MACRO __ADDW1MN
+	SUBI R30,LOW(-@0-(@1))
+	SBCI R31,HIGH(-@0-(@1))
+	.ENDM
+
+	.MACRO __ADDW2MN
+	SUBI R26,LOW(-@0-(@1))
+	SBCI R27,HIGH(-@0-(@1))
+	.ENDM
+
+	.MACRO __ADDW1FN
+	SUBI R30,LOW(-2*@0-(@1))
+	SBCI R31,HIGH(-2*@0-(@1))
+	.ENDM
+
+	.MACRO __ADDD1FN
+	SUBI R30,LOW(-2*@0-(@1))
+	SBCI R31,HIGH(-2*@0-(@1))
+	SBCI R22,BYTE3(-2*@0-(@1))
+	.ENDM
+
+	.MACRO __ADDD1N
+	SUBI R30,LOW(-@0)
+	SBCI R31,HIGH(-@0)
+	SBCI R22,BYTE3(-@0)
+	SBCI R23,BYTE4(-@0)
+	.ENDM
+
+	.MACRO __ADDD2N
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	SBCI R24,BYTE3(-@0)
+	SBCI R25,BYTE4(-@0)
+	.ENDM
+
+	.MACRO __SUBD1N
+	SUBI R30,LOW(@0)
+	SBCI R31,HIGH(@0)
+	SBCI R22,BYTE3(@0)
+	SBCI R23,BYTE4(@0)
+	.ENDM
+
+	.MACRO __SUBD2N
+	SUBI R26,LOW(@0)
+	SBCI R27,HIGH(@0)
+	SBCI R24,BYTE3(@0)
+	SBCI R25,BYTE4(@0)
+	.ENDM
+
+	.MACRO __ANDBMNN
+	LDS  R30,@0+(@1)
+	ANDI R30,LOW(@2)
+	STS  @0+(@1),R30
+	.ENDM
+
+	.MACRO __ANDWMNN
+	LDS  R30,@0+(@1)
+	ANDI R30,LOW(@2)
+	STS  @0+(@1),R30
+	LDS  R30,@0+(@1)+1
+	ANDI R30,HIGH(@2)
+	STS  @0+(@1)+1,R30
+	.ENDM
+
+	.MACRO __ANDD1N
+	ANDI R30,LOW(@0)
+	ANDI R31,HIGH(@0)
+	ANDI R22,BYTE3(@0)
+	ANDI R23,BYTE4(@0)
+	.ENDM
+
+	.MACRO __ANDD2N
+	ANDI R26,LOW(@0)
+	ANDI R27,HIGH(@0)
+	ANDI R24,BYTE3(@0)
+	ANDI R25,BYTE4(@0)
+	.ENDM
+
+	.MACRO __ORBMNN
+	LDS  R30,@0+(@1)
+	ORI  R30,LOW(@2)
+	STS  @0+(@1),R30
+	.ENDM
+
+	.MACRO __ORWMNN
+	LDS  R30,@0+(@1)
+	ORI  R30,LOW(@2)
+	STS  @0+(@1),R30
+	LDS  R30,@0+(@1)+1
+	ORI  R30,HIGH(@2)
+	STS  @0+(@1)+1,R30
+	.ENDM
+
+	.MACRO __ORD1N
+	ORI  R30,LOW(@0)
+	ORI  R31,HIGH(@0)
+	ORI  R22,BYTE3(@0)
+	ORI  R23,BYTE4(@0)
+	.ENDM
+
+	.MACRO __ORD2N
+	ORI  R26,LOW(@0)
+	ORI  R27,HIGH(@0)
+	ORI  R24,BYTE3(@0)
+	ORI  R25,BYTE4(@0)
+	.ENDM
+
+	.MACRO __DELAY_USB
+	LDI  R24,LOW(@0)
+__DELAY_USB_LOOP:
+	DEC  R24
+	BRNE __DELAY_USB_LOOP
+	.ENDM
+
+	.MACRO __DELAY_USW
+	LDI  R24,LOW(@0)
+	LDI  R25,HIGH(@0)
+__DELAY_USW_LOOP:
+	SBIW R24,1
+	BRNE __DELAY_USW_LOOP
+	.ENDM
+
+	.MACRO __GETD1S
+	LDD  R30,Y+@0
+	LDD  R31,Y+@0+1
+	LDD  R22,Y+@0+2
+	LDD  R23,Y+@0+3
+	.ENDM
+
+	.MACRO __GETD2S
+	LDD  R26,Y+@0
+	LDD  R27,Y+@0+1
+	LDD  R24,Y+@0+2
+	LDD  R25,Y+@0+3
+	.ENDM
+
+	.MACRO __PUTD1S
+	STD  Y+@0,R30
+	STD  Y+@0+1,R31
+	STD  Y+@0+2,R22
+	STD  Y+@0+3,R23
+	.ENDM
+
+	.MACRO __PUTD2S
+	STD  Y+@0,R26
+	STD  Y+@0+1,R27
+	STD  Y+@0+2,R24
+	STD  Y+@0+3,R25
+	.ENDM
+
+	.MACRO __PUTDZ2
+	STD  Z+@0,R26
+	STD  Z+@0+1,R27
+	STD  Z+@0+2,R24
+	STD  Z+@0+3,R25
+	.ENDM
+
+	.MACRO __CLRD1S
+	STD  Y+@0,R30
+	STD  Y+@0+1,R30
+	STD  Y+@0+2,R30
+	STD  Y+@0+3,R30
+	.ENDM
+
+	.MACRO __POINTB1MN
+	LDI  R30,LOW(@0+(@1))
+	.ENDM
+
+	.MACRO __POINTW1MN
+	LDI  R30,LOW(@0+(@1))
+	LDI  R31,HIGH(@0+(@1))
+	.ENDM
+
+	.MACRO __POINTD1M
+	LDI  R30,LOW(@0)
+	LDI  R31,HIGH(@0)
+	LDI  R22,BYTE3(@0)
+	LDI  R23,BYTE4(@0)
+	.ENDM
+
+	.MACRO __POINTW1FN
+	LDI  R30,LOW(2*@0+(@1))
+	LDI  R31,HIGH(2*@0+(@1))
+	.ENDM
+
+	.MACRO __POINTD1FN
+	LDI  R30,LOW(2*@0+(@1))
+	LDI  R31,HIGH(2*@0+(@1))
+	LDI  R22,BYTE3(2*@0+(@1))
+	LDI  R23,BYTE4(2*@0+(@1))
+	.ENDM
+
+	.MACRO __POINTB2MN
+	LDI  R26,LOW(@0+(@1))
+	.ENDM
+
+	.MACRO __POINTW2MN
+	LDI  R26,LOW(@0+(@1))
+	LDI  R27,HIGH(@0+(@1))
+	.ENDM
+
+	.MACRO __POINTBRM
+	LDI  R@0,LOW(@1)
+	.ENDM
+
+	.MACRO __POINTWRM
+	LDI  R@0,LOW(@2)
+	LDI  R@1,HIGH(@2)
+	.ENDM
+
+	.MACRO __POINTBRMN
+	LDI  R@0,LOW(@1+(@2))
+	.ENDM
+
+	.MACRO __POINTWRMN
+	LDI  R@0,LOW(@2+(@3))
+	LDI  R@1,HIGH(@2+(@3))
+	.ENDM
+
+	.MACRO __POINTWRFN
+	LDI  R@0,LOW(@2*2+(@3))
+	LDI  R@1,HIGH(@2*2+(@3))
+	.ENDM
+
+	.MACRO __GETD1N
+	LDI  R30,LOW(@0)
+	LDI  R31,HIGH(@0)
+	LDI  R22,BYTE3(@0)
+	LDI  R23,BYTE4(@0)
+	.ENDM
+
+	.MACRO __GETD2N
+	LDI  R26,LOW(@0)
+	LDI  R27,HIGH(@0)
+	LDI  R24,BYTE3(@0)
+	LDI  R25,BYTE4(@0)
+	.ENDM
+
+	.MACRO __GETB1MN
+	LDS  R30,@0+(@1)
+	.ENDM
+
+	.MACRO __GETB1HMN
+	LDS  R31,@0+(@1)
+	.ENDM
+
+	.MACRO __GETW1MN
+	LDS  R30,@0+(@1)
+	LDS  R31,@0+(@1)+1
+	.ENDM
+
+	.MACRO __GETD1MN
+	LDS  R30,@0+(@1)
+	LDS  R31,@0+(@1)+1
+	LDS  R22,@0+(@1)+2
+	LDS  R23,@0+(@1)+3
+	.ENDM
+
+	.MACRO __GETBRMN
+	LDS  R@0,@1+(@2)
+	.ENDM
+
+	.MACRO __GETWRMN
+	LDS  R@0,@2+(@3)
+	LDS  R@1,@2+(@3)+1
+	.ENDM
+
+	.MACRO __GETWRZ
+	LDD  R@0,Z+@2
+	LDD  R@1,Z+@2+1
+	.ENDM
+
+	.MACRO __GETD2Z
+	LDD  R26,Z+@0
+	LDD  R27,Z+@0+1
+	LDD  R24,Z+@0+2
+	LDD  R25,Z+@0+3
+	.ENDM
+
+	.MACRO __GETB2MN
+	LDS  R26,@0+(@1)
+	.ENDM
+
+	.MACRO __GETW2MN
+	LDS  R26,@0+(@1)
+	LDS  R27,@0+(@1)+1
+	.ENDM
+
+	.MACRO __GETD2MN
+	LDS  R26,@0+(@1)
+	LDS  R27,@0+(@1)+1
+	LDS  R24,@0+(@1)+2
+	LDS  R25,@0+(@1)+3
+	.ENDM
+
+	.MACRO __PUTB1MN
+	STS  @0+(@1),R30
+	.ENDM
+
+	.MACRO __PUTW1MN
+	STS  @0+(@1),R30
+	STS  @0+(@1)+1,R31
+	.ENDM
+
+	.MACRO __PUTD1MN
+	STS  @0+(@1),R30
+	STS  @0+(@1)+1,R31
+	STS  @0+(@1)+2,R22
+	STS  @0+(@1)+3,R23
+	.ENDM
+
+	.MACRO __PUTB1EN
+	LDI  R26,LOW(@0+(@1))
+	LDI  R27,HIGH(@0+(@1))
+	CALL __EEPROMWRB
+	.ENDM
+
+	.MACRO __PUTW1EN
+	LDI  R26,LOW(@0+(@1))
+	LDI  R27,HIGH(@0+(@1))
+	CALL __EEPROMWRW
+	.ENDM
+
+	.MACRO __PUTD1EN
+	LDI  R26,LOW(@0+(@1))
+	LDI  R27,HIGH(@0+(@1))
+	CALL __EEPROMWRD
+	.ENDM
+
+	.MACRO __PUTBR0MN
+	STS  @0+(@1),R0
+	.ENDM
+
+	.MACRO __PUTBMRN
+	STS  @0+(@1),R@2
+	.ENDM
+
+	.MACRO __PUTWMRN
+	STS  @0+(@1),R@2
+	STS  @0+(@1)+1,R@3
+	.ENDM
+
+	.MACRO __PUTBZR
+	STD  Z+@1,R@0
+	.ENDM
+
+	.MACRO __PUTWZR
+	STD  Z+@2,R@0
+	STD  Z+@2+1,R@1
+	.ENDM
+
+	.MACRO __GETW1R
+	MOV  R30,R@0
+	MOV  R31,R@1
+	.ENDM
+
+	.MACRO __GETW2R
+	MOV  R26,R@0
+	MOV  R27,R@1
+	.ENDM
+
+	.MACRO __GETWRN
+	LDI  R@0,LOW(@2)
+	LDI  R@1,HIGH(@2)
+	.ENDM
+
+	.MACRO __PUTW1R
+	MOV  R@0,R30
+	MOV  R@1,R31
+	.ENDM
+
+	.MACRO __PUTW2R
+	MOV  R@0,R26
+	MOV  R@1,R27
+	.ENDM
+
+	.MACRO __ADDWRN
+	SUBI R@0,LOW(-@2)
+	SBCI R@1,HIGH(-@2)
+	.ENDM
+
+	.MACRO __ADDWRR
+	ADD  R@0,R@2
+	ADC  R@1,R@3
+	.ENDM
+
+	.MACRO __SUBWRN
+	SUBI R@0,LOW(@2)
+	SBCI R@1,HIGH(@2)
+	.ENDM
+
+	.MACRO __SUBWRR
+	SUB  R@0,R@2
+	SBC  R@1,R@3
+	.ENDM
+
+	.MACRO __ANDWRN
+	ANDI R@0,LOW(@2)
+	ANDI R@1,HIGH(@2)
+	.ENDM
+
+	.MACRO __ANDWRR
+	AND  R@0,R@2
+	AND  R@1,R@3
+	.ENDM
+
+	.MACRO __ORWRN
+	ORI  R@0,LOW(@2)
+	ORI  R@1,HIGH(@2)
+	.ENDM
+
+	.MACRO __ORWRR
+	OR   R@0,R@2
+	OR   R@1,R@3
+	.ENDM
+
+	.MACRO __EORWRR
+	EOR  R@0,R@2
+	EOR  R@1,R@3
+	.ENDM
+
+	.MACRO __GETWRS
+	LDD  R@0,Y+@2
+	LDD  R@1,Y+@2+1
+	.ENDM
+
+	.MACRO __PUTBSR
+	STD  Y+@1,R@0
+	.ENDM
+
+	.MACRO __PUTWSR
+	STD  Y+@2,R@0
+	STD  Y+@2+1,R@1
+	.ENDM
+
+	.MACRO __MOVEWRR
+	MOV  R@0,R@2
+	MOV  R@1,R@3
+	.ENDM
+
+	.MACRO __INWR
+	IN   R@0,@2
+	IN   R@1,@2+1
+	.ENDM
+
+	.MACRO __OUTWR
+	OUT  @2+1,R@1
+	OUT  @2,R@0
+	.ENDM
+
+	.MACRO __GETBRPF
+	OUT  RAMPZ,R22
+	ELPM R@0,Z
+	.ENDM
+
+	.MACRO __GETBRPF_INC
+	OUT  RAMPZ,R22
+	ELPM R@0,Z+
+	.ENDM
+
+	.MACRO __CALL1MN
+	LDS  R30,@0+(@1)
+	LDS  R31,@0+(@1)+1
+	ICALL
+	.ENDM
+
+	.MACRO __CALL1FN
+	LDI  R30,LOW(2*@0+(@1))
+	LDI  R31,HIGH(2*@0+(@1))
+	CALL __GETW1PF
+	ICALL
+	.ENDM
+
+	.MACRO __CALL2EN
+	LDI  R26,LOW(@0+(@1))
+	LDI  R27,HIGH(@0+(@1))
+	CALL __EEPROMRDW
+	ICALL
+	.ENDM
+
+	.MACRO __GETW1STACK
+	IN   R26,SPL
+	IN   R27,SPH
+	ADIW R26,@0+1
+	LD   R30,X+
+	LD   R31,X
+	.ENDM
+
+	.MACRO __GETD1STACK
+	IN   R26,SPL
+	IN   R27,SPH
+	ADIW R26,@0+1
+	LD   R30,X+
+	LD   R31,X+
+	LD   R22,X
+	.ENDM
+
+	.MACRO __NBST
+	BST  R@0,@1
+	IN   R30,SREG
+	LDI  R31,0x40
+	EOR  R30,R31
+	OUT  SREG,R30
+	.ENDM
+
+
+	.MACRO __PUTB1SN
+	LDD  R26,Y+@0
+	LDD  R27,Y+@0+1
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1SN
+	LDD  R26,Y+@0
+	LDD  R27,Y+@0+1
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1SN
+	LDD  R26,Y+@0
+	LDD  R27,Y+@0+1
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	CALL __PUTDP1
+	.ENDM
+
+	.MACRO __PUTB1SNS
+	LDD  R26,Y+@0
+	LDD  R27,Y+@0+1
+	ADIW R26,@1
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1SNS
+	LDD  R26,Y+@0
+	LDD  R27,Y+@0+1
+	ADIW R26,@1
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1SNS
+	LDD  R26,Y+@0
+	LDD  R27,Y+@0+1
+	ADIW R26,@1
+	CALL __PUTDP1
+	.ENDM
+
+	.MACRO __PUTB1PMN
+	LDS  R26,@0
+	LDS  R27,@0+1
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1PMN
+	LDS  R26,@0
+	LDS  R27,@0+1
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1PMN
+	LDS  R26,@0
+	LDS  R27,@0+1
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	CALL __PUTDP1
+	.ENDM
+
+	.MACRO __PUTB1PMNS
+	LDS  R26,@0
+	LDS  R27,@0+1
+	ADIW R26,@1
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1PMNS
+	LDS  R26,@0
+	LDS  R27,@0+1
+	ADIW R26,@1
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1PMNS
+	LDS  R26,@0
+	LDS  R27,@0+1
+	ADIW R26,@1
+	CALL __PUTDP1
+	.ENDM
+
+	.MACRO __PUTB1RN
+	MOVW R26,R@0
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1RN
+	MOVW R26,R@0
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1RN
+	MOVW R26,R@0
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	CALL __PUTDP1
+	.ENDM
+
+	.MACRO __PUTB1RNS
+	MOVW R26,R@0
+	ADIW R26,@1
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1RNS
+	MOVW R26,R@0
+	ADIW R26,@1
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1RNS
+	MOVW R26,R@0
+	ADIW R26,@1
+	CALL __PUTDP1
+	.ENDM
+
+	.MACRO __PUTB1RON
+	MOV  R26,R@0
+	MOV  R27,R@1
+	SUBI R26,LOW(-@2)
+	SBCI R27,HIGH(-@2)
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1RON
+	MOV  R26,R@0
+	MOV  R27,R@1
+	SUBI R26,LOW(-@2)
+	SBCI R27,HIGH(-@2)
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1RON
+	MOV  R26,R@0
+	MOV  R27,R@1
+	SUBI R26,LOW(-@2)
+	SBCI R27,HIGH(-@2)
+	CALL __PUTDP1
+	.ENDM
+
+	.MACRO __PUTB1RONS
+	MOV  R26,R@0
+	MOV  R27,R@1
+	ADIW R26,@2
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1RONS
+	MOV  R26,R@0
+	MOV  R27,R@1
+	ADIW R26,@2
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1RONS
+	MOV  R26,R@0
+	MOV  R27,R@1
+	ADIW R26,@2
+	CALL __PUTDP1
+	.ENDM
+
+
+	.MACRO __GETB1SX
+	MOVW R30,R28
+	SUBI R30,LOW(-@0)
+	SBCI R31,HIGH(-@0)
+	LD   R30,Z
+	.ENDM
+
+	.MACRO __GETB1HSX
+	MOVW R30,R28
+	SUBI R30,LOW(-@0)
+	SBCI R31,HIGH(-@0)
+	LD   R31,Z
+	.ENDM
+
+	.MACRO __GETW1SX
+	MOVW R30,R28
+	SUBI R30,LOW(-@0)
+	SBCI R31,HIGH(-@0)
+	LD   R0,Z+
+	LD   R31,Z
+	MOV  R30,R0
+	.ENDM
+
+	.MACRO __GETD1SX
+	MOVW R30,R28
+	SUBI R30,LOW(-@0)
+	SBCI R31,HIGH(-@0)
+	LD   R0,Z+
+	LD   R1,Z+
+	LD   R22,Z+
+	LD   R23,Z
+	MOVW R30,R0
+	.ENDM
+
+	.MACRO __GETB2SX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	LD   R26,X
+	.ENDM
+
+	.MACRO __GETW2SX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	LD   R0,X+
+	LD   R27,X
+	MOV  R26,R0
+	.ENDM
+
+	.MACRO __GETD2SX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	LD   R0,X+
+	LD   R1,X+
+	LD   R24,X+
+	LD   R25,X
+	MOVW R26,R0
+	.ENDM
+
+	.MACRO __GETBRSX
+	MOVW R30,R28
+	SUBI R30,LOW(-@1)
+	SBCI R31,HIGH(-@1)
+	LD   R@0,Z
+	.ENDM
+
+	.MACRO __GETWRSX
+	MOVW R30,R28
+	SUBI R30,LOW(-@2)
+	SBCI R31,HIGH(-@2)
+	LD   R@0,Z+
+	LD   R@1,Z
+	.ENDM
+
+	.MACRO __GETBRSX2
+	MOVW R26,R28
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	LD   R@0,X
+	.ENDM
+
+	.MACRO __GETWRSX2
+	MOVW R26,R28
+	SUBI R26,LOW(-@2)
+	SBCI R27,HIGH(-@2)
+	LD   R@0,X+
+	LD   R@1,X
+	.ENDM
+
+	.MACRO __LSLW8SX
+	MOVW R30,R28
+	SUBI R30,LOW(-@0)
+	SBCI R31,HIGH(-@0)
+	LD   R31,Z
+	CLR  R30
+	.ENDM
+
+	.MACRO __PUTB1SX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1SX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1SX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	ST   X+,R30
+	ST   X+,R31
+	ST   X+,R22
+	ST   X,R23
+	.ENDM
+
+	.MACRO __CLRW1SX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	ST   X+,R30
+	ST   X,R30
+	.ENDM
+
+	.MACRO __CLRD1SX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	ST   X+,R30
+	ST   X+,R30
+	ST   X+,R30
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTB2SX
+	MOVW R30,R28
+	SUBI R30,LOW(-@0)
+	SBCI R31,HIGH(-@0)
+	ST   Z,R26
+	.ENDM
+
+	.MACRO __PUTW2SX
+	MOVW R30,R28
+	SUBI R30,LOW(-@0)
+	SBCI R31,HIGH(-@0)
+	ST   Z+,R26
+	ST   Z,R27
+	.ENDM
+
+	.MACRO __PUTD2SX
+	MOVW R30,R28
+	SUBI R30,LOW(-@0)
+	SBCI R31,HIGH(-@0)
+	ST   Z+,R26
+	ST   Z+,R27
+	ST   Z+,R24
+	ST   Z,R25
+	.ENDM
+
+	.MACRO __PUTBSRX
+	MOVW R30,R28
+	SUBI R30,LOW(-@1)
+	SBCI R31,HIGH(-@1)
+	ST   Z,R@0
+	.ENDM
+
+	.MACRO __PUTWSRX
+	MOVW R30,R28
+	SUBI R30,LOW(-@2)
+	SBCI R31,HIGH(-@2)
+	ST   Z+,R@0
+	ST   Z,R@1
+	.ENDM
+
+	.MACRO __PUTB1SNX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	LD   R0,X+
+	LD   R27,X
+	MOV  R26,R0
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	ST   X,R30
+	.ENDM
+
+	.MACRO __PUTW1SNX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	LD   R0,X+
+	LD   R27,X
+	MOV  R26,R0
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	ST   X+,R30
+	ST   X,R31
+	.ENDM
+
+	.MACRO __PUTD1SNX
+	MOVW R26,R28
+	SUBI R26,LOW(-@0)
+	SBCI R27,HIGH(-@0)
+	LD   R0,X+
+	LD   R27,X
+	MOV  R26,R0
+	SUBI R26,LOW(-@1)
+	SBCI R27,HIGH(-@1)
+	ST   X+,R30
+	ST   X+,R31
+	ST   X+,R22
+	ST   X,R23
+	.ENDM
+
+	.MACRO __MULBRR
+	MULS R@0,R@1
+	MOVW R30,R0
+	.ENDM
+
+	.MACRO __MULBRRU
+	MUL  R@0,R@1
+	MOVW R30,R0
+	.ENDM
+
+	.MACRO __MULBRR0
+	MULS R@0,R@1
+	.ENDM
+
+	.MACRO __MULBRRU0
+	MUL  R@0,R@1
+	.ENDM
+
+	.MACRO __MULBNWRU
+	LDI  R26,@2
+	MUL  R26,R@0
+	MOVW R30,R0
+	MUL  R26,R@1
+	ADD  R31,R0
+	.ENDM
+
+;NAME DEFINITIONS FOR GLOBAL VARIABLES ALLOCATED TO REGISTERS
+	.DEF _rx_wr_index1=R5
+	.DEF _rx_rd_index1=R4
+	.DEF _rx_counter1=R7
+	.DEF _Error1=R6
+	.DEF _Error2=R9
+	.DEF _KP=R10
+	.DEF _KI=R12
+	.DEF _lError=R8
+
+	.CSEG
+	.ORG 0x00
+
+;START OF CODE MARKER
+__START_OF_CODE:
+
+;INTERRUPT VECTORS
+	JMP  __RESET
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  _ext_int6_isr
+	JMP  _ext_int7_isr
+	JMP  _timer2_comp_isr
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  _timer3_compc_isr
+	JMP  0x00
+	JMP  _usart1_rx_isr
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+	JMP  0x00
+
+_Melodi:
+	.DB  0x4F,0xA,0x4F,0xA,0x0,0x0,0x4F,0xA
+	.DB  0x0,0x0,0x2D,0x8,0x4F,0xA,0x0,0x0
+	.DB  0x40,0xC,0x0,0x0,0x0,0x0,0x0,0x0
+	.DB  0x20,0x6,0x0,0x0,0x0,0x0,0x0,0x0
+	.DB  0x2D,0x8,0x0,0x0,0x0,0x0,0x20,0x6
+	.DB  0x0,0x0,0x0,0x0,0x26,0x5,0x0,0x0
+	.DB  0x0,0x0,0xE0,0x6,0x0,0x0,0xB7,0x7
+	.DB  0x0,0x0,0x48,0x7,0xE0,0x6,0x0,0x0
+	.DB  0x20,0x6,0x4F,0xA,0x40,0xC,0xC0,0xD
+	.DB  0x0,0x0,0xE9,0xA,0x40,0xC,0x0,0x0
+	.DB  0x4F,0xA,0x0,0x0,0x2D,0x8,0x2D,0x9
+	.DB  0xB7,0x7,0x0,0x0,0x0,0x0,0x2D,0x8
+	.DB  0x0,0x0,0x0,0x0,0x20,0x6,0x0,0x0
+	.DB  0x0,0x0,0x26,0x5,0x0,0x0,0x0,0x0
+	.DB  0xE0,0x6,0x0,0x0,0xB7,0x7,0x0,0x0
+	.DB  0x48,0x7,0xE0,0x6,0x0,0x0,0x20,0x6
+	.DB  0x4F,0xA,0x40,0xC,0xC0,0xD,0x0,0x0
+	.DB  0xE9,0xA,0x40,0xC,0x0,0x0,0x4F,0xA
+	.DB  0x0,0x0,0x2D,0x8,0x2D,0x9,0xB7,0x7
+	.DB  0x0,0x0,0x0,0x0
+_Tempo:
+	.DB  0x96,0x96,0x96,0x96,0x96,0x96,0x96,0x96
+	.DB  0x96,0x96,0x96,0x96,0x96,0x96,0x96,0x96
+	.DB  0x96,0x96,0x96,0x96,0x96,0x96,0x96,0x96
+	.DB  0x96,0x96,0x96,0x96,0x96,0x96,0x96,0x96
+	.DB  0xAF,0xAF,0xAF,0x78,0x96,0x96,0x96,0x96
+	.DB  0x96,0x96,0x96,0x96,0x96,0x96,0x96,0x96
+	.DB  0x96,0x96,0x96,0x96,0x96,0x96,0x96,0x96
+	.DB  0x96,0x96,0x96,0x96,0x96,0x96,0x96,0xAF
+	.DB  0xAF,0xAF,0x78,0x96,0x96,0x96,0x96,0x96
+	.DB  0x96,0x96,0x96,0x96,0x96,0x96
+
+;REGISTER BIT VARIABLES INITIALIZATION
+__REG_BIT_VARS:
+	.DW  0x0000
+
+_0x3:
+	.DB  0x0,0x0,0x80,0x3F
+_0xEB:
+	.DB  0x0
+_0x0:
+	.DB  0x4B,0x61,0x6C,0x69,0x62,0x72,0x61,0x73
+	.DB  0x69,0x20,0x53,0x65,0x6E,0x73,0x6F,0x72
+	.DB  0x0,0x53,0x65,0x6C,0x65,0x73,0x61,0x69
+	.DB  0x20,0x3E,0x3E,0x3E,0x3E,0x3E,0x3E,0x3E
+	.DB  0x3E,0x0,0x44,0x69,0x68,0x65,0x6E,0x74
+	.DB  0x69,0x6B,0x61,0x6E,0x20,0x3E,0x3E,0x3E
+	.DB  0x3E,0x3E,0x0,0x4D,0x65,0x72,0x61,0x68
+	.DB  0x2D,0x48,0x69,0x6A,0x61,0x75,0x2D,0x42
+	.DB  0x69,0x72,0x75,0x0,0x31,0x2E,0x57,0x61
+	.DB  0x72,0x6E,0x61,0x20,0x4D,0x65,0x72,0x61
+	.DB  0x68,0x20,0x3E,0x3E,0x0,0x54,0x65,0x6B
+	.DB  0x61,0x6E,0x20,0x54,0x6F,0x6D,0x62,0x6F
+	.DB  0x6C,0x20,0x31,0x3C,0x3C,0x0,0x32,0x2E
+	.DB  0x57,0x61,0x72,0x6E,0x61,0x20,0x48,0x69
+	.DB  0x6A,0x61,0x75,0x20,0x3E,0x3E,0x0,0x33
+	.DB  0x2E,0x57,0x61,0x72,0x6E,0x61,0x20,0x42
+	.DB  0x69,0x72,0x75,0x20,0x3E,0x3E,0x3E,0x0
+	.DB  0x34,0x2E,0x57,0x61,0x72,0x6E,0x61,0x20
+	.DB  0x48,0x69,0x74,0x61,0x6D,0x20,0x3E,0x3E
+	.DB  0x0,0x54,0x69,0x6D,0x65,0x4F,0x75,0x74
+	.DB  0x0
+_0x2020060:
+	.DB  0x1
+_0x2020000:
+	.DB  0x2D,0x4E,0x41,0x4E,0x0,0x49,0x4E,0x46
+	.DB  0x0
+
+__GLOBAL_INI_TBL:
+	.DW  0x01
+	.DW  0x02
+	.DD  __REG_BIT_VARS*2
+
+	.DW  0x04
+	.DW  _q0
+	.DD  _0x3*2
+
+	.DW  0x01
+	.DW  0x08
+	.DD  _0xEB*2
+
+	.DW  0x01
+	.DW  __seed_G101
+	.DD  _0x2020060*2
+
+_0xFFFFFFFF:
+	.DW  0
+
+__RESET:
+	CLI
+	CLR  R30
+	OUT  EECR,R30
+
+;INTERRUPT VECTORS ARE PLACED
+;AT THE START OF FLASH
+	LDI  R31,1
+	OUT  MCUCR,R31
+	OUT  MCUCR,R30
+	STS  XMCRB,R30
+
+;DISABLE WATCHDOG
+	LDI  R31,0x18
+	OUT  WDTCR,R31
+	OUT  WDTCR,R30
+
+;CLEAR R2-R14
+	LDI  R24,(14-2)+1
+	LDI  R26,2
+	CLR  R27
+__CLEAR_REG:
+	ST   X+,R30
+	DEC  R24
+	BRNE __CLEAR_REG
+
+;CLEAR SRAM
+	LDI  R24,LOW(__CLEAR_SRAM_SIZE)
+	LDI  R25,HIGH(__CLEAR_SRAM_SIZE)
+	LDI  R26,LOW(__SRAM_START)
+	LDI  R27,HIGH(__SRAM_START)
+__CLEAR_SRAM:
+	ST   X+,R30
+	SBIW R24,1
+	BRNE __CLEAR_SRAM
+
+;GLOBAL VARIABLES INITIALIZATION
+	LDI  R30,LOW(__GLOBAL_INI_TBL*2)
+	LDI  R31,HIGH(__GLOBAL_INI_TBL*2)
+	LDI  R29,BYTE3(__GLOBAL_INI_TBL*2)
+__GLOBAL_INI_NEXT:
+	OUT  RAMPZ,R29
+	ELPM R24,Z+
+	ELPM R25,Z+
+	SBIW R24,0
+	BREQ __GLOBAL_INI_END
+	ELPM R26,Z+
+	ELPM R27,Z+
+	ELPM R0,Z+
+	ELPM R1,Z+
+	ELPM R28,Z+
+	ELPM R29,Z+
+	MOVW R22,R30
+	IN   R29,RAMPZ
+	MOVW R30,R0
+	OUT  RAMPZ,R28
+__GLOBAL_INI_LOOP:
+	ELPM R0,Z+
+	ST   X+,R0
+	SBIW R24,1
+	BRNE __GLOBAL_INI_LOOP
+	MOVW R30,R22
+	RJMP __GLOBAL_INI_NEXT
+__GLOBAL_INI_END:
+
+;HARDWARE STACK POINTER INITIALIZATION
+	LDI  R30,LOW(__SRAM_END-__HEAP_SIZE)
+	OUT  SPL,R30
+	LDI  R30,HIGH(__SRAM_END-__HEAP_SIZE)
+	OUT  SPH,R30
+
+;DATA STACK POINTER INITIALIZATION
+	LDI  R28,LOW(__SRAM_START+__DSTACK_SIZE)
+	LDI  R29,HIGH(__SRAM_START+__DSTACK_SIZE)
+
+	JMP  _main
+
+	.ESEG
+	.ORG 0
+
+	.DSEG
+	.ORG 0x900
+
+	.CSEG
+;/*****************************************************
+;This program was produced by the
+;CodeWizardAVR V1.24.8d Professional
+;Automatic Program Generator
+;© Copyright 1998-2006 Pavel Haiduc, HP InfoTech s.r.l.
+;http://www.hpinfotech.com
+;
+;Project : ADROIT AVR Rev.3
+;Version : 1
+;Date    : 3/13/2014
+;Author  : Eko Henfri Binugroho
+;Company : ER2C
+;Comments:
+;Proc: ATMega128 @ 16MHz
+;
+;
+;Chip type           : ATmega128
+;Program type        : Application
+;Clock frequency     : 16,000000 MHz
+;Memory model        : Small
+;External SRAM size  : 0
+;Data Stack size     : 1024
+;*****************************************************/
+;
+;#include <mega128.h>
+	#ifndef __SLEEP_DEFINED__
+	#define __SLEEP_DEFINED__
+	.EQU __se_bit=0x20
+	.EQU __sm_mask=0x1C
+	.EQU __sm_powerdown=0x10
+	.EQU __sm_powersave=0x18
+	.EQU __sm_standby=0x14
+	.EQU __sm_ext_standby=0x1C
+	.EQU __sm_adc_noise_red=0x08
+	.SET power_ctrl_reg=mcucr
+	#endif
+;#include <delay.h>
+;#include <mem.h>
+;#include <math.h>
+;#include "Include/myMPU6050.h"
+;#include "Include/myGlobalVars.h"
+;#include "Include/myI2C.h"
+;
+;//  --------------  DEKLARASI VARIABEL GLOBAL --------------------------
+;    signed int     Enkoder1, Enkoder2;
+;    unsigned int   ServoCounter;
+;
+;    #if UseServo5 ==1
+;        unsigned char dServo5;
+;    #endif
+;    #if UseServo1 ==1
+;        unsigned char dServo1;
+;    #endif
+;    #if UseServo2 ==1
+;        unsigned char dServo2;
+;    #endif
+;    #if UseServo3 ==1
+;        unsigned char dServo3;
+;    #endif
+;    #if UseServo4 ==1
+;        unsigned char dServo4;
+;    #endif
+;
+;    signed char      dSpeed1, dSpeed2;
+;    unsigned char    SysTick=0, dCounter1, dCounter2;
+;    signed char      dMotor1, dMotor2;
+;
+;
+;    #if UseIMU == 1                 // jika IMU diaktifkan
+;        #if UseMahonyFilter == 1    // jika Algoritma Mahony digunakan
+;            volatile float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;
+
+	.DSEG
+;            volatile float Roll, Pitch, Yaw;
+;        #endif
+;        volatile float Axg=0, Ayg=0, Azg=0, Gxrs=0, Gyrs=0, Gzrs=0;
+;    #endif
+;
+;
+;
+;// protokol untuk sensor garis terbagi atas:
+;// 4 bit identifikasi perintah (bit 4-7)
+;// 4 bit identifikasi alamat sensor (bit 0-3) --> Alamat Sensor bernilai antara 0-15
+;
+;#define pBacaSensorRGB  (unsigned char) 0B01110000
+;#define pBacaSensorRG   (unsigned char) 0B01100000
+;#define pBacaSensorRB   (unsigned char) 0B01010000
+;#define pBacaSensorGB   (unsigned char) 0B00110000
+;#define pBacaSensorR    (unsigned char) 0B01000000
+;#define pBacaSensorG    (unsigned char) 0B00100000
+;#define pBacaSensorB    (unsigned char) 0B00010000
+;#define pKalibrasiRGB   (unsigned char) 0B11110000
+;#define pKalibrasiRB    (unsigned char) 0B11010000
+;#define pKalibrasiRG    (unsigned char) 0B11100000
+;#define pKalibrasiHPR   (unsigned char) 0B11000000
+;#define pKalibrasiHPG   (unsigned char) 0B10100000
+;#define pKalibrasiHPB   (unsigned char) 0B10010000
+;#define pError          (unsigned char) 0B00000000
+;
+;
+;// Definisi Port LCD
+;#define LCD_PORT        PORTA
+;#define LCD_RS          PORTA.0
+;#define LCD_RW          PORTA.1
+;#define LCD_EN          PORTA.2
+;#define LCD_BL          PORTA.3
+;bit LCD_BackLight;
+;
+;// Definisi Port Servo
+;#define P_Servo1        PORTD.4
+;#define P_Servo2        PORTD.5
+;#define P_Servo3        PORTD.6
+;#define P_Servo4        PORTD.7
+;#define P_Servo1_4T     PORTD
+;#define P_Servo1_4B     PIND
+;
+;#define P_Servo5        PORTB.3
+;#define P_Servo6        PORTB.5 // OCR1A
+;#define P_Servo7        PORTB.6 // OCR1B
+;#define P_Servo8        PORTB.7 // OCR1C
+;
+;
+;// Definisi Port Push Button
+;#define PB1             PINC.3
+;#define PB2             PINC.2
+;#define PB3             PINC.1
+;#define PB4             PINC.0
+;
+;// Definisi Port LED
+;#define LED1            PORTC.4
+;#define LED2            PORTC.5
+;#define LED3            PORTC.6
+;#define LED4            PORTC.7
+;
+;// Definisi Port Motor
+;#define PwmM1H          OCR3BH
+;#define PwmM1L          OCR3BL
+;#define DirM1           PORTE.5
+;#define PwmM2H          OCR3AH
+;#define PwmM2L          OCR3AL
+;#define DirM2           PORTE.2
+;
+;// Definisi Port Enkoder Motor
+;#define P_Enkoder1A     PINE.6 //INT6
+;#define P_Enkoder1B     PINB.0
+;#define P_Enkoder2A     PINE.7 //INT7
+;#define P_Enkoder2B     PINB.2
+;
+;// Definisi Port Mode
+;#define MODE            PING
+;#define MODE1           ((PING & 16)==0 ? 0:1)
+;#define MODE2           ((PING & 4) ==0 ? 0:1)
+;#define MODE3           ((PING & 2) ==0 ? 0:1)
+;#define MODE4           ((PING & 1) ==0 ? 0:1)
+;
+;// Definisi Nada Buzzer
+;#define C4 261
+;#define CS4 277
+;#define D4 293
+;#define DS4 311
+;#define E4 329
+;#define F4 349
+;#define FS4 370
+;#define G4 392
+;#define GS4 415
+;#define A4 440
+;#define AS4 466
+;#define B4 494
+;
+;#define C5 523
+;#define CS5 554
+;#define D5 587
+;#define DS5 622
+;#define E5 659
+;#define F5 698
+;#define FS5 740
+;#define G5 783
+;#define GS5 830
+;#define A5 880
+;#define AS5 932
+;#define B5 987
+;
+;#define C6 1046
+;#define CS6 1109
+;#define D6 1174
+;#define DS6 1244
+;#define E6 1318
+;#define F6 1370
+;#define FS6 1480
+;#define G6 1568
+;#define GS6 1661
+;#define A6 1760
+;#define AS6 1864
+;#define B6 1975
+;
+;#define C7 2093
+;#define CS7 2217
+;#define D7 2349
+;#define DS7 2489
+;#define E7 2639
+;#define F7 2793
+;#define FS7 2960
+;#define G7 3136
+;#define GS7 3322
+;#define A7 3520
+;#define AS7 3729
+;#define B7 3951
+;
+;//Super Mario --> 78 Nada
+;int flash Melodi[] = {
+;  E7, E7,  0, E7, 0, C7, E7, 0, G7,  0,  0,  0, G6,  0,  0, 0,
+;  C7,  0,  0, G6, 0,  0, E6, 0,  0, A6,  0, B6,  0,AS6, A6, 0,
+;  G6, E7, G7, A7, 0, F7, G7, 0, E7,  0, C7, D7, B6,  0,  0,
+;  C7,  0,  0, G6, 0,  0, E6, 0,  0, A6,  0, B6,  0,AS6, A6, 0,
+;  G6, E7, G7, A7, 0, F7, G7, 0, E7,  0, C7, D7, B6,  0,  0};
+;
+;unsigned char flash Tempo[] = {
+;  150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,
+;  150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,
+;  175,175,175,120,150,150,150,150,150,150,150,150,150,150,150,
+;  150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,
+;  175,175,175,120,150,150,150,150,150,150,150,150,150,150,150};
+;
+;#define JumlahNada  78
+;
+;#define dServo6 OCR1A
+;#define dServo7 OCR1B
+;#define M1_CW   (DirM1 = 0)
+;#define M1_CCW  (DirM1 = 1)
+;#define M2_CCW  (DirM2 = 1)
+;#define M2_CW   (DirM2 = 0)
+;#define ByteL(a)    ((unsigned char) (a))
+;#define ByteH(a)    ((unsigned char) (((unsigned int) (a)) >> 8))
+;
+;
+;bit LaguOn=0;
+;bit PIDMotorOn=0;
+;bit FlagSerial=0;
+;
+;#define BacadServo8   peekw(&OCR1CL)
+;#define BacaPwmM1     peekw(&OCR3BL)
+;#define BacaPwmM2     peekw(&OCR3AL)
+;
+;#define RXB8 1
+;#define TXB8 0
+;#define UPE 2
+;#define OVR 3
+;#define FE 4
+;#define UDRE 5
+;#define RXC 7
+;
+;#define FRAMING_ERROR (1<<FE)
+;#define PARITY_ERROR (1<<UPE)
+;#define DATA_OVERRUN (1<<OVR)
+;#define DATA_REGISTER_EMPTY (1<<UDRE)
+;#define RX_COMPLETE (1<<RXC)
+;
+;// USART1 Receiver buffer
+;#define RX_BUFFER_SIZE1 8
+;char rx_buffer1[RX_BUFFER_SIZE1];
+;
+;#if RX_BUFFER_SIZE1<256
+;unsigned char rx_wr_index1,rx_rd_index1,rx_counter1;
+;#else
+;unsigned int rx_wr_index1,rx_rd_index1,rx_counter1;
+;#endif
+;
+;// This flag is set on USART1 Receiver buffer overflow
+;bit rx_buffer_overflow1;
+;
+;// USART1 Receiver interrupt service routine
+;interrupt [USART1_RXC] void usart1_rx_isr(void)
+; 0000 0104 {
+
+	.CSEG
+_usart1_rx_isr:
+	ST   -Y,R30
+	ST   -Y,R31
+	IN   R30,SREG
+	ST   -Y,R30
+; 0000 0105 char status;
+; 0000 0106 unsigned char data;
+; 0000 0107 
+; 0000 0108 status=UCSR1A;
+	ST   -Y,R17
+	ST   -Y,R16
+;	status -> R17
+;	data -> R16
+	LDS  R17,155
+; 0000 0109 data=UDR1;
+	LDS  R16,156
+; 0000 010A if ((status & (FRAMING_ERROR | PARITY_ERROR | DATA_OVERRUN))==0)
+	MOV  R30,R17
+	ANDI R30,LOW(0x1C)
+	BRNE _0x4
+; 0000 010B    {
+; 0000 010C    rx_buffer1[rx_wr_index1]=data;
+	MOV  R30,R5
+	LDI  R31,0
+	SUBI R30,LOW(-_rx_buffer1)
+	SBCI R31,HIGH(-_rx_buffer1)
+	ST   Z,R16
+; 0000 010D    if (++rx_wr_index1 == RX_BUFFER_SIZE1) rx_wr_index1=0;
+	INC  R5
+	LDI  R30,LOW(8)
+	CP   R30,R5
+	BRNE _0x5
+	CLR  R5
+; 0000 010E    if (++rx_counter1 == RX_BUFFER_SIZE1)
+_0x5:
+	INC  R7
+	LDI  R30,LOW(8)
+	CP   R30,R7
+	BRNE _0x6
+; 0000 010F       {
+; 0000 0110       rx_counter1=0;
+	CLR  R7
+; 0000 0111       rx_buffer_overflow1=1;
+	SET
+	BLD  R2,4
+; 0000 0112       };
+_0x6:
+; 0000 0113    };
+_0x4:
+; 0000 0114 }
+	LD   R16,Y+
+	LD   R17,Y+
+	LD   R30,Y+
+	OUT  SREG,R30
+	LD   R31,Y+
+	LD   R30,Y+
+	RETI
+;
+;// Get a character from the USART1 Receiver buffer
+;#pragma used+
+;
+;// rutin membaca data dari port serial 1 dilengkapi dengan fungsi time out
+;// data gagal diterima apa bila nilai FlagSerial = 0
+;unsigned char BacaSerial1(unsigned int TimeOut)
+; 0000 011C {   unsigned int i;
+_BacaSerial1:
+; 0000 011D     unsigned char data;
+; 0000 011E     FlagSerial = 0;
+	CALL __SAVELOCR4
+;	TimeOut -> Y+4
+;	i -> R16,R17
+;	data -> R19
+	CLT
+	BLD  R2,3
+; 0000 011F     for(i=0;i<TimeOut;i++)
+	__GETWRN 16,17,0
+_0x8:
+	LDD  R30,Y+4
+	LDD  R31,Y+4+1
+	CP   R16,R30
+	CPC  R17,R31
+	BRSH _0x9
+; 0000 0120     {   if (rx_counter1!=0)
+	TST  R7
+	BREQ _0xA
+; 0000 0121         {   FlagSerial = 1;
+	SET
+	BLD  R2,3
+; 0000 0122             data=rx_buffer1[rx_rd_index1];
+	MOV  R30,R4
+	LDI  R31,0
+	SUBI R30,LOW(-_rx_buffer1)
+	SBCI R31,HIGH(-_rx_buffer1)
+	LD   R19,Z
+; 0000 0123             if (++rx_rd_index1 == RX_BUFFER_SIZE1) rx_rd_index1=0;
+	INC  R4
+	LDI  R30,LOW(8)
+	CP   R30,R4
+	BRNE _0xB
+	CLR  R4
+; 0000 0124             #asm("cli") --rx_counter1;  #asm("sei")
+_0xB:
+	cli
+	DEC  R7
+	sei
+; 0000 0125             return data;
+	MOV  R30,R19
+	RJMP _0x208000E
+; 0000 0126             break;
+; 0000 0127         }
+; 0000 0128         delay_us(1);
+_0xA:
+	__DELAY_USB 5
+; 0000 0129     }
+	__ADDWRN 16,17,1
+	RJMP _0x8
+_0x9:
+; 0000 012A     return 0;
+	LDI  R30,LOW(0)
+_0x208000E:
+	CALL __LOADLOCR4
+	ADIW R28,6
+	RET
+; 0000 012B }
+;
+;unsigned char getchar1(void)
+; 0000 012E {   unsigned char data;
+; 0000 012F     data=rx_buffer1[rx_rd_index1];
+;	data -> R17
+; 0000 0130     if (++rx_rd_index1 == RX_BUFFER_SIZE1) rx_rd_index1=0;
+; 0000 0131     #asm("cli") --rx_counter1;  #asm("sei")
+; 0000 0132     return data;
+; 0000 0133 }
+;#pragma used-
+;// Write a character to the USART1 Transmitter
+;#pragma used+
+;void putchar1(char c)
+; 0000 0138 {   while ((UCSR1A & DATA_REGISTER_EMPTY)==0);
+_putchar1:
+;	c -> Y+0
+_0xD:
+	LDS  R30,155
+	ANDI R30,LOW(0x20)
+	BREQ _0xD
+; 0000 0139     UDR1=c;
+	LD   R30,Y
+	STS  156,R30
+; 0000 013A }
+	JMP  _0x208000C
+;#pragma used-
+;
+;
+;// Rotari Enkoder Motor 1
+;interrupt [EXT_INT6] void ext_int6_isr(void)
+; 0000 0140 { if(P_Enkoder1A)
+_ext_int6_isr:
+	ST   -Y,R26
+	ST   -Y,R27
+	ST   -Y,R30
+	ST   -Y,R31
+	IN   R30,SREG
+	ST   -Y,R30
+	SBIS 0x1,6
+	RJMP _0x10
+; 0000 0141   {  if(P_Enkoder1B) {#asm("cli")  Enkoder1++; #asm("sei")}
+	SBIS 0x16,0
+	RJMP _0x11
+	cli
+	LDI  R26,LOW(_Enkoder1)
+	LDI  R27,HIGH(_Enkoder1)
+	LD   R30,X+
+	LD   R31,X+
+	ADIW R30,1
+	ST   -X,R31
+	ST   -X,R30
+	sei
+; 0000 0142      else            {#asm("cli")  Enkoder1--; #asm("sei")}
+	RJMP _0x12
+_0x11:
+	cli
+	LDI  R26,LOW(_Enkoder1)
+	LDI  R27,HIGH(_Enkoder1)
+	LD   R30,X+
+	LD   R31,X+
+	SBIW R30,1
+	ST   -X,R31
+	ST   -X,R30
+	sei
+_0x12:
+; 0000 0143   }
+; 0000 0144   else
+	RJMP _0x13
+_0x10:
+; 0000 0145   {  if(P_Enkoder1B) {#asm("cli")  Enkoder1--; #asm("sei")}
+	SBIS 0x16,0
+	RJMP _0x14
+	cli
+	LDI  R26,LOW(_Enkoder1)
+	LDI  R27,HIGH(_Enkoder1)
+	LD   R30,X+
+	LD   R31,X+
+	SBIW R30,1
+	ST   -X,R31
+	ST   -X,R30
+	sei
+; 0000 0146      else            {#asm("cli")  Enkoder1++; #asm("sei")}
+	RJMP _0x15
+_0x14:
+	cli
+	LDI  R26,LOW(_Enkoder1)
+	LDI  R27,HIGH(_Enkoder1)
+	LD   R30,X+
+	LD   R31,X+
+	ADIW R30,1
+	ST   -X,R31
+	ST   -X,R30
+	sei
+_0x15:
+; 0000 0147   }
+_0x13:
+; 0000 0148   dCounter1++;
+	LDS  R30,_dCounter1
+	SUBI R30,-LOW(1)
+	STS  _dCounter1,R30
+; 0000 0149 }
+	LD   R30,Y+
+	OUT  SREG,R30
+	LD   R31,Y+
+	LD   R30,Y+
+	LD   R27,Y+
+	LD   R26,Y+
+	RETI
+;
+;// Rotari Enkoder Motor 2
+;interrupt [EXT_INT7] void ext_int7_isr(void)
+; 0000 014D { if(P_Enkoder2A)
+_ext_int7_isr:
+	ST   -Y,R26
+	ST   -Y,R27
+	ST   -Y,R30
+	ST   -Y,R31
+	IN   R30,SREG
+	ST   -Y,R30
+	SBIS 0x1,7
+	RJMP _0x16
+; 0000 014E   {  if(P_Enkoder2B) {#asm("cli")  Enkoder2--; #asm("sei")}
+	SBIS 0x16,2
+	RJMP _0x17
+	cli
+	LDI  R26,LOW(_Enkoder2)
+	LDI  R27,HIGH(_Enkoder2)
+	LD   R30,X+
+	LD   R31,X+
+	SBIW R30,1
+	ST   -X,R31
+	ST   -X,R30
+	sei
+; 0000 014F      else            {#asm("cli")  Enkoder2++; #asm("sei")}
+	RJMP _0x18
+_0x17:
+	cli
+	LDI  R26,LOW(_Enkoder2)
+	LDI  R27,HIGH(_Enkoder2)
+	LD   R30,X+
+	LD   R31,X+
+	ADIW R30,1
+	ST   -X,R31
+	ST   -X,R30
+	sei
+_0x18:
+; 0000 0150   }
+; 0000 0151   else
+	RJMP _0x19
+_0x16:
+; 0000 0152   {  if(P_Enkoder2B) {#asm("cli")  Enkoder2++; #asm("sei")}
+	SBIS 0x16,2
+	RJMP _0x1A
+	cli
+	LDI  R26,LOW(_Enkoder2)
+	LDI  R27,HIGH(_Enkoder2)
+	LD   R30,X+
+	LD   R31,X+
+	ADIW R30,1
+	ST   -X,R31
+	ST   -X,R30
+	sei
+; 0000 0153      else            {#asm("cli")  Enkoder2--; #asm("sei")}
+	RJMP _0x1B
+_0x1A:
+	cli
+	LDI  R26,LOW(_Enkoder2)
+	LDI  R27,HIGH(_Enkoder2)
+	LD   R30,X+
+	LD   R31,X+
+	SBIW R30,1
+	ST   -X,R31
+	ST   -X,R30
+	sei
+_0x1B:
+; 0000 0154   }
+_0x19:
+; 0000 0155   dCounter2++;
+	LDS  R30,_dCounter2
+	SUBI R30,-LOW(1)
+	STS  _dCounter2,R30
+; 0000 0156 }
+	LD   R30,Y+
+	OUT  SREG,R30
+	LD   R31,Y+
+	LD   R30,Y+
+	LD   R27,Y+
+	LD   R26,Y+
+	RETI
+;
+;
+;// Interupsi dengan frekwensi 40KHz -- Timer 3 output compare C interrupt service routine
+;interrupt [TIM3_COMPC] void timer3_compc_isr(void)
+; 0000 015B {  if (++ServoCounter<=80)      // data servo maksimalnya adalah 80 dari 800
+_timer3_compc_isr:
+	ST   -Y,R26
+	ST   -Y,R27
+	ST   -Y,R30
+	ST   -Y,R31
+	IN   R30,SREG
+	ST   -Y,R30
+	LDI  R26,LOW(_ServoCounter)
+	LDI  R27,HIGH(_ServoCounter)
+	LD   R30,X+
+	LD   R31,X+
+	ADIW R30,1
+	ST   -X,R31
+	ST   -X,R30
+	CPI  R30,LOW(0x51)
+	LDI  R26,HIGH(0x51)
+	CPC  R31,R26
+	BRSH _0x1C
+; 0000 015C    {    if ((unsigned char)ServoCounter==dServo1) {P_Servo1=0;}
+	LDS  R30,_dServo1
+	LDS  R26,_ServoCounter
+	CP   R30,R26
+	BRNE _0x1D
+	CBI  0x12,4
+; 0000 015D         if ((unsigned char)ServoCounter==dServo2) {P_Servo2=0;}
+_0x1D:
+	LDS  R30,_dServo2
+	LDS  R26,_ServoCounter
+	CP   R30,R26
+	BRNE _0x20
+	CBI  0x12,5
+; 0000 015E         if ((unsigned char)ServoCounter==dServo3) {P_Servo3=0;}
+_0x20:
+	LDS  R30,_dServo3
+	LDS  R26,_ServoCounter
+	CP   R30,R26
+	BRNE _0x23
+	CBI  0x12,6
+; 0000 015F         if ((unsigned char)ServoCounter==dServo4) {P_Servo4=0;}
+_0x23:
+	LDS  R30,_dServo4
+	LDS  R26,_ServoCounter
+	CP   R30,R26
+	BRNE _0x26
+	CBI  0x12,7
+; 0000 0160         if ((unsigned char)ServoCounter==dServo5) {P_Servo5=0;}
+_0x26:
+	LDS  R30,_dServo5
+	LDS  R26,_ServoCounter
+	CP   R30,R26
+	BRNE _0x29
+	CBI  0x18,3
+; 0000 0161    }
+_0x29:
+; 0000 0162    else if (ServoCounter>800)
+	RJMP _0x2C
+_0x1C:
+	LDS  R26,_ServoCounter
+	LDS  R27,_ServoCounter+1
+	CPI  R26,LOW(0x321)
+	LDI  R30,HIGH(0x321)
+	CPC  R27,R30
+	BRLO _0x2D
+; 0000 0163    {    ServoCounter = 0;
+	LDI  R30,LOW(0)
+	STS  _ServoCounter,R30
+	STS  _ServoCounter+1,R30
+; 0000 0164         //P_Servo1_4T = P_Servo1_4B | 0xF0;
+; 0000 0165         P_Servo1 = 1;    P_Servo2 = 1;    P_Servo3 = 1;    P_Servo4 = 1;
+	SBI  0x12,4
+	SBI  0x12,5
+	SBI  0x12,6
+	SBI  0x12,7
+; 0000 0166         P_Servo5 = 1;
+	SBI  0x18,3
+; 0000 0167    }
+; 0000 0168 }
+_0x2D:
+_0x2C:
+	LD   R30,Y+
+	OUT  SREG,R30
+	LD   R31,Y+
+	LD   R30,Y+
+	LD   R27,Y+
+	LD   R26,Y+
+	RETI
+;
+;// Fungsi LCD
+;#define DelayLCD    50
+;
+;#pragma used+
+;void LCD_Init_Cmd(unsigned char xData)
+; 0000 016F {   LCD_PORT =  0B00000100 | (xData & 0xF0);
+_LCD_Init_Cmd:
+;	xData -> Y+0
+	LD   R30,Y
+	ANDI R30,LOW(0xF0)
+	ORI  R30,4
+	OUT  0x1B,R30
+; 0000 0170     delay_us(1);        LCD_EN = 0;
+	__DELAY_USB 5
+	CBI  0x1B,2
+; 0000 0171 }
+	RJMP _0x208000C
+;void LCD_Perintah(unsigned char xData)
+; 0000 0173 {   //LCD_RS=0;   LCD_RW=0;   LCD_EN=1;
+_LCD_Perintah:
+; 0000 0174     LCD_RS=0;
+;	xData -> Y+0
+	CBI  0x1B,0
+; 0000 0175     LCD_PORT =  0B00001100 | (xData & 0xF0);
+	LD   R30,Y
+	ANDI R30,LOW(0xF0)
+	ORI  R30,LOW(0xC)
+	OUT  0x1B,R30
+; 0000 0176     delay_us(1);     LCD_EN = 0;
+	__DELAY_USB 5
+	CBI  0x1B,2
+; 0000 0177     delay_us(5);
+	__DELAY_USB 27
+; 0000 0178     LCD_PORT =  0B00001100 | (xData << 4);
+	LD   R30,Y
+	SWAP R30
+	ANDI R30,0xF0
+	ORI  R30,LOW(0xC)
+	OUT  0x1B,R30
+; 0000 0179     delay_us(1);     LCD_EN = 0;
+	__DELAY_USB 5
+	CBI  0x1B,2
+; 0000 017A     delay_us(700);
+	__DELAY_USW 2800
+; 0000 017B     LCD_EN = 1;
+	SBI  0x1B,2
+; 0000 017C }
+	RJMP _0x208000C
+;#pragma used-
+;#pragma used+
+;void LCD_Data(unsigned char xData)
+; 0000 0180 {   //LCD_RS=1;   LCD_RW=0;   LCD_EN=1;
+_LCD_Data:
+; 0000 0181     LCD_RS=1;
+;	xData -> Y+0
+	SBI  0x1B,0
+; 0000 0182     LCD_PORT =  0B00001101 | (xData & 0xF0);
+	LD   R30,Y
+	ANDI R30,LOW(0xF0)
+	ORI  R30,LOW(0xD)
+	OUT  0x1B,R30
+; 0000 0183     delay_us(1);     LCD_EN = 0;
+	__DELAY_USB 5
+	CBI  0x1B,2
+; 0000 0184     delay_us(5);
+	__DELAY_USB 27
+; 0000 0185     LCD_PORT =  0B00001101 | (xData << 4);
+	LD   R30,Y
+	SWAP R30
+	ANDI R30,0xF0
+	ORI  R30,LOW(0xD)
+	OUT  0x1B,R30
+; 0000 0186     delay_us(1);     LCD_EN = 0;
+	__DELAY_USB 5
+	CBI  0x1B,2
+; 0000 0187     delay_us(40);
+	__DELAY_USB 213
+; 0000 0188     LCD_EN = 1;
+	SBI  0x1B,2
+; 0000 0189 }
+	RJMP _0x208000C
+;#pragma used-
+;#pragma used+
+;void LCD_Init(void)
+; 0000 018D {   delay_ms(50);   LCD_Init_Cmd(0x30);
+_LCD_Init:
+	LDI  R30,LOW(50)
+	LDI  R31,HIGH(50)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _delay_ms
+	LDI  R30,LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Init_Cmd
+; 0000 018E     delay_ms(5);    LCD_Init_Cmd(0x30);
+	LDI  R30,LOW(5)
+	LDI  R31,HIGH(5)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _delay_ms
+	LDI  R30,LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Init_Cmd
+; 0000 018F     delay_ms(1);    LCD_Init_Cmd(0x30);
+	LDI  R30,LOW(1)
+	LDI  R31,HIGH(1)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _delay_ms
+	LDI  R30,LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Init_Cmd
+; 0000 0190     delay_ms(1);    LCD_Init_Cmd(0x20);
+	LDI  R30,LOW(1)
+	LDI  R31,HIGH(1)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _delay_ms
+	LDI  R30,LOW(32)
+	ST   -Y,R30
+	RCALL _LCD_Init_Cmd
+; 0000 0191     LCD_Perintah(0x28);         //4-bit/2-line
+	LDI  R30,LOW(40)
+	ST   -Y,R30
+	RCALL _LCD_Perintah
+; 0000 0192     LCD_Perintah(0x10);         // Set cursor
+	LDI  R30,LOW(16)
+	ST   -Y,R30
+	RCALL _LCD_Perintah
+; 0000 0193     LCD_Perintah(0x0c);         // Display ON; Cursor off
+	LDI  R30,LOW(12)
+	ST   -Y,R30
+	RCALL _LCD_Perintah
+; 0000 0194     LCD_Perintah(0x06);         // Entry mode =increment, no shift
+	LDI  R30,LOW(6)
+	ST   -Y,R30
+	RCALL _LCD_Perintah
+; 0000 0195     LCD_Perintah(0x01);         // Hapus layar
+	RJMP _0x208000D
+; 0000 0196 }
+;#pragma used-
+;#pragma used+
+;void LCD_GotoXY(unsigned char x, unsigned char y)
+; 0000 019A {   unsigned char baris;
+_LCD_GotoXY:
+; 0000 019B     if (y==0) LCD_Perintah(0x80 + x);          // baris 1 --> y=0
+	ST   -Y,R17
+;	x -> Y+2
+;	y -> Y+1
+;	baris -> R17
+	LDD  R30,Y+1
+	CPI  R30,0
+	BRNE _0x4A
+	LDD  R30,Y+2
+	SUBI R30,-LOW(128)
+	RJMP _0xE1
+; 0000 019C     else      LCD_Perintah(0x80 + x + 0x40);   // baris 2 --> y=1
+_0x4A:
+	LDD  R30,Y+2
+	SUBI R30,-LOW(192)
+_0xE1:
+	ST   -Y,R30
+	RCALL _LCD_Perintah
+; 0000 019D }
+	LDD  R17,Y+0
+	JMP  _0x2080007
+;#pragma used-
+;#pragma used+
+;void LCD_Text(unsigned char flash *text)        // menuliskan string ke LCD
+; 0000 01A1 {   while (*text!=0)
+_LCD_Text:
+;	*text -> Y+0
+_0x4C:
+	CALL __GETD1S0
+	__GETBRPF 30
+	CPI  R30,0
+	BREQ _0x4E
+; 0000 01A2     { LCD_Data(*text);text++;}
+	CALL __GETD1S0
+	__GETBRPF 30
+	ST   -Y,R30
+	RCALL _LCD_Data
+	MOVW R26,R28
+	CALL __GETD1P_INC
+	__ADDD1N 1
+	CALL __PUTDP1_DEC
+	__SUBD1N 1
+	RJMP _0x4C
+_0x4E:
+; 0000 01A3 }
+	JMP  _0x2080005
+;#pragma used-
+;#pragma used+
+;void LCD_Tulis(unsigned char Baris, unsigned char flash *text)        // menuliskan string ke LCD
+; 0000 01A7 {   LCD_GotoXY(0,Baris);LCD_Text(text);
+_LCD_Tulis:
+;	Baris -> Y+4
+;	*text -> Y+0
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	LDD  R30,Y+5
+	ST   -Y,R30
+	RCALL _LCD_GotoXY
+	CALL __GETD1S0
+	CALL __PUTPARD1
+	RCALL _LCD_Text
+; 0000 01A8 }
+	JMP  _0x2080008
+;#pragma used-
+;#pragma used-
+;#pragma used+
+;void LCD_Hapus(void)              // menghapus seluruh layar
+; 0000 01AD {   LCD_Perintah(0x01);
+_LCD_Hapus:
+_0x208000D:
+	LDI  R30,LOW(1)
+	ST   -Y,R30
+	RCALL _LCD_Perintah
+; 0000 01AE }
+	RET
+;#pragma used-
+;#pragma used+
+;void LCD_HapusBaris(unsigned char Baris)             // menghapus baris tabpa delay
+; 0000 01B2 {   unsigned char i;
+; 0000 01B3     LCD_GotoXY(0,Baris);
+;	Baris -> Y+1
+;	i -> R17
+; 0000 01B4     for(i=0;i<16;i++) LCD_Data(' ');
+; 0000 01B5 }
+;#pragma used-
+;#pragma used+
+;void LCD_HapusKiri(unsigned char Baris)     // menghapus layar dari arah kiri dgn delay pada(0=baris 1, 1=Baris 2)
+; 0000 01B9 {   unsigned char i;
+; 0000 01BA     LCD_GotoXY(0,Baris);
+;	Baris -> Y+1
+;	i -> R17
+; 0000 01BB     for(i=0;i<16;i++)   { LCD_Data(' '); delay_ms(DelayLCD);}
+; 0000 01BC }
+;#pragma used-
+;#pragma used+
+;void LCD_HapusKanan(unsigned char Baris)    // menghapus layar dari arah kanan dgn delay pada(0=baris 1, 1=Baris 2)
+; 0000 01C0 {   signed char i,j;
+; 0000 01C1     j = 0x80 + 0x40*Baris;
+;	Baris -> Y+2
+;	i -> R17
+;	j -> R16
+; 0000 01C2     for(i=15;i>-1;i--)
+; 0000 01C3     { LCD_Perintah (j+i);   LCD_Data(' '); delay_ms(DelayLCD);}
+; 0000 01C4 }
+;#pragma used-
+;#pragma used+
+;void LCD_TulisKiri(unsigned char Baris, unsigned char flash *text)    // menuliskan string dari arah kiri dgn delay pada (0=baris 1, 1=Baris 2)
+; 0000 01C8 {   unsigned char i;
+; 0000 01C9     LCD_GotoXY(0,Baris);
+;	Baris -> Y+5
+;	*text -> Y+1
+;	i -> R17
+; 0000 01CA     for(i=0;i<16;i++)
+; 0000 01CB     { LCD_Data(*(text+i)); delay_ms(DelayLCD);}
+; 0000 01CC }
+;#pragma used-
+;#pragma used+
+;void LCD_TulisKanan(unsigned char Baris, unsigned char flash *text)    // menuliskan string dari arah kanan dgn delay
+; 0000 01D0 {   signed char i,j;
+; 0000 01D1     j = 0x80 + 0x40*Baris;
+;	Baris -> Y+6
+;	*text -> Y+2
+;	i -> R17
+;	j -> R16
+; 0000 01D2     for(i=15;i>-1;i--)
+; 0000 01D3     { LCD_Perintah (j+i);   LCD_Data(*(text+i)); delay_ms(DelayLCD);}
+; 0000 01D4 }
+;#pragma used-
+;#pragma used+
+;void LCD_Angka4(int x)
+; 0000 01D8 {   if(x<0){ x*=-1;  LCD_Data('-');}
+_LCD_Angka4:
+;	x -> Y+0
+	LDD  R26,Y+1
+	TST  R26
+	BRPL _0x5E
+	LD   R30,Y
+	LDD  R31,Y+1
+	LDI  R26,LOW(65535)
+	LDI  R27,HIGH(65535)
+	CALL __MULW12
+	ST   Y,R30
+	STD  Y+1,R31
+	LDI  R30,LOW(45)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01D9     LCD_Data(x/1000+0x30);          // menulis ribuan
+_0x5E:
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDI  R30,LOW(1000)
+	LDI  R31,HIGH(1000)
+	CALL __DIVW21
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01DA     LCD_Data((x%1000)/100+0x30);    // menulis ratusan
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDI  R30,LOW(1000)
+	LDI  R31,HIGH(1000)
+	CALL __MODW21
+	MOVW R26,R30
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+	CALL __DIVW21
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01DB     LCD_Data((x%100)/10+0x30);      // menulis puluhan
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+	CALL __MODW21
+	MOVW R26,R30
+	LDI  R30,LOW(10)
+	LDI  R31,HIGH(10)
+	CALL __DIVW21
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01DC     LCD_Data(x%10+0x30);            // menulis satuan
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDI  R30,LOW(10)
+	LDI  R31,HIGH(10)
+	CALL __MODW21
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01DD }
+	JMP  _0x2080006
+;#pragma used-
+;#pragma used+
+;void LCD_Angka3(int x)
+; 0000 01E1 {   if(x<0){ x*=-1;  LCD_Data('-');}
+_LCD_Angka3:
+;	x -> Y+0
+	LDD  R26,Y+1
+	TST  R26
+	BRPL _0x5F
+	LD   R30,Y
+	LDD  R31,Y+1
+	LDI  R26,LOW(65535)
+	LDI  R27,HIGH(65535)
+	CALL __MULW12
+	ST   Y,R30
+	STD  Y+1,R31
+	LDI  R30,LOW(45)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01E2     LCD_Data(x/100+0x30);           // menulis ratusan
+_0x5F:
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+	CALL __DIVW21
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01E3     LCD_Data((x%100)/10+0x30);      // menulis puluhan
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+	CALL __MODW21
+	MOVW R26,R30
+	LDI  R30,LOW(10)
+	LDI  R31,HIGH(10)
+	CALL __DIVW21
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01E4     LCD_Data(x%10+0x30);            // menulis satuan
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDI  R30,LOW(10)
+	LDI  R31,HIGH(10)
+	CALL __MODW21
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01E5 }
+	JMP  _0x2080006
+;#pragma used-
+;#pragma used+
+;void LCD_sByte(signed char x)
+; 0000 01E9 {   if(x<0){ x*=-1;  LCD_Data('-');}
+;	x -> Y+0
+; 0000 01EA     LCD_Data(x/100+0x30);           // menulis ratusan
+; 0000 01EB     LCD_Data((x%100)/10+0x30);      // menulis puluhan
+; 0000 01EC     LCD_Data(x%10+0x30);            // menulis satuan
+; 0000 01ED }
+;#pragma used-
+;void LCD_uByte(unsigned char x)
+; 0000 01F0 {   LCD_Data(x/100+0x30);           // menulis ratusan
+_LCD_uByte:
+;	x -> Y+0
+	LD   R26,Y
+	LDI  R30,LOW(100)
+	CALL __DIVB21U
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01F1     LCD_Data((x%100)/10+0x30);      // menulis puluhan
+	LD   R26,Y
+	LDI  R30,LOW(100)
+	CALL __MODB21U
+	MOV  R26,R30
+	LDI  R30,LOW(10)
+	CALL __DIVB21U
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01F2     LCD_Data(x%10+0x30);            // menulis satuan
+	LD   R26,Y
+	LDI  R30,LOW(10)
+	CALL __MODB21U
+	SUBI R30,-LOW(48)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 01F3 }
+	RJMP _0x208000C
+;#pragma used-
+;
+;// -----------------  Fungsi Buzzer ----------------------------
+;#pragma used+
+;void BuzzerOff()
+; 0000 01F9 { TCCR0=0x00; PORTB.4=0; ASSR=0x00; }
+_BuzzerOff:
+	LDI  R30,LOW(0)
+	OUT  0x33,R30
+	CBI  0x18,4
+	OUT  0x30,R30
+	RET
+;#pragma used-
+;#pragma used+
+;void FBuzzer(unsigned int x)
+; 0000 01FD {
+_FBuzzer:
+; 0000 01FE   if(x>=125 && x<=10000)
+;	x -> Y+0
+	LD   R26,Y
+	LDD  R27,Y+1
+	CPI  R26,LOW(0x7D)
+	LDI  R30,HIGH(0x7D)
+	CPC  R27,R30
+	BRLO _0x64
+	CPI  R26,LOW(0x2711)
+	LDI  R30,HIGH(0x2711)
+	CPC  R27,R30
+	BRLO _0x65
+_0x64:
+	RJMP _0x63
+_0x65:
+; 0000 01FF   {     if (x>=2000)
+	LD   R26,Y
+	LDD  R27,Y+1
+	CPI  R26,LOW(0x7D0)
+	LDI  R30,HIGH(0x7D0)
+	CPC  R27,R30
+	BRLO _0x66
+; 0000 0200         { TCCR0=0x1A; TCNT0=0;
+	LDI  R30,LOW(26)
+	OUT  0x33,R30
+	LDI  R30,LOW(0)
+	OUT  0x32,R30
+; 0000 0201           OCR0 = 500000 / x;
+	LD   R30,Y
+	LDD  R31,Y+1
+	CLR  R22
+	CLR  R23
+	__GETD2N 0x7A120
+	CALL __DIVD21
+	OUT  0x31,R30
+; 0000 0202         }
+; 0000 0203         if (x>=1000)
+_0x66:
+	LD   R26,Y
+	LDD  R27,Y+1
+	CPI  R26,LOW(0x3E8)
+	LDI  R30,HIGH(0x3E8)
+	CPC  R27,R30
+	BRLO _0x67
+; 0000 0204         { TCCR0=0x1B; TCNT0=0;
+	LDI  R30,LOW(27)
+	OUT  0x33,R30
+	LDI  R30,LOW(0)
+	OUT  0x32,R30
+; 0000 0205           OCR0 = 250000 / x;
+	LD   R30,Y
+	LDD  R31,Y+1
+	CLR  R22
+	CLR  R23
+	__GETD2N 0x3D090
+	CALL __DIVD21
+	RJMP _0xE2
+; 0000 0206         }
+; 0000 0207         else if (x>=500)
+_0x67:
+	LD   R26,Y
+	LDD  R27,Y+1
+	CPI  R26,LOW(0x1F4)
+	LDI  R30,HIGH(0x1F4)
+	CPC  R27,R30
+	BRLO _0x69
+; 0000 0208         { TCCR0=0x1C; TCNT0=0;
+	LDI  R30,LOW(28)
+	OUT  0x33,R30
+	LDI  R30,LOW(0)
+	OUT  0x32,R30
+; 0000 0209           OCR0 = 125000 / x;
+	LD   R30,Y
+	LDD  R31,Y+1
+	CLR  R22
+	CLR  R23
+	__GETD2N 0x1E848
+	CALL __DIVD21
+	RJMP _0xE2
+; 0000 020A         }
+; 0000 020B         else if (x>=250)
+_0x69:
+	LD   R26,Y
+	LDD  R27,Y+1
+	CPI  R26,LOW(0xFA)
+	LDI  R30,HIGH(0xFA)
+	CPC  R27,R30
+	BRLO _0x6B
+; 0000 020C         { TCCR0=0x1D; TCNT0=0;
+	LDI  R30,LOW(29)
+	OUT  0x33,R30
+	LDI  R30,LOW(0)
+	OUT  0x32,R30
+; 0000 020D           OCR0 = 67500 / x;
+	LD   R30,Y
+	LDD  R31,Y+1
+	CLR  R22
+	CLR  R23
+	__GETD2N 0x107AC
+	CALL __DIVD21
+	RJMP _0xE2
+; 0000 020E         }
+; 0000 020F         else
+_0x6B:
+; 0000 0210         { TCCR0=0x1E; TCNT0=0;
+	LDI  R30,LOW(30)
+	OUT  0x33,R30
+	LDI  R30,LOW(0)
+	OUT  0x32,R30
+; 0000 0211           OCR0 = 33750 / x;
+	LD   R30,Y
+	LDD  R31,Y+1
+	LDI  R26,LOW(33750)
+	LDI  R27,HIGH(33750)
+	CALL __DIVW21U
+_0xE2:
+	OUT  0x31,R30
+; 0000 0212         }
+; 0000 0213   }
+; 0000 0214   else
+	RJMP _0x6D
+_0x63:
+; 0000 0215   { BuzzerOff();
+	RCALL _BuzzerOff
+; 0000 0216   }
+_0x6D:
+; 0000 0217 }
+	JMP  _0x2080006
+;#pragma used-
+;
+;#pragma used+
+;void Buzzer(int Frek, unsigned int Tempo)
+; 0000 021C {  FBuzzer(Frek); delay_ms(Tempo);BuzzerOff();}
+_Buzzer:
+;	Frek -> Y+2
+;	Tempo -> Y+0
+	LDD  R30,Y+2
+	LDD  R31,Y+2+1
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _FBuzzer
+	LD   R30,Y
+	LDD  R31,Y+1
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _delay_ms
+	RCALL _BuzzerOff
+	JMP  _0x2080005
+;#pragma used-
+;
+;// -----------------  Fungsi Servo ----------------------------
+;#pragma used+
+;unsigned char SetSudut(unsigned int sudut)  // perubahan terkecil = 180/40 = 4,5 derajat
+; 0000 0222 {   return ((sudut*4)/18 + 40);}
+_SetSudut:
+;	sudut -> Y+0
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDI  R30,LOW(4)
+	CALL __MULB1W2U
+	MOVW R26,R30
+	LDI  R30,LOW(18)
+	LDI  R31,HIGH(18)
+	CALL __DIVW21U
+	SUBI R30,-LOW(40)
+	JMP  _0x2080006
+;#pragma used-
+;
+;#pragma used+
+;unsigned int SetSudut2(unsigned int sudut) // perubahan terkecil = 180/2000 = 0,09 derajat
+; 0000 0227 {   return ((sudut*100)/9 + 2000);}
+_SetSudut2:
+;	sudut -> Y+0
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDI  R30,LOW(100)
+	CALL __MULB1W2U
+	MOVW R26,R30
+	LDI  R30,LOW(9)
+	LDI  R31,HIGH(9)
+	CALL __DIVW21U
+	SUBI R30,LOW(-2000)
+	SBCI R31,HIGH(-2000)
+	JMP  _0x2080006
+;#pragma used-
+;
+;#pragma used+
+;void SudutServo1(unsigned char posisi)
+; 0000 022C {   dServo1 = SetSudut(posisi);}
+_SudutServo1:
+;	posisi -> Y+0
+	LD   R30,Y
+	LDI  R31,0
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _SetSudut
+	STS  _dServo1,R30
+	RJMP _0x208000C
+;#pragma used-
+;#pragma used+
+;void SudutServo2(unsigned char posisi)
+; 0000 0230 {   dServo2 = SetSudut(posisi);}
+_SudutServo2:
+;	posisi -> Y+0
+	LD   R30,Y
+	LDI  R31,0
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _SetSudut
+	STS  _dServo2,R30
+	RJMP _0x208000C
+;#pragma used-
+;#pragma used+
+;void SudutServo3(unsigned char posisi)
+; 0000 0234 {   dServo3 = SetSudut(posisi);}
+_SudutServo3:
+;	posisi -> Y+0
+	LD   R30,Y
+	LDI  R31,0
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _SetSudut
+	STS  _dServo3,R30
+	RJMP _0x208000C
+;#pragma used-
+;#pragma used+
+;void SudutServo4(unsigned char posisi)
+; 0000 0238 {   dServo4 = SetSudut(posisi);}
+_SudutServo4:
+;	posisi -> Y+0
+	LD   R30,Y
+	LDI  R31,0
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _SetSudut
+	STS  _dServo4,R30
+	RJMP _0x208000C
+;#pragma used-
+;#pragma used+
+;void SudutServo5(unsigned char posisi)
+; 0000 023C {   dServo5 = SetSudut(posisi);}
+_SudutServo5:
+;	posisi -> Y+0
+	LD   R30,Y
+	LDI  R31,0
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _SetSudut
+	STS  _dServo5,R30
+	RJMP _0x208000C
+;#pragma used-
+;#pragma used+
+;void SudutServo6(unsigned char posisi)
+; 0000 0240 {   dServo6 = SetSudut2(posisi);}
+_SudutServo6:
+;	posisi -> Y+0
+	LD   R30,Y
+	LDI  R31,0
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _SetSudut2
+	OUT  0x2A+1,R31
+	OUT  0x2A,R30
+	RJMP _0x208000C
+;#pragma used-
+;#pragma used+
+;void SudutServo7(unsigned char posisi)
+; 0000 0244 {   dServo7 = SetSudut2(posisi);}
+_SudutServo7:
+;	posisi -> Y+0
+	LD   R30,Y
+	LDI  R31,0
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _SetSudut2
+	OUT  0x28+1,R31
+	OUT  0x28,R30
+_0x208000C:
+	ADIW R28,1
+	RET
+;#pragma used-
+;#pragma used+
+;void SudutServo8(unsigned char posisi)
+; 0000 0248 { unsigned int dServo8;
+_SudutServo8:
+; 0000 0249   dServo8 = SetSudut2(posisi);
+	ST   -Y,R17
+	ST   -Y,R16
+;	posisi -> Y+2
+;	dServo8 -> R16,R17
+	LDD  R30,Y+2
+	LDI  R31,0
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _SetSudut2
+	MOVW R16,R30
+; 0000 024A   OCR1CH = ByteH(dServo8);
+	STS  121,R17
+; 0000 024B   OCR1CL = ByteL(dServo8);
+	STS  120,R16
+; 0000 024C }
+	LDD  R17,Y+1
+	LDD  R16,Y+0
+	JMP  _0x2080007
+;#pragma used-
+;
+;
+;signed char Error1, Error2;
+;#define MaxSpeed (signed int)   400
+;#define MaxIntegral             MaxSpeed
+;#define KPm (short int) 10
+;#define KDm (short int) 3
+;#define KIm (short int) 5
+;
+;#pragma used+
+;void PIDmotor2(void)
+; 0000 0259 { signed int U;
+_PIDmotor2:
+; 0000 025A   static signed char lErrorM2=0, iErrorM2=0;
+; 0000 025B   // Menghitung PID Motor 2
+; 0000 025C   if(dMotor2>0)
+	ST   -Y,R17
+	ST   -Y,R16
+;	U -> R16,R17
+	LDS  R26,_dMotor2
+	CPI  R26,LOW(0x1)
+	BRGE PC+3
+	JMP _0x6E
+; 0000 025D   {   Error2 = (signed char)dMotor2-(signed char)dSpeed2;
+	LDS  R26,_dSpeed2
+	LDS  R30,_dMotor2
+	SUB  R30,R26
+	MOV  R9,R30
+; 0000 025E       U = KPm * (Error2);//+lErrorM2);
+	MOV  R30,R9
+	LDI  R26,LOW(10)
+	MULS R30,R26
+	MOVW R16,R0
+; 0000 025F       iErrorM2+=(Error2+lErrorM2);
+	LDS  R30,_lErrorM2_S0000025000
+	ADD  R30,R9
+	LDS  R26,_iErrorM2_S0000025000
+	ADD  R30,R26
+	STS  _iErrorM2_S0000025000,R30
+; 0000 0260       if(iErrorM2>80)      iErrorM2 = 80;
+	LDS  R26,_iErrorM2_S0000025000
+	CPI  R26,LOW(0x51)
+	BRLT _0x6F
+	LDI  R30,LOW(80)
+	RJMP _0xE3
+; 0000 0261       else if(iErrorM2<-80)iErrorM2 = -80;
+_0x6F:
+	LDS  R26,_iErrorM2_S0000025000
+	CPI  R26,LOW(0xB0)
+	BRGE _0x71
+	LDI  R30,LOW(176)
+_0xE3:
+	STS  _iErrorM2_S0000025000,R30
+; 0000 0262       U+= KIm * iErrorM2;
+_0x71:
+	LDS  R30,_iErrorM2_S0000025000
+	LDI  R26,LOW(5)
+	MULS R30,R26
+	MOVW R30,R0
+	__ADDWRR 16,17,30,31
+; 0000 0263       if (U>MaxSpeed)
+	__CPWRN 16,17,401
+	BRLT _0x72
+; 0000 0264         {   PwmM2H = ByteH(MaxSpeed);  PwmM2L = ByteL(MaxSpeed);}
+	LDI  R30,LOW(1)
+	STS  135,R30
+	LDI  R30,LOW(144)
+	RJMP _0xE4
+; 0000 0265       else if (U>0)
+_0x72:
+	CLR  R0
+	CP   R0,R16
+	CPC  R0,R17
+	BRGE _0x74
+; 0000 0266         {   PwmM2H = ByteH(U);  PwmM2L = ByteL(U);}
+	STS  135,R17
+	STS  134,R16
+; 0000 0267       else
+	RJMP _0x75
+_0x74:
+; 0000 0268         {    PwmM2H = 0; PwmM2L = 0;}
+	LDI  R30,LOW(0)
+	STS  135,R30
+_0xE4:
+	STS  134,R30
+_0x75:
+; 0000 0269       lErrorM2 = Error2;
+	STS  _lErrorM2_S0000025000,R9
+; 0000 026A    }
+; 0000 026B   else {PwmM2H = 0; PwmM2L = 0;    iErrorM2=0;}
+	RJMP _0x76
+_0x6E:
+	LDI  R30,LOW(0)
+	STS  135,R30
+	STS  134,R30
+	STS  _iErrorM2_S0000025000,R30
+_0x76:
+; 0000 026C }
+	RJMP _0x208000B
+;#pragma used-
+;
+;#pragma used+
+;void PIDmotor1(void)
+; 0000 0271 { signed int U;
+_PIDmotor1:
+; 0000 0272   static signed char lErrorM1=0, iErrorM1=0;
+; 0000 0273   // Menghitung PID Motor 1
+; 0000 0274   if (dMotor1>0)
+	ST   -Y,R17
+	ST   -Y,R16
+;	U -> R16,R17
+	LDS  R26,_dMotor1
+	CPI  R26,LOW(0x1)
+	BRGE PC+3
+	JMP _0x77
+; 0000 0275   {   Error1 = (signed char)dMotor1-(signed char)dSpeed1;
+	LDS  R26,_dSpeed1
+	LDS  R30,_dMotor1
+	SUB  R30,R26
+	MOV  R6,R30
+; 0000 0276       U = KPm * (lErrorM1);//+Error1);
+	LDS  R30,_lErrorM1_S0000026000
+	LDI  R26,LOW(10)
+	MULS R30,R26
+	MOVW R16,R0
+; 0000 0277       iErrorM1+=(Error1+lErrorM1);
+	ADD  R30,R6
+	LDS  R26,_iErrorM1_S0000026000
+	ADD  R30,R26
+	STS  _iErrorM1_S0000026000,R30
+; 0000 0278       if(iErrorM1>80)      iErrorM1 = 80;
+	LDS  R26,_iErrorM1_S0000026000
+	CPI  R26,LOW(0x51)
+	BRLT _0x78
+	LDI  R30,LOW(80)
+	RJMP _0xE5
+; 0000 0279       else if(iErrorM1<-80)iErrorM1 = -80;
+_0x78:
+	LDS  R26,_iErrorM1_S0000026000
+	CPI  R26,LOW(0xB0)
+	BRGE _0x7A
+	LDI  R30,LOW(176)
+_0xE5:
+	STS  _iErrorM1_S0000026000,R30
+; 0000 027A       U+= KIm * iErrorM1;
+_0x7A:
+	LDS  R30,_iErrorM1_S0000026000
+	LDI  R26,LOW(5)
+	MULS R30,R26
+	MOVW R30,R0
+	__ADDWRR 16,17,30,31
+; 0000 027B       if (U>MaxSpeed)
+	__CPWRN 16,17,401
+	BRLT _0x7B
+; 0000 027C         {   PwmM1H = ByteH(MaxSpeed);  PwmM1L = ByteL(MaxSpeed);}
+	LDI  R30,LOW(1)
+	STS  133,R30
+	LDI  R30,LOW(144)
+	RJMP _0xE6
+; 0000 027D       else if (U>0)
+_0x7B:
+	CLR  R0
+	CP   R0,R16
+	CPC  R0,R17
+	BRGE _0x7D
+; 0000 027E         {   PwmM1H = ByteH(U);  PwmM1L = ByteL(U);}
+	STS  133,R17
+	STS  132,R16
+; 0000 027F       else
+	RJMP _0x7E
+_0x7D:
+; 0000 0280         {    PwmM1H = 0; PwmM1L = 0;}
+	LDI  R30,LOW(0)
+	STS  133,R30
+_0xE6:
+	STS  132,R30
+_0x7E:
+; 0000 0281       lErrorM1  = Error1;
+	STS  _lErrorM1_S0000026000,R6
+; 0000 0282   }
+; 0000 0283   else  {PwmM1H = 0; PwmM1L = 0; iErrorM1=0;}
+	RJMP _0x7F
+_0x77:
+	LDI  R30,LOW(0)
+	STS  133,R30
+	STS  132,R30
+	STS  _iErrorM1_S0000026000,R30
+_0x7F:
+; 0000 0284 }
+_0x208000B:
+	LD   R16,Y+
+	LD   R17,Y+
+	RET
+;#pragma used-
+;
+;// Interupsi setiap 1 ms
+;interrupt [TIM2_COMP] void timer2_comp_isr(void)
+; 0000 0289 {   static unsigned char LaguTick=0, _dCounter1=0, _dCounter2=0;
+_timer2_comp_isr:
+	ST   -Y,R0
+	ST   -Y,R1
+	ST   -Y,R15
+	ST   -Y,R22
+	ST   -Y,R23
+	ST   -Y,R24
+	ST   -Y,R25
+	ST   -Y,R26
+	ST   -Y,R27
+	ST   -Y,R30
+	ST   -Y,R31
+	IN   R30,RAMPZ
+	ST   -Y,R30
+	IN   R30,SREG
+	ST   -Y,R30
+; 0000 028A     static unsigned char TempoTick=0, PIDTickMotor=0;
+; 0000 028B     SysTick++;
+	LDS  R30,_SysTick
+	SUBI R30,-LOW(1)
+	STS  _SysTick,R30
+; 0000 028C     if(++PIDTickMotor==1)           // menghitung data rotari motor 1
+	LDS  R26,_PIDTickMotor_S0000027000
+	SUBI R26,-LOW(1)
+	STS  _PIDTickMotor_S0000027000,R26
+	CPI  R26,LOW(0x1)
+	BRNE _0x80
+; 0000 028D     {   if(dCounter1>_dCounter1)    dSpeed1 = dCounter1 - _dCounter1;               // hitung selisih saat tidak overflow
+	LDS  R30,__dCounter1_S0000027000
+	LDS  R26,_dCounter1
+	CP   R30,R26
+	BRSH _0x81
+	LDS  R26,__dCounter1_S0000027000
+	LDS  R30,_dCounter1
+	SUB  R30,R26
+	RJMP _0xE7
+; 0000 028E         else                        dSpeed1 = 0xFF - _dCounter1 + dCounter1 + 1;    // hitung selisih saat overflow
+_0x81:
+	LDS  R26,__dCounter1_S0000027000
+	LDI  R30,LOW(255)
+	SUB  R30,R26
+	LDS  R26,_dCounter1
+	ADD  R30,R26
+	SUBI R30,-LOW(1)
+_0xE7:
+	STS  _dSpeed1,R30
+; 0000 028F         _dCounter1 = dCounter1;
+	LDS  R30,_dCounter1
+	STS  __dCounter1_S0000027000,R30
+; 0000 0290     }
+; 0000 0291     else if (PIDTickMotor==2)
+	RJMP _0x83
+_0x80:
+	LDS  R26,_PIDTickMotor_S0000027000
+	CPI  R26,LOW(0x2)
+	BRNE _0x84
+; 0000 0292     {   if(PIDMotorOn) PIDmotor1(); // menghitung PID motor 1 jika mode PID motor diaktifkan
+	SBRC R2,2
+	RCALL _PIDmotor1
+; 0000 0293     }
+; 0000 0294     else if(PIDTickMotor==3)        // menghitung data rotari motor 2
+	RJMP _0x86
+_0x84:
+	LDS  R26,_PIDTickMotor_S0000027000
+	CPI  R26,LOW(0x3)
+	BRNE _0x87
+; 0000 0295     {   if(dCounter2>_dCounter2)    dSpeed2 = dCounter2 - _dCounter2;               // hitung selisih saat tidak overflow
+	LDS  R30,__dCounter2_S0000027000
+	LDS  R26,_dCounter2
+	CP   R30,R26
+	BRSH _0x88
+	LDS  R26,__dCounter2_S0000027000
+	LDS  R30,_dCounter2
+	SUB  R30,R26
+	RJMP _0xE8
+; 0000 0296         else                        dSpeed2 = 0xFF - _dCounter2 + dCounter2 + 1;    // hitung selisih saat overflow
+_0x88:
+	LDS  R26,__dCounter2_S0000027000
+	LDI  R30,LOW(255)
+	SUB  R30,R26
+	LDS  R26,_dCounter2
+	ADD  R30,R26
+	SUBI R30,-LOW(1)
+_0xE8:
+	STS  _dSpeed2,R30
+; 0000 0297         _dCounter2 = dCounter2;
+	LDS  R30,_dCounter2
+	STS  __dCounter2_S0000027000,R30
+; 0000 0298     }
+; 0000 0299     else if(PIDTickMotor==4)
+	RJMP _0x8A
+_0x87:
+	LDS  R26,_PIDTickMotor_S0000027000
+	CPI  R26,LOW(0x4)
+	BRNE _0x8B
+; 0000 029A     {   if(PIDMotorOn) PIDmotor2(); // menghitung PID motor 2 jika mode PID motor diaktifkan
+	SBRC R2,2
+	RCALL _PIDmotor2
+; 0000 029B     }
+; 0000 029C     #if UseIMU == 1
+; 0000 029D         else if (PIDTickMotor==5)
+	RJMP _0x8D
+_0x8B:
+	LDS  R26,_PIDTickMotor_S0000027000
+	CPI  R26,LOW(0x5)
+	BRNE _0x8E
+; 0000 029E         {   ReadAccelerometer();
+	CALL _ReadAccelerometer
+; 0000 029F         }
+; 0000 02A0         else if (PIDTickMotor==6)
+	RJMP _0x8F
+_0x8E:
+	LDS  R26,_PIDTickMotor_S0000027000
+	CPI  R26,LOW(0x6)
+	BRNE _0x90
+; 0000 02A1         {   ReadGyroScope();
+	CALL _ReadGyroScope
+; 0000 02A2         }
+; 0000 02A3         #if UseMahonyFilter == 1
+; 0000 02A4             else if(PIDTickMotor==7)
+	RJMP _0x91
+_0x90:
+	LDS  R26,_PIDTickMotor_S0000027000
+	CPI  R26,LOW(0x7)
+	BRNE _0x92
+; 0000 02A5             {   UpdateMahonyFilter();
+	CALL _UpdateMahonyFilter
+; 0000 02A6             }
+; 0000 02A7             else if(PIDTickMotor==8)
+	RJMP _0x93
+_0x92:
+	LDS  R26,_PIDTickMotor_S0000027000
+	CPI  R26,LOW(0x8)
+	BRNE _0x94
+; 0000 02A8             {   UpdateRollPitchYaw();
+	CALL _UpdateRollPitchYaw
+; 0000 02A9             }
+; 0000 02AA         #endif
+; 0000 02AB     #endif
+; 0000 02AC 
+; 0000 02AD     else if (PIDTickMotor>=10)
+	RJMP _0x95
+_0x94:
+	LDS  R26,_PIDTickMotor_S0000027000
+	CPI  R26,LOW(0xA)
+	BRLO _0x96
+; 0000 02AE     {   PIDTickMotor=0;
+	LDI  R30,LOW(0)
+	STS  _PIDTickMotor_S0000027000,R30
+; 0000 02AF 
+; 0000 02B0     }
+; 0000 02B1 
+; 0000 02B2     if(LaguOn)                      // menyalakan lagu pada buzzer
+_0x96:
+_0x95:
+_0x93:
+_0x91:
+_0x8F:
+_0x8D:
+_0x8A:
+_0x86:
+_0x83:
+	SBRS R2,1
+	RJMP _0x97
+; 0000 02B3     {   if(++TempoTick>=Tempo[LaguTick])            // Apakah hitungan tempo terpenuhi
+	LDS  R26,_TempoTick_S0000027000
+	SUBI R26,-LOW(1)
+	STS  _TempoTick_S0000027000,R26
+	LDS  R30,_LaguTick_S0000027000
+	CLR  R31
+	CLR  R22
+	CLR  R23
+	SUBI R30,LOW(-_Tempo*2)
+	SBCI R31,HIGH(-_Tempo*2)
+	SBCI R22,BYTE3(-_Tempo*2)
+	__GETBRPF 30
+	CP   R26,R30
+	BRLO _0x98
+; 0000 02B4         {   TempoTick = 0;                          // reset hitungan tempo
+	LDI  R30,LOW(0)
+	STS  _TempoTick_S0000027000,R30
+; 0000 02B5             FBuzzer(Melodi[LaguTick]);              // mengeluarkan nada ke buzzer
+	LDS  R30,_LaguTick_S0000027000
+	LDI  R26,LOW(_Melodi*2)
+	LDI  R27,HIGH(_Melodi*2)
+	LDI  R24,BYTE3(_Melodi*2)
+	CLR  R31
+	CLR  R22
+	CLR  R23
+	CALL __LSLD1
+	CALL __ADDD12
+	CALL __GETW1PF
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _FBuzzer
+; 0000 02B6             if (++LaguTick>=JumlahNada) LaguTick=0; // reset kembali deretan nada ketika lagu selesai
+	LDS  R26,_LaguTick_S0000027000
+	SUBI R26,-LOW(1)
+	STS  _LaguTick_S0000027000,R26
+	CPI  R26,LOW(0x4E)
+	BRLO _0x99
+	LDI  R30,LOW(0)
+	STS  _LaguTick_S0000027000,R30
+; 0000 02B7         }
+_0x99:
+; 0000 02B8     }
+_0x98:
+; 0000 02B9 }
+_0x97:
+	LD   R30,Y+
+	OUT  SREG,R30
+	LD   R30,Y+
+	OUT  RAMPZ,R30
+	LD   R31,Y+
+	LD   R30,Y+
+	LD   R27,Y+
+	LD   R26,Y+
+	LD   R25,Y+
+	LD   R24,Y+
+	LD   R23,Y+
+	LD   R22,Y+
+	LD   R15,Y+
+	LD   R1,Y+
+	LD   R0,Y+
+	RETI
+;
+;
+;// ------------------- Fungsi Motor ------------------
+;
+;// Set data data kecepatan dan arah putaran Motor dengan menggunakan PID
+;// data motor berkisar antara -20 sampai dengan +20
+;#pragma used+
+;void SetDataMotorPID(signed char dmKa, signed char dmKi)
+; 0000 02C2 {   if(dmKa<0)  { dMotor1 = -dmKa;  M1_CCW;  }
+;	dmKa -> Y+1
+;	dmKi -> Y+0
+; 0000 02C3     else        { dMotor1 = dmKa;   M1_CW; }
+; 0000 02C4     if(dmKi<0)  { dMotor2 = -dmKi;  M2_CW; }
+; 0000 02C5     else        { dMotor2 = dmKi;   M2_CCW;  }
+; 0000 02C6     PIDMotorOn = 1;
+; 0000 02C7 }
+;#pragma used-
+;
+;// Set data PWM dari Motor secara langsung
+;// data berkisar antara -400 sampai dengan +400
+;#pragma used+
+;void SetDataMotorPWM(int Ka, int Ki)
+; 0000 02CE {   PIDMotorOn = 0;
+;	Ka -> Y+2
+;	Ki -> Y+0
+; 0000 02CF     if(Ka<0)    { PwmM1H = ByteH(-Ka);  PwmM1L = ByteL(-Ka);    M1_CCW;}
+; 0000 02D0     else        { PwmM1H = ByteH(Ka);   PwmM1L = ByteL(Ka);     M1_CW;}
+; 0000 02D1     if(Ki<0)    { PwmM2H = ByteH(-Ki);  PwmM2L = ByteL(-Ki);    M2_CW;}
+; 0000 02D2     else        { PwmM2H = ByteH(Ki);   PwmM2L = ByteL(Ki);     M2_CCW;}
+; 0000 02D3 }
+;#pragma used-
+;
+;#pragma used+
+;void Stop()
+; 0000 02D8 {   PwmM2H = 0;  PwmM2L =0; PwmM1H = 0;  PwmM1L =0;
+_Stop:
+	LDI  R30,LOW(0)
+	STS  135,R30
+	STS  134,R30
+	STS  133,R30
+	STS  132,R30
+; 0000 02D9 }
+	RET
+;#pragma used-
+;
+;
+;float  iError=0;
+;int KP,KI,KD;
+;signed char lError=0;
+;
+;#pragma used+
+;void SetPID(int kp, int ki, int kd){ KP=kp;    KI=ki;  KD=kd;}
+; 0000 02E2 void SetPID(int kp, int ki, int kd){ KP=kp;    KI=ki;  KD=kd;}
+;	kp -> Y+4
+;	ki -> Y+2
+;	kd -> Y+0
+;#pragma used-
+;
+;#pragma used+
+;void ResetPID(void){ iError=0; lError=0; }
+; 0000 02E6 void ResetPID(void){ iError=0; lError=0; }
+;#pragma used-
+;
+;
+;
+;
+;#pragma used+
+;/*short int HitungPID(signed char Error)
+;{ float PIDTime, U;
+;  PIDTime = (float)PIDTick/1000;
+;  PIDTick = 0;
+;  // Menghitung Nilai Kendali Derivatif
+;  U = (float)KD * (float)(Error-lError)/PIDTime;
+;  // Menghitung Nilai Integral Error
+;  iError += (float)((Error + lError)/2) * PIDTime;
+;  // Membatasi Nilai Integral Error
+;  if((short int) iError > MaxIntegral) iError = MaxIntegral;
+;  else if((signed int) iError < -MaxIntegral) iError = -MaxIntegral;
+;  // Menambahkan Nilai Kendali Integral
+;  U+= (float)KI * iError;
+;  // Menambahkan Nilai Kendali Proporsional
+;  U+= (float)KP * (float)Error;
+;  lError = Error;
+;  LCD_GotoXY(0,0); LCD_Angka3(PIDTime*1000);
+;  return ((short int)U);
+;}     */
+;#pragma used-
+;
+;#pragma used+
+;void GerakRobot(short int Speed, short int U)
+; 0000 0304 { int PWMKi, PWMKa;
+; 0000 0305    // Menghitung Aktuasi Kendali pada Roda Kanan dan Kiri
+; 0000 0306   PWMKa = Speed + U;
+;	Speed -> Y+6
+;	U -> Y+4
+;	PWMKi -> R16,R17
+;	PWMKa -> R18,R19
+; 0000 0307   PWMKi = Speed - U;
+; 0000 0308   // Menghitung Kecepatan dan arah putaran Motor Roda Kanan
+; 0000 0309   if(PWMKa<0)   {PWMKa = -PWMKa; M2_CCW;}
+; 0000 030A   else          {M2_CW;}
+; 0000 030B   if (PWMKa<MaxSpeed)
+; 0000 030C     {   PwmM1H = ByteH(PWMKa);      PwmM1L = ByteL(PWMKa);}
+; 0000 030D   else
+; 0000 030E     {   PwmM1H = ByteH(MaxSpeed);   PwmM1L = ByteL(MaxSpeed);}
+; 0000 030F   // Menghitung Kecepatan dan arah putaran Motor Roda Kiri
+; 0000 0310   if(PWMKi<0)   {PWMKi = -PWMKi; M1_CW;}
+; 0000 0311   else          {M1_CCW;}
+; 0000 0312   if (PWMKi<MaxSpeed)
+; 0000 0313     {   PwmM2H = ByteH(PWMKi);      PwmM2L = ByteL(PWMKi);}
+; 0000 0314   else
+; 0000 0315     {   PwmM2H = ByteH(MaxSpeed);   PwmM2L = ByteL(MaxSpeed);}
+; 0000 0316    //LCD_GotoXY(0,0);    LCD_Angka3(PWMKa);
+; 0000 0317    //LCD_Data(' ');      LCD_Angka3(PWMKi);
+; 0000 0318 }
+;#pragma used-
+;
+;
+;#pragma used+
+;void SystemInit(void)
+; 0000 031E {
+_SystemInit:
+; 0000 031F  //-------------- Inisialisasi Port -----------------------------------
+; 0000 0320     // Port A  = Koneksi ke LCD --> semua bit difungsikan sebagai output
+; 0000 0321     PORTA=0x00; DDRA=0xFF;
+	LDI  R30,LOW(0)
+	OUT  0x1B,R30
+	LDI  R30,LOW(255)
+	OUT  0x1A,R30
+; 0000 0322 
+; 0000 0323     // Port B0   = Input Pull-Up (Enkoder1B)
+; 0000 0324     // Port B1   = Input (SCK - ISP programing)
+; 0000 0325     // Port B2   = Input Pull-Up (Enkoder2B)
+; 0000 0326     // Port B3   = Output (Servo 5)
+; 0000 0327     // Port B4   = Output (Buzzer)
+; 0000 0328     // Port B5-7 = Output (Servo 6-8)
+; 0000 0329     PORTB=0x05; DDRB=0xF8;
+	LDI  R30,LOW(5)
+	OUT  0x18,R30
+	LDI  R30,LOW(248)
+	OUT  0x17,R30
+; 0000 032A 
+; 0000 032B     // Port C0-3 = Output (LED Active High)
+; 0000 032C     // Port C4-7 = Input Pull-Up (Push Button Active Low)
+; 0000 032D     PORTC=0xFF; DDRC=0xF0;
+	LDI  R30,LOW(255)
+	OUT  0x15,R30
+	LDI  R30,LOW(240)
+	OUT  0x14,R30
+; 0000 032E 
+; 0000 032F     // Port D0,1 = Input (I2C)
+; 0000 0330     // Port D2,3 = Input (USART1)
+; 0000 0331     // Port D2,3 = Input (USART1)
+; 0000 0332     // Port D4-7 = Output(Servo1-4)
+; 0000 0333     PORTD=0x00; DDRD=0xF0;
+	LDI  R30,LOW(0)
+	OUT  0x12,R30
+	LDI  R30,LOW(240)
+	OUT  0x11,R30
+; 0000 0334 
+; 0000 0335     // Port E0,1 = Input (USART0, ISP programming)
+; 0000 0336     // Port E2   = Output (DirM2)
+; 0000 0337     // Port E3   = Output (PwmM2)
+; 0000 0338     // Port E4   = Output (PwmM1)
+; 0000 0339     // Port E5   = Output (DirM2)
+; 0000 033A     // Port E6,7 = Input Pull-Up (Enkoder1A,2A)
+; 0000 033B     PORTE=0xC0; DDRE=0x3C;
+	LDI  R30,LOW(192)
+	OUT  0x3,R30
+	LDI  R30,LOW(60)
+	OUT  0x2,R30
+; 0000 033C 
+; 0000 033D     // Port F  = Input (Input ADC)
+; 0000 033E     PORTF=0x00; DDRF=0x00;
+	LDI  R30,LOW(0)
+	STS  98,R30
+	STS  97,R30
+; 0000 033F 
+; 0000 0340     // Port G  = Input Pull-Up (Saklar Mode Active Low)
+; 0000 0341     PORTG=0x17;
+	LDI  R30,LOW(23)
+	STS  101,R30
+; 0000 0342     DDRG=0x00;
+	LDI  R30,LOW(0)
+	STS  100,R30
+; 0000 0343 
+; 0000 0344  //-------------- Inisialisasi Timer -----------------------------------
+; 0000 0345     // Timer/Counter 0 initialization
+; 0000 0346     // Clock source: System Clock
+; 0000 0347     // Clock value: 250,000 kHz
+; 0000 0348     // Mode: CTC top=OCR0
+; 0000 0349     // OC0 output: Toggle on compare match
+; 0000 034A     ASSR=0x00;
+	OUT  0x30,R30
+; 0000 034B     TCCR0=0x00; // sementara dimatikan (diaktifkan ketika fungsi FBuzzer(Frek) dipanggil)
+	OUT  0x33,R30
+; 0000 034C     TCNT0=0x00;
+	OUT  0x32,R30
+; 0000 034D     OCR0=0x00;
+	OUT  0x31,R30
+; 0000 034E 
+; 0000 034F     // Timer/Counter 1 initialization
+; 0000 0350     // Clock source: System Clock
+; 0000 0351     // Clock value: 2000,000 kHz
+; 0000 0352     // Mode: Fast PWM top=ICR1
+; 0000 0353     // OC1A output: Non-Inv.
+; 0000 0354     // OC1B output: Non-Inv.
+; 0000 0355     // OC1C output: Non-Inv.
+; 0000 0356     // Noise Canceler: Off
+; 0000 0357     // Input Capture on Falling Edge
+; 0000 0358     // Timer 1 Overflow Interrupt: Off
+; 0000 0359     // Input Capture Interrupt: Off
+; 0000 035A     // Compare A Match Interrupt: Off
+; 0000 035B     // Compare B Match Interrupt: Off
+; 0000 035C     // Compare C Match Interrupt: Off
+; 0000 035D     TCCR1A=0xAA;
+	LDI  R30,LOW(170)
+	OUT  0x2F,R30
+; 0000 035E     TCCR1B=0x1A;
+	LDI  R30,LOW(26)
+	OUT  0x2E,R30
+; 0000 035F     TCNT1H=0x00;
+	LDI  R30,LOW(0)
+	OUT  0x2D,R30
+; 0000 0360     TCNT1L=0x00;
+	OUT  0x2C,R30
+; 0000 0361     ICR1H=0x9c; // 40000
+	LDI  R30,LOW(156)
+	OUT  0x27,R30
+; 0000 0362     ICR1L=0x40;
+	LDI  R30,LOW(64)
+	OUT  0x26,R30
+; 0000 0363     OCR1AH=0x00;
+	LDI  R30,LOW(0)
+	OUT  0x2B,R30
+; 0000 0364     OCR1AL=0x00;
+	OUT  0x2A,R30
+; 0000 0365     OCR1BH=0x00;
+	OUT  0x29,R30
+; 0000 0366     OCR1BL=0x00;
+	OUT  0x28,R30
+; 0000 0367     OCR1CH=0x00;
+	STS  121,R30
+; 0000 0368     OCR1CL=0x00;
+	STS  120,R30
+; 0000 0369 
+; 0000 036A     // Timer/Counter 2 initialization
+; 0000 036B     // Clock source: System Clock
+; 0000 036C     // Clock value: 62,500 kHz
+; 0000 036D     // Mode: CTC top=OCR2
+; 0000 036E     // OC2 output: Disconnected
+; 0000 036F     //TCCR2=0x0C;       // 64,500 kHz        -- interupsi 4 ms
+; 0000 0370     TCCR2=0x0B;         // 250,000 kHz       -- interupsi 1 ms
+	LDI  R30,LOW(11)
+	OUT  0x25,R30
+; 0000 0371     TCNT2=0x00;
+	LDI  R30,LOW(0)
+	OUT  0x24,R30
+; 0000 0372     OCR2=0xFA;
+	LDI  R30,LOW(250)
+	OUT  0x23,R30
+; 0000 0373 
+; 0000 0374     // Timer/Counter 3 initialization
+; 0000 0375     // Clock source: System Clock
+; 0000 0376     // Clock value: 16000,000 kHz
+; 0000 0377     // Mode: Ph. correct PWM top=ICR3
+; 0000 0378     // Noise Canceler: Off
+; 0000 0379     // Input Capture on Falling Edge
+; 0000 037A     // OC3A output: Inverted
+; 0000 037B     // OC3B output: Inverted
+; 0000 037C     // OC3C output: Discon.
+; 0000 037D     // Timer 3 Overflow Interrupt: Off
+; 0000 037E     // Input Capture Interrupt: Off
+; 0000 037F     // Compare A Match Interrupt: Off
+; 0000 0380     // Compare B Match Interrupt: Off
+; 0000 0381     // Compare C Match Interrupt: On
+; 0000 0382     TCCR3A=0xF2;
+	LDI  R30,LOW(242)
+	STS  139,R30
+; 0000 0383     TCCR3B=0x11;
+	LDI  R30,LOW(17)
+	STS  138,R30
+; 0000 0384     TCNT3H=0x00;
+	LDI  R30,LOW(0)
+	STS  137,R30
+; 0000 0385     TCNT3L=0x00;
+	STS  136,R30
+; 0000 0386     ICR3H=0x01;  // 400
+	LDI  R30,LOW(1)
+	STS  129,R30
+; 0000 0387     ICR3L=0x90;
+	LDI  R30,LOW(144)
+	STS  128,R30
+; 0000 0388     OCR3AH=0x00;
+	LDI  R30,LOW(0)
+	STS  135,R30
+; 0000 0389     OCR3AL=0x00;
+	STS  134,R30
+; 0000 038A     OCR3BH=0x00;
+	STS  133,R30
+; 0000 038B     OCR3BL=0x00;
+	STS  132,R30
+; 0000 038C     OCR3CH=0x00;
+	STS  131,R30
+; 0000 038D     OCR3CL=0xC8; // 200
+	LDI  R30,LOW(200)
+	STS  130,R30
+; 0000 038E 
+; 0000 038F     // External Interrupt(s) initialization
+; 0000 0390 // INT0: Off
+; 0000 0391 // INT1: Off
+; 0000 0392 // INT2: Off
+; 0000 0393 // INT3: Off
+; 0000 0394 // INT4: Off
+; 0000 0395 // INT5: Off
+; 0000 0396 // INT6: On
+; 0000 0397 // INT6 Mode: Falling Edge
+; 0000 0398 // INT7: On
+; 0000 0399 // INT7 Mode: Falling Edge
+; 0000 039A     EICRA=0x00;
+	LDI  R30,LOW(0)
+	STS  106,R30
+; 0000 039B     EICRB=0xA0;
+	LDI  R30,LOW(160)
+	OUT  0x3A,R30
+; 0000 039C     EIMSK=0xC0;
+	LDI  R30,LOW(192)
+	OUT  0x39,R30
+; 0000 039D     EIFR=0xC0;
+	OUT  0x38,R30
+; 0000 039E 
+; 0000 039F // External Interrupt(s) initialization
+; 0000 03A0 // INT0: Off
+; 0000 03A1 // INT1: Off
+; 0000 03A2 // INT2: Off
+; 0000 03A3 // INT3: Off
+; 0000 03A4 // INT4: Off
+; 0000 03A5 // INT5: Off
+; 0000 03A6 // INT6: On
+; 0000 03A7 // INT6 Mode: Any change
+; 0000 03A8 // INT7: On
+; 0000 03A9 // INT7 Mode: Any change
+; 0000 03AA     EICRA=0x00;
+	LDI  R30,LOW(0)
+	STS  106,R30
+; 0000 03AB     EICRB=0x50;
+	LDI  R30,LOW(80)
+	OUT  0x3A,R30
+; 0000 03AC     EIMSK=0xC0;
+	LDI  R30,LOW(192)
+	OUT  0x39,R30
+; 0000 03AD     EIFR=0xC0;
+	OUT  0x38,R30
+; 0000 03AE 
+; 0000 03AF     // Timer(s)/Counter(s) Interrupt(s) initialization
+; 0000 03B0     TIMSK=0x80;
+	LDI  R30,LOW(128)
+	OUT  0x37,R30
+; 0000 03B1     ETIMSK=0x02;
+	LDI  R30,LOW(2)
+	STS  125,R30
+; 0000 03B2 
+; 0000 03B3 // ------------------------ Inisialisasi USART1 ----------------------
+; 0000 03B4     // Communication Parameters: 8 Data, 1 Stop, No Parity
+; 0000 03B5     // USART1 Receiver: On
+; 0000 03B6     // USART1 Transmitter: On
+; 0000 03B7     // USART1 Mode: Asynchronous
+; 0000 03B8     // USART1 Baud rate: 9600
+; 0000 03B9     UCSR1A=0x00;
+	LDI  R30,LOW(0)
+	STS  155,R30
+; 0000 03BA     UCSR1B=0x98;
+	LDI  R30,LOW(152)
+	STS  154,R30
+; 0000 03BB     UCSR1C=0x06;
+	LDI  R30,LOW(6)
+	STS  157,R30
+; 0000 03BC     UBRR1H=0x00;
+	LDI  R30,LOW(0)
+	STS  152,R30
+; 0000 03BD     UBRR1L=0x67;
+	LDI  R30,LOW(103)
+	STS  153,R30
+; 0000 03BE 
+; 0000 03BF // ------------  Inisialisasi Analog Comparator -----------------------
+; 0000 03C0     // Analog Comparator: Off
+; 0000 03C1     // Analog Comparator Input Capture by Timer/Counter 1: Off
+; 0000 03C2     ACSR=0x80;
+	LDI  R30,LOW(128)
+	OUT  0x8,R30
+; 0000 03C3     SFIOR=0x00;
+	LDI  R30,LOW(0)
+	OUT  0x20,R30
+; 0000 03C4 
+; 0000 03C5 // ------------ Inisialisasi Peripheral Board ------------------------
+; 0000 03C6 
+; 0000 03C7     LCD_Init(); // -------------------------------------- LCD Text 16x2
+	RCALL _LCD_Init
+; 0000 03C8 
+; 0000 03C9     SudutServo1(0); // -------------------------------Reset Sudut Servo
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _SudutServo1
+; 0000 03CA     SudutServo2(0);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _SudutServo2
+; 0000 03CB     SudutServo3(0);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _SudutServo3
+; 0000 03CC     SudutServo4(0);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _SudutServo4
+; 0000 03CD     SudutServo5(0);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _SudutServo5
+; 0000 03CE     SudutServo6(0);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _SudutServo6
+; 0000 03CF     SudutServo7(0);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _SudutServo7
+; 0000 03D0     SudutServo8(0);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _SudutServo8
+; 0000 03D1 
+; 0000 03D2 // -------------- Global enable interrupts ----------------------------
+; 0000 03D3     #asm("sei")
+	sei
+; 0000 03D4 }
+	RET
+;#pragma used-
+;
+;// Fungsi Baca Sensor lewat komunikasi Serial
+;#pragma used+
+;void BacaSensor(unsigned char Alamat, unsigned char Protokol)
+; 0000 03DA {   putchar1(Protokol | Alamat);
+_BacaSensor:
+;	Alamat -> Y+1
+;	Protokol -> Y+0
+	LDD  R30,Y+1
+	LD   R26,Y
+	OR   R30,R26
+	ST   -Y,R30
+	CALL _putchar1
+; 0000 03DB }
+	RJMP _0x2080006
+;#pragma used-
+;
+;#pragma used+
+;unsigned char TungguTombolKalibrasi(unsigned char Alamat, unsigned char Protokol)
+; 0000 03E0 {   unsigned char filter=0;
+; 0000 03E1     while (filter<=100)   //Menunggu penekanan Tombol 1
+;	Alamat -> Y+2
+;	Protokol -> Y+1
+;	filter -> R17
+; 0000 03E2     { if(PB1)filter=0;
+; 0000 03E3       filter++;
+; 0000 03E4     }
+; 0000 03E5     if(!PB1)    {   putchar1(Protokol | Alamat); return 1;}
+; 0000 03E6     else        {   putchar1(0);                 return 0;}    // jika tombol 4 ditekan, berarti proses dihentikan
+; 0000 03E7 }
+;#pragma used-
+;
+;#pragma used+
+;void KalibrasiBerhasil()
+; 0000 03EC {   LCD_Perintah(0x01);         // Hapus layar
+; 0000 03ED     //              (   "0123456789012345")
+; 0000 03EE     LCD_Tulis       (0, "Kalibrasi Sensor");
+; 0000 03EF     LCD_TulisKiri   (1, "Selesai >>>>>>>>");
+; 0000 03F0 }
+;#pragma used-
+;#pragma used+
+;void KalibrasiGagal()
+; 0000 03F4 {   LCD_Perintah(0x01);         // Hapus layar
+; 0000 03F5     //              ("0123456789012345")
+; 0000 03F6     LCD_Tulis       (0, "Kalibrasi Sensor");
+; 0000 03F7     LCD_TulisKiri   (1, "Dihentikan >>>>>");
+; 0000 03F8 }
+;#pragma used-
+;
+;
+;#pragma used+
+;char KalibrasiRGB(unsigned char Alamat)
+; 0000 03FE {   LCD_Perintah(0x01);         // Hapus layar
+;	Alamat -> Y+0
+; 0000 03FF     //              (   "0123456789012345")
+; 0000 0400     LCD_Tulis       (0, "Kalibrasi Sensor");
+; 0000 0401     LCD_Tulis       (1, "Merah-Hijau-Biru");
+; 0000 0402     Buzzer(3000,500);
+; 0000 0403     delay_ms(1000);
+; 0000 0404     LCD_Perintah(0x01);         // Hapus layar
+; 0000 0405     putchar1(pKalibrasiRGB | Alamat);
+; 0000 0406     LCD_TulisKiri   (0, "1.Warna Merah >>");
+; 0000 0407     LCD_TulisKanan  (1, "Tekan Tombol 1<<");
+; 0000 0408     if(TungguTombolKalibrasi(Alamat, pKalibrasiRGB))
+; 0000 0409     {   Buzzer(3000,200);
+; 0000 040A         LCD_HapusKanan(0);
+; 0000 040B         LCD_TulisKiri   (0, "2.Warna Hijau >>");
+; 0000 040C         if(TungguTombolKalibrasi(Alamat, pKalibrasiRGB))
+; 0000 040D         {   Buzzer(3000,200);
+; 0000 040E             LCD_HapusKanan(0);
+; 0000 040F             LCD_TulisKiri  (0, "3.Warna Biru >>>");
+; 0000 0410             if(TungguTombolKalibrasi(Alamat, pKalibrasiRGB))
+; 0000 0411             {   Buzzer(3000,200);
+; 0000 0412                 LCD_HapusKanan(0);
+; 0000 0413                 LCD_TulisKiri  (0, "4.Warna Hitam >>");
+; 0000 0414                 if(TungguTombolKalibrasi(Alamat, pKalibrasiRGB))
+; 0000 0415                 {   Buzzer(3000,200);
+; 0000 0416                     if(BacaSerial1(5000)==pKalibrasiRGB)
+; 0000 0417                     {  KalibrasiBerhasil();
+; 0000 0418                        return(1);
+; 0000 0419                     }
+; 0000 041A                 }
+; 0000 041B             }
+; 0000 041C         }
+; 0000 041D     }
+; 0000 041E     KalibrasiGagal();
+; 0000 041F     return(0);
+; 0000 0420 }
+;#pragma used-
+;
+;#pragma used+
+;void Nada1(void)
+; 0000 0425 {   Buzzer(1000,100);Buzzer(500,20);
+_Nada1:
+	LDI  R30,LOW(1000)
+	LDI  R31,HIGH(1000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0426     Buzzer(3000,50);Buzzer(500,20);
+	LDI  R30,LOW(3000)
+	LDI  R31,HIGH(3000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(50)
+	LDI  R31,HIGH(50)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0427     Buzzer(3000,100);Buzzer(500,20);
+	LDI  R30,LOW(3000)
+	LDI  R31,HIGH(3000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0428     Buzzer(2000,50);
+	LDI  R30,LOW(2000)
+	LDI  R31,HIGH(2000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(50)
+	LDI  R31,HIGH(50)
+	RJMP _0x208000A
+; 0000 0429 }
+;#pragma used-
+;
+;#pragma used+
+;void Nada2(void)
+; 0000 042E {   Buzzer(3000,100);Buzzer(500,20);
+_Nada2:
+	LDI  R30,LOW(3000)
+	LDI  R31,HIGH(3000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 042F     Buzzer(2500,150);Buzzer(500,20);
+	LDI  R30,LOW(2500)
+	LDI  R31,HIGH(2500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(150)
+	LDI  R31,HIGH(150)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0430     Buzzer(1000,50);Buzzer(500,20);
+	LDI  R30,LOW(1000)
+	LDI  R31,HIGH(1000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(50)
+	LDI  R31,HIGH(50)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0431     Buzzer(3000,50);
+	LDI  R30,LOW(3000)
+	LDI  R31,HIGH(3000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(50)
+	LDI  R31,HIGH(50)
+	RJMP _0x208000A
+; 0000 0432 }
+;#pragma used-
+;
+;#pragma used+
+;void Nada3(void)
+; 0000 0437 {   Buzzer(3000,50);Buzzer(500,20);
+_Nada3:
+	LDI  R30,LOW(3000)
+	LDI  R31,HIGH(3000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(50)
+	LDI  R31,HIGH(50)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0438     Buzzer(1000,150);Buzzer(500,20);
+	LDI  R30,LOW(1000)
+	LDI  R31,HIGH(1000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(150)
+	LDI  R31,HIGH(150)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0439     Buzzer(3000,100);Buzzer(500,20);
+	LDI  R30,LOW(3000)
+	LDI  R31,HIGH(3000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 043A     Buzzer(2000,50);
+	LDI  R30,LOW(2000)
+	LDI  R31,HIGH(2000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(50)
+	LDI  R31,HIGH(50)
+	RJMP _0x208000A
+; 0000 043B }
+;#pragma used-
+;
+;#pragma used+
+;void Nada4(void)
+; 0000 0440 {   Buzzer(2000,150);Buzzer(500,20);
+_Nada4:
+	LDI  R30,LOW(2000)
+	LDI  R31,HIGH(2000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(150)
+	LDI  R31,HIGH(150)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0441     Buzzer(3000,50);Buzzer(500,20);
+	LDI  R30,LOW(3000)
+	LDI  R31,HIGH(3000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(50)
+	LDI  R31,HIGH(50)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0442     Buzzer(3500,50);Buzzer(500,20);
+	LDI  R30,LOW(3500)
+	LDI  R31,HIGH(3500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(50)
+	LDI  R31,HIGH(50)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+	LDI  R30,LOW(500)
+	LDI  R31,HIGH(500)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(20)
+	LDI  R31,HIGH(20)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0443     Buzzer(3000,100);
+	LDI  R30,LOW(3000)
+	LDI  R31,HIGH(3000)
+	ST   -Y,R31
+	ST   -Y,R30
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+_0x208000A:
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _Buzzer
+; 0000 0444 }
+	RET
+;#pragma used-
+;
+;
+;void main(void)
+; 0000 0449 {   unsigned char r,g,b,i;
+_main:
+; 0000 044A     SystemInit();
+;	r -> R17
+;	g -> R16
+;	b -> R19
+;	i -> R18
+	RCALL _SystemInit
+; 0000 044B     Stop();
+	RCALL _Stop
+; 0000 044C     I2C_Init();
+	RCALL _I2C_Init
+; 0000 044D 	MPU6050_Init();
+	RCALL _MPU6050_Init
+; 0000 044E 
+; 0000 044F     if (MPU6050_TestConnection())
+	RCALL _MPU6050_TestConnection
+	CPI  R30,0
+	BREQ _0xCD
+; 0000 0450     { LCD_GotoXY(0,0);    LCD_Angka3(1);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	ST   -Y,R30
+	RCALL _LCD_GotoXY
+	LDI  R30,LOW(1)
+	LDI  R31,HIGH(1)
+	RJMP _0xE9
+; 0000 0451     }
+; 0000 0452     else
+_0xCD:
+; 0000 0453     { LCD_GotoXY(0,0);    LCD_Angka3(0);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	ST   -Y,R30
+	RCALL _LCD_GotoXY
+	LDI  R30,LOW(0)
+	LDI  R31,HIGH(0)
+_0xE9:
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _LCD_Angka3
+; 0000 0454     }
+; 0000 0455     delay_ms(1000);
+	LDI  R30,LOW(1000)
+	LDI  R31,HIGH(1000)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _delay_ms
+; 0000 0456     while(1)
+_0xCF:
+; 0000 0457     {   //float Axg, Ayg, Azg, Gxrs, Gyrs, Gzrs;
+; 0000 0458         ReadAccelerometer();
+	RCALL _ReadAccelerometer
+; 0000 0459         ReadGyroScope();
+	RCALL _ReadGyroScope
+; 0000 045A 
+; 0000 045B 
+; 0000 045C         LCD_Hapus();
+	RCALL _LCD_Hapus
+; 0000 045D         LCD_GotoXY(0,0);    LCD_Angka4(Axg*1000);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	ST   -Y,R30
+	RCALL _LCD_GotoXY
+	LDS  R26,_Axg
+	LDS  R27,_Axg+1
+	LDS  R24,_Axg+2
+	LDS  R25,_Axg+3
+	__GETD1N 0x447A0000
+	CALL __MULF12
+	CALL __CFD1
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _LCD_Angka4
+; 0000 045E         LCD_GotoXY(8,0);    LCD_Angka4(Ayg*1000);
+	LDI  R30,LOW(8)
+	ST   -Y,R30
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _LCD_GotoXY
+	LDS  R26,_Ayg
+	LDS  R27,_Ayg+1
+	LDS  R24,_Ayg+2
+	LDS  R25,_Ayg+3
+	__GETD1N 0x447A0000
+	CALL __MULF12
+	CALL __CFD1
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _LCD_Angka4
+; 0000 045F         LCD_GotoXY(0,1);    LCD_Angka4(Azg*1000);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	LDI  R30,LOW(1)
+	ST   -Y,R30
+	RCALL _LCD_GotoXY
+	LDS  R26,_Azg
+	LDS  R27,_Azg+1
+	LDS  R24,_Azg+2
+	LDS  R25,_Azg+3
+	__GETD1N 0x447A0000
+	CALL __MULF12
+	CALL __CFD1
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _LCD_Angka4
+; 0000 0460         delay_ms(10);
+	LDI  R30,LOW(10)
+	LDI  R31,HIGH(10)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _delay_ms
+; 0000 0461     };
+	RJMP _0xCF
+; 0000 0462     //dServo1 = 20;
+; 0000 0463     //dServo2 = 80;
+; 0000 0464     /*SudutServo1(0);
+; 0000 0465     SudutServo2(45);
+; 0000 0466     SudutServo3(90);
+; 0000 0467     SudutServo4(135);
+; 0000 0468     SudutServo5(180);
+; 0000 0469     SudutServo6(180);
+; 0000 046A     SudutServo7(0);
+; 0000 046B     SudutServo8(90);  */
+; 0000 046C     /*LCD_GotoXY(0,0);    LCD_Angka3(dServo1);
+; 0000 046D     LCD_GotoXY(4,0);    LCD_Angka3(dServo2);
+; 0000 046E     LCD_GotoXY(8,0);    LCD_Angka3(dServo3);
+; 0000 046F     LCD_GotoXY(12,0);   LCD_Angka3(dServo4);
+; 0000 0470     LCD_GotoXY(0,1);    LCD_Angka3(dServo5);
+; 0000 0471     LCD_GotoXY(4,1);    LCD_Angka4(dServo6);
+; 0000 0472     LCD_GotoXY(8,1);    LCD_Angka4(dServo7);
+; 0000 0473     LCD_GotoXY(12,1);   LCD_Angka4(BacadServo8);
+; 0000 0474     */
+; 0000 0475 
+; 0000 0476     Nada1();
+; 0000 0477 
+; 0000 0478     while (1)
+_0xD2:
+; 0000 0479       {
+; 0000 047A       // Place your code here
+; 0000 047B 
+; 0000 047C          LCD_BackLight = 1;
+	SET
+	BLD  R2,0
+; 0000 047D          //if (!PB3) KalibrasiRGB(0);
+; 0000 047E          if (!PB1) Nada1();
+	SBIS 0x13,3
+	RCALL _Nada1
+; 0000 047F          if (!PB2) Nada2();
+	SBIS 0x13,2
+	RCALL _Nada2
+; 0000 0480          if (!PB3) Nada3();
+	SBIS 0x13,1
+	RCALL _Nada3
+; 0000 0481          if (!PB4) Nada4();
+	SBIS 0x13,0
+	RCALL _Nada4
+; 0000 0482 
+; 0000 0483          i = SysTick;
+	LDS  R18,_SysTick
+; 0000 0484          do{    BacaSensor(0,pBacaSensorRGB);//  putchar1(pBacaSensorRGB);
+_0xDA:
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	LDI  R30,LOW(112)
+	ST   -Y,R30
+	RCALL _BacaSensor
+; 0000 0485          }  while(BacaSerial1(5000)!=pBacaSensorRGB);
+	LDI  R30,LOW(5000)
+	LDI  R31,HIGH(5000)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _BacaSerial1
+	CPI  R30,LOW(0x70)
+	BRNE _0xDA
+; 0000 0486          r = BacaSerial1(5000);
+	LDI  R30,LOW(5000)
+	LDI  R31,HIGH(5000)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _BacaSerial1
+	MOV  R17,R30
+; 0000 0487          g = BacaSerial1(5000);
+	LDI  R30,LOW(5000)
+	LDI  R31,HIGH(5000)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _BacaSerial1
+	MOV  R16,R30
+; 0000 0488          b = BacaSerial1(5000);
+	LDI  R30,LOW(5000)
+	LDI  R31,HIGH(5000)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _BacaSerial1
+	MOV  R19,R30
+; 0000 0489          if(SysTick>i)    i = SysTick - i;
+	LDS  R26,_SysTick
+	CP   R18,R26
+	BRSH _0xDC
+	LDS  R30,_SysTick
+	SUB  R30,R18
+	RJMP _0xEA
+; 0000 048A          else             i = 0xFF - i + SysTick + 1;
+_0xDC:
+	LDI  R30,LOW(255)
+	SUB  R30,R18
+	LDS  R26,_SysTick
+	ADD  R30,R26
+	SUBI R30,-LOW(1)
+_0xEA:
+	MOV  R18,R30
+; 0000 048B 
+; 0000 048C          if (FlagSerial)
+	SBRS R2,3
+	RJMP _0xDE
+; 0000 048D          {  LCD_GotoXY(0,0);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	ST   -Y,R30
+	RCALL _LCD_GotoXY
+; 0000 048E             LCD_uByte(r);  LCD_Data(' ');
+	ST   -Y,R17
+	RCALL _LCD_uByte
+	LDI  R30,LOW(32)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 048F             LCD_uByte(g);  LCD_Data(' ');
+	ST   -Y,R16
+	RCALL _LCD_uByte
+	LDI  R30,LOW(32)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 0490             LCD_uByte(b);  LCD_Data(' ');
+	ST   -Y,R19
+	RCALL _LCD_uByte
+	LDI  R30,LOW(32)
+	ST   -Y,R30
+	RCALL _LCD_Data
+; 0000 0491          }
+; 0000 0492          else
+	RJMP _0xDF
+_0xDE:
+; 0000 0493          {  LCD_Tulis(0, "TimeOut"); }
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	__POINTD1FN _0x0,153
+	CALL __PUTPARD1
+	RCALL _LCD_Tulis
+_0xDF:
+; 0000 0494          LCD_GotoXY(0,1);
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	LDI  R30,LOW(1)
+	ST   -Y,R30
+	RCALL _LCD_GotoXY
+; 0000 0495          LCD_uByte(i);
+	ST   -Y,R18
+	RCALL _LCD_uByte
+; 0000 0496 
+; 0000 0497          /*LCD_Data(' ');
+; 0000 0498          LCD_sByte(getchar1());
+; 0000 0499          LCD_Data(' ');
+; 0000 049A          LCD_sByte(getchar1());
+; 0000 049B          */
+; 0000 049C 
+; 0000 049D 
+; 0000 049E         //Stop();
+; 0000 049F        /* SetDataMotorPWM(300,300);
+; 0000 04A0         for(i=0;i<1000;i++)
+; 0000 04A1         {   //PIDTick=0; while(PIDTick<10);
+; 0000 04A2             //PIDmotor();
+; 0000 04A3             LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+; 0000 04A4             LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+; 0000 04A5             LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+; 0000 04A6             LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+; 0000 04A7         }
+; 0000 04A8         SetDataMotorPWM(100,100);
+; 0000 04A9         for(i=0;i<1000;i++)
+; 0000 04AA         {   //PIDTick=0; while(PIDTick<10);
+; 0000 04AB             //PIDmotor();
+; 0000 04AC             LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+; 0000 04AD             LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+; 0000 04AE             LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+; 0000 04AF             LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+; 0000 04B0         }
+; 0000 04B1         SetDataMotorPWM(0,0);
+; 0000 04B2         for(i=0;i<500;i++)
+; 0000 04B3         {   //PIDTick=0; while(PIDTick<10);
+; 0000 04B4             //PIDmotor();
+; 0000 04B5             LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+; 0000 04B6             LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+; 0000 04B7             LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+; 0000 04B8             LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+; 0000 04B9         }
+; 0000 04BA         SetDataMotorPID(-10,-10);
+; 0000 04BB         for(i=0;i<1000;i++)
+; 0000 04BC         {   //PIDTick=0; while(PIDTick<10);
+; 0000 04BD             //PIDmotor();
+; 0000 04BE             LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+; 0000 04BF             LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+; 0000 04C0             LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+; 0000 04C1             LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+; 0000 04C2         }
+; 0000 04C3         SetDataMotorPID(-3,-3);
+; 0000 04C4         for(i=0;i<1000;i++)
+; 0000 04C5         {   //PIDTick=0; while(PIDTick<10);
+; 0000 04C6             //PIDmotor();
+; 0000 04C7             LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+; 0000 04C8             LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+; 0000 04C9             LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+; 0000 04CA             LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+; 0000 04CB         }
+; 0000 04CC         SetDataMotorPID(0,0);
+; 0000 04CD         for(i=0;i<500;i++)
+; 0000 04CE         {   //PIDTick=0; while(PIDTick<10);
+; 0000 04CF             //PIDmotor();
+; 0000 04D0             LCD_GotoXY(0,0);  LCD_Angka4(Enkoder2);
+; 0000 04D1             LCD_Data(' ');    LCD_sByte(Error2);    LCD_Data(' ');
+; 0000 04D2             LCD_GotoXY(0,1);  LCD_Angka4(Enkoder1);
+; 0000 04D3             LCD_Data(' ');    LCD_sByte(Error1);    LCD_Data(' ');
+; 0000 04D4         }*/
+; 0000 04D5 
+; 0000 04D6         //LaguOn=1;
+; 0000 04D7        // for(i=0;i<100;i++)
+; 0000 04D8      /*   LCD_GotoXY(0,1);
+; 0000 04D9         LCD_sByte(dMotor1);
+; 0000 04DA         LCD_Data(' ');
+; 0000 04DB         LCD_GotoXY(6,1);
+; 0000 04DC         LCD_sByte(dMotor2);
+; 0000 04DD         LCD_Data(' '); */
+; 0000 04DE       };
+	RJMP _0xD2
+; 0000 04DF }
+_0xE0:
+	RJMP _0xE0
+;/*************************************************************************
+;* Title:    I2C master library using hardware TWI interface
+;* Author:   Peter Fleury <pfleury@gmx.ch>  http://jump.to/fleury
+;* File:     $Id: twimaster.c,v 1.3 2005/07/02 11:14:21 Peter Exp $
+;* Software: AVR-GCC 3.4.3 / avr-libc 1.2.3
+;* Target:   any AVR device with hardware TWI
+;* Usage:    API compatible with I2C Software Library i2cmaster.h
+;**************************************************************************/
+;#include <mega128.h>
+	#ifndef __SLEEP_DEFINED__
+	#define __SLEEP_DEFINED__
+	.EQU __se_bit=0x20
+	.EQU __sm_mask=0x1C
+	.EQU __sm_powerdown=0x10
+	.EQU __sm_powersave=0x18
+	.EQU __sm_standby=0x14
+	.EQU __sm_ext_standby=0x1C
+	.EQU __sm_adc_noise_red=0x08
+	.SET power_ctrl_reg=mcucr
+	#endif
+;#include "myI2C.h"
+;
+;/* define CPU frequency in Mhz here if not defined in Makefile */
+;#ifndef F_CPU
+;#define F_CPU (unsigned long) 16000000          // 16 Mhz
+;#endif
+;
+;/* I2C clock in Hz */
+;#define SCL_CLOCK  (unsigned long) 100000      // 100 Khz
+;
+;/*************************************************************************
+;  Initialization of the I2C bus interface. Need to be called only once
+;*************************************************************************/
+;void I2C_Init(void)
+; 0001 0018 {
+
+	.CSEG
+_I2C_Init:
+; 0001 0019 /* initialize TWI clock: 100 kHz clock, TWPS = 0 => prescaler = 1 */
+; 0001 001A     TWSR = 0;                         /* no prescaler */
+	LDI  R30,LOW(0)
+	STS  113,R30
+; 0001 001B     TWBR = ((F_CPU/SCL_CLOCK)-16)/2;  /* must be > 10 for stable operation */
+	LDI  R30,LOW(72)
+	STS  112,R30
+; 0001 001C }/* I2Cinit */
+	RET
+;
+;
+;/*************************************************************************
+;Issues a start condition and sends address and transfer direction.
+;return 0 = device accessible, 1= failed to access device
+;*************************************************************************/
+;unsigned char I2C_Start(unsigned char address)
+; 0001 0024 {   unsigned char   twst;
+_I2C_Start:
+; 0001 0025 // send START condition
+; 0001 0026     TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
+	ST   -Y,R17
+;	address -> Y+1
+;	twst -> R17
+	LDI  R30,LOW(164)
+	STS  116,R30
+; 0001 0027 // wait until transmission completed
+; 0001 0028     while(!(TWCR & (1<<TWINT)));
+_0x20003:
+	LDS  R30,116
+	ANDI R30,LOW(0x80)
+	BREQ _0x20003
+; 0001 0029 // check value of TWI Status Register. Mask prescaler bits.
+; 0001 002A     twst = TW_STATUS & 0xF8;
+	LDS  R30,113
+	ANDI R30,LOW(0xF8)
+	MOV  R17,R30
+; 0001 002B     if ( (twst != TW_START) && (twst != TW_REP_START)) return 1;
+	CPI  R17,8
+	BREQ _0x20007
+	CPI  R17,16
+	BRNE _0x20008
+_0x20007:
+	RJMP _0x20006
+_0x20008:
+	LDI  R30,LOW(1)
+	LDD  R17,Y+0
+	RJMP _0x2080006
+; 0001 002C         // send device address
+; 0001 002D          TWDR = address;
+_0x20006:
+	LDD  R30,Y+1
+	STS  115,R30
+; 0001 002E          TWCR = (1<<TWINT) | (1<<TWEN);
+	LDI  R30,LOW(132)
+	STS  116,R30
+; 0001 002F          // wail until transmission completed and ACK/NACK has been received
+; 0001 0030          while(!(TWCR & (1<<TWINT)));
+_0x20009:
+	LDS  R30,116
+	ANDI R30,LOW(0x80)
+	BREQ _0x20009
+; 0001 0031          // check value of TWI Status Register. Mask prescaler bits.
+; 0001 0032          twst = TW_STATUS & 0xF8;
+	LDS  R30,113
+	ANDI R30,LOW(0xF8)
+	MOV  R17,R30
+; 0001 0033          if ( (twst != TW_MT_SLA_ACK) && (twst != TW_MR_SLA_ACK) ) return 1;
+	CPI  R17,24
+	BREQ _0x2000D
+	CPI  R17,64
+	BRNE _0x2000E
+_0x2000D:
+	RJMP _0x2000C
+_0x2000E:
+	LDI  R30,LOW(1)
+	LDD  R17,Y+0
+	RJMP _0x2080006
+; 0001 0034          return 0;
+_0x2000C:
+	LDI  R30,LOW(0)
+	LDD  R17,Y+0
+	RJMP _0x2080006
+; 0001 0035 }/* I2Cstart */
+;
+;#pragma used+
+;/*************************************************************************
+;Issues a start condition and sends address and transfer direction.
+;If device is busy, use ack polling to wait until device is ready
+;Input:   address and transfer direction of I2C device
+;*************************************************************************/
+;void I2C_Start_Wait(unsigned char address)
+; 0001 003E {
+; 0001 003F      unsigned char   twst;
+; 0001 0040      while ( 1 )
+;	address -> Y+1
+;	twst -> R17
+; 0001 0041      {  // send START condition
+; 0001 0042         TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
+; 0001 0043         // wait until transmission completed
+; 0001 0044         while(!(TWCR & (1<<TWINT)));
+; 0001 0045          // check value of TWI Status Register. Mask prescaler bits.
+; 0001 0046          twst = TW_STATUS & 0xF8;
+; 0001 0047          if ( (twst != TW_START) && (twst != TW_REP_START)) continue;
+; 0001 0048          // send device address
+; 0001 0049          TWDR = address;
+; 0001 004A          TWCR = (1<<TWINT) | (1<<TWEN);
+; 0001 004B          // wail until transmission completed
+; 0001 004C          while(!(TWCR & (1<<TWINT)));
+; 0001 004D          // check value of TWI Status Register. Mask prescaler bits.
+; 0001 004E          twst = TW_STATUS & 0xF8;
+; 0001 004F          if ( (twst == TW_MT_SLA_NACK )||(twst ==TW_MR_DATA_NACK) )
+; 0001 0050          {
+; 0001 0051              /* device busy, send stop condition to terminate write operation */
+; 0001 0052                  TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
+; 0001 0053 
+; 0001 0054                  // wait until stop condition is executed and bus released
+; 0001 0055                  while(TWCR & (1<<TWSTO));
+; 0001 0056                  continue;
+; 0001 0057          }
+; 0001 0058          //if( twst != TW_MT_SLA_ACK) return 1;
+; 0001 0059          break;
+; 0001 005A       }
+; 0001 005B }/* I2Cstart_wait */
+;#pragma used-
+;
+;#pragma used+
+;/*************************************************************************
+;  Issues a repeated start condition and sends address and transfer direction
+;  Input:   address and transfer direction of I2C device
+;  Return:  0 device accessible
+;           1 failed to access device
+;*************************************************************************/
+;unsigned char I2C_Rep_Start(unsigned char address)
+; 0001 0066 {
+; 0001 0067     return I2C_Start( address );
+;	address -> Y+0
+; 0001 0068 }/* I2Crep_start */
+;#pragma used-
+;
+;/*************************************************************************
+;  Terminates the data transfer and releases the I2C bus
+;*************************************************************************/
+;
+;void I2C_Stop(void)
+; 0001 0070 {
+_I2C_Stop:
+; 0001 0071      /* send stop condition */
+; 0001 0072          TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
+	LDI  R30,LOW(148)
+	STS  116,R30
+; 0001 0073          // wait until stop condition is executed and bus released
+; 0001 0074          while(TWCR & (1<<TWSTO));
+_0x20021:
+	LDS  R30,116
+	ANDI R30,LOW(0x10)
+	BRNE _0x20021
+; 0001 0075 }/* I2Cstop */
+	RET
+;
+;/*************************************************************************
+;Send one byte to I2C device
+;   Input:    byte to be transfered
+;   Return:   0 write successful
+;             1 write failed
+;*************************************************************************/
+;unsigned char I2C_Write( unsigned char data )
+; 0001 007E {
+_I2C_Write:
+; 0001 007F          unsigned char   twst;
+; 0001 0080          // send data to the previously addressed device
+; 0001 0081          TWDR = data;
+	ST   -Y,R17
+;	data -> Y+1
+;	twst -> R17
+	LDD  R30,Y+1
+	STS  115,R30
+; 0001 0082          TWCR = (1<<TWINT) | (1<<TWEN);
+	LDI  R30,LOW(132)
+	STS  116,R30
+; 0001 0083 
+; 0001 0084          // wait until transmission completed
+; 0001 0085          while(!(TWCR & (1<<TWINT)));
+_0x20024:
+	LDS  R30,116
+	ANDI R30,LOW(0x80)
+	BREQ _0x20024
+; 0001 0086          // check value of TWI Status Register. Mask prescaler bits
+; 0001 0087          twst = TW_STATUS & 0xF8;
+	LDS  R30,113
+	ANDI R30,LOW(0xF8)
+	MOV  R17,R30
+; 0001 0088          if( twst != TW_MT_DATA_ACK) return 1;
+	CPI  R17,40
+	BREQ _0x20027
+	LDI  R30,LOW(1)
+	LDD  R17,Y+0
+	RJMP _0x2080006
+; 0001 0089          return 0;
+_0x20027:
+	LDI  R30,LOW(0)
+	LDD  R17,Y+0
+	RJMP _0x2080006
+; 0001 008A 
+; 0001 008B }/* I2Cwrite */
+;
+;/*************************************************************************
+;  Read one byte from the I2C device, request more data from device
+;  Return:  byte read from I2C device
+;*************************************************************************/
+;
+;unsigned char I2C_ReadAck(void)
+; 0001 0093 {
+_I2C_ReadAck:
+; 0001 0094          TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWEA);
+	LDI  R30,LOW(196)
+	STS  116,R30
+; 0001 0095          while(!(TWCR & (1<<TWINT)));
+_0x20028:
+	LDS  R30,116
+	ANDI R30,LOW(0x80)
+	BREQ _0x20028
+; 0001 0096 
+; 0001 0097      return TWDR;
+	RJMP _0x2080009
+; 0001 0098 
+; 0001 0099 }/* I2CreadAck */
+;
+;/*************************************************************************
+;  Read one byte from the I2C device, read is followed by a stop condition
+;  Return:  byte read from I2C device
+;*************************************************************************/
+;unsigned char I2C_ReadNak(void)
+; 0001 00A0 {
+_I2C_ReadNak:
+; 0001 00A1          TWCR = (1<<TWINT) | (1<<TWEN);
+	LDI  R30,LOW(132)
+	STS  116,R30
+; 0001 00A2          while(!(TWCR & (1<<TWINT)));
+_0x2002B:
+	LDS  R30,116
+	ANDI R30,LOW(0x80)
+	BREQ _0x2002B
+; 0001 00A3 
+; 0001 00A4      return TWDR;
+_0x2080009:
+	LDS  R30,115
+	RET
+; 0001 00A5 
+; 0001 00A6 }/* I2CreadNak */
+;
+;/*
+;MPU6050 lib 0x02
+;copyright (c) Davide Gironi, 2012
+;Released under GPLv3.
+;
+;This Program has been modified by ER2C Team, for ADROIT Robot Project.
+;*/
+;
+;
+;#include <stdlib.h>
+;#include <delay.h>
+;#include <math.h>
+;#include <mem.h>
+;
+;
+;#include "myGlobalVars.h"
+;
+;#if UseIMU == 1
+;
+;#include "myMPU6050.h"
+;#include "myI2C.h"
+;
+;
+;#if UseMahonyFilter ==1
+;   volatile float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;
+;#endif
+;
+;volatile unsigned char buffer[6];
+;
+;void MPU6050ReadBytes(unsigned char regAddr, unsigned char length, unsigned char *data)
+; 0002 001F {   unsigned char i = 0; //signed char count = 0;
+
+	.CSEG
+_MPU6050ReadBytes:
+; 0002 0020     if(length > 0)
+	ST   -Y,R17
+;	regAddr -> Y+4
+;	length -> Y+3
+;	*data -> Y+1
+;	i -> R17
+	LDI  R17,0
+	LDD  R26,Y+3
+	CPI  R26,LOW(0x1)
+	BRLO _0x40003
+; 0002 0021     {   //request register
+; 0002 0022         I2C_Start(MPU6050_ADDR | I2C_WRITE);
+	LDI  R30,LOW(208)
+	ST   -Y,R30
+	RCALL _I2C_Start
+; 0002 0023         I2C_Write(regAddr);
+	LDD  R30,Y+4
+	ST   -Y,R30
+	RCALL _I2C_Write
+; 0002 0024         delay_us(10);
+	__DELAY_USB 53
+; 0002 0025         //read data
+; 0002 0026         I2C_Start(MPU6050_ADDR | I2C_READ);
+	LDI  R30,LOW(209)
+	ST   -Y,R30
+	RCALL _I2C_Start
+; 0002 0027         length--;
+	LDD  R30,Y+3
+	SUBI R30,LOW(1)
+	STD  Y+3,R30
+; 0002 0028         for(i=length; i>=0; i--) {
+	LDD  R17,Y+3
+_0x40005:
+	CPI  R17,0
+	BRLO _0x40006
+; 0002 0029             if(i==0)
+	CPI  R17,0
+	BRNE _0x40007
+; 0002 002A                 data[i] = I2C_ReadNak();
+	MOV  R30,R17
+	LDD  R26,Y+1
+	LDD  R27,Y+1+1
+	LDI  R31,0
+	ADD  R30,R26
+	ADC  R31,R27
+	PUSH R31
+	PUSH R30
+	RCALL _I2C_ReadNak
+	POP  R26
+	POP  R27
+	RJMP _0x40017
+; 0002 002B             else
+_0x40007:
+; 0002 002C                 data[i] = I2C_ReadAck();
+	MOV  R30,R17
+	LDD  R26,Y+1
+	LDD  R27,Y+1+1
+	LDI  R31,0
+	ADD  R30,R26
+	ADC  R31,R27
+	PUSH R31
+	PUSH R30
+	RCALL _I2C_ReadAck
+	POP  R26
+	POP  R27
+_0x40017:
+	ST   X,R30
+; 0002 002D         }
+	SUBI R17,1
+	RJMP _0x40005
+_0x40006:
+; 0002 002E         I2C_Stop();
+	RCALL _I2C_Stop
+; 0002 002F     }
+; 0002 0030 }
+_0x40003:
+	LDD  R17,Y+0
+_0x2080008:
+	ADIW R28,5
+	RET
+;
+;
+;// read 1 byte from chip register
+;signed char MPU6050ReadByte(unsigned char regAddr, unsigned char *data)
+; 0002 0035 {   //request register
+_MPU6050ReadByte:
+; 0002 0036     I2C_Start(MPU6050_ADDR | I2C_WRITE);
+;	regAddr -> Y+2
+;	*data -> Y+0
+	LDI  R30,LOW(208)
+	ST   -Y,R30
+	RCALL _I2C_Start
+; 0002 0037     I2C_Write(regAddr);
+	LDD  R30,Y+2
+	ST   -Y,R30
+	RCALL _I2C_Write
+; 0002 0038     delay_us(10);
+	__DELAY_USB 53
+; 0002 0039     //read data
+; 0002 003A     I2C_Start(MPU6050_ADDR | I2C_READ);
+	LDI  R30,LOW(209)
+	ST   -Y,R30
+	RCALL _I2C_Start
+; 0002 003B     *data = I2C_ReadNak();
+	RCALL _I2C_ReadNak
+	LD   R26,Y
+	LDD  R27,Y+1
+	ST   X,R30
+; 0002 003C     I2C_Stop();
+	RCALL _I2C_Stop
+; 0002 003D     return 1;
+	LDI  R30,LOW(1)
+_0x2080007:
+	ADIW R28,3
+	RET
+; 0002 003E }
+;
+;// write 1 byte to chip register
+;void MPU6050WriteByte(unsigned char regAddr, unsigned char data) {
+; 0002 0041 void MPU6050WriteByte(unsigned char regAddr, unsigned char data) {
+_MPU6050WriteByte:
+; 0002 0042     //write data
+; 0002 0043     I2C_Start(MPU6050_ADDR | I2C_WRITE);
+;	regAddr -> Y+1
+;	data -> Y+0
+	LDI  R30,LOW(208)
+	ST   -Y,R30
+	RCALL _I2C_Start
+; 0002 0044     I2C_Write(regAddr); //reg
+	LDD  R30,Y+1
+	ST   -Y,R30
+	RCALL _I2C_Write
+; 0002 0045     I2C_Write(data);
+	LD   R30,Y
+	ST   -Y,R30
+	RCALL _I2C_Write
+; 0002 0046     I2C_Stop();
+	RCALL _I2C_Stop
+; 0002 0047 }
+_0x2080006:
+	ADIW R28,2
+	RET
+;
+;/*
+;
+;// write bytes to chip register
+;void mpu6050_writeBytes(unsigned char regAddr, unsigned char length, unsigned char* data) {
+;    unsigned char i;
+;    if(length > 0) {
+;        //write data
+;        I2C_Start(MPU6050_ADDR | I2C_WRITE);
+;        I2C_Write(regAddr); //reg
+;        for (i = 0; i < length; i++) {
+;            I2C_Write((unsigned char) data[i]);
+;        }
+;        I2C_Stop();
+;    }
+;}
+;*/
+;
+;// read bits from chip register
+;signed char mpu6050_readBits(unsigned char regAddr, unsigned char bitStart, unsigned char length, unsigned char *data) {
+; 0002 005B signed char mpu6050_readBits(unsigned char regAddr, unsigned char bitStart, unsigned char length, unsigned char *data) {
+_mpu6050_readBits:
+; 0002 005C     // 01101001 read byte
+; 0002 005D     // 76543210 bit numbers
+; 0002 005E     //    xxx   args: bitStart=4, length=3
+; 0002 005F     //    010   masked
+; 0002 0060     //   -> 010 shifted
+; 0002 0061     signed char count = 0;
+; 0002 0062     if(length > 0) {
+	ST   -Y,R17
+;	regAddr -> Y+5
+;	bitStart -> Y+4
+;	length -> Y+3
+;	*data -> Y+1
+;	count -> R17
+	LDI  R17,0
+	LDD  R26,Y+3
+	CPI  R26,LOW(0x1)
+	BRLO _0x40009
+; 0002 0063         unsigned char b;
+; 0002 0064         if ((count = MPU6050ReadByte(regAddr, &b)) != 0) {
+	SBIW R28,1
+;	regAddr -> Y+6
+;	bitStart -> Y+5
+;	length -> Y+4
+;	*data -> Y+2
+;	b -> Y+0
+	LDD  R30,Y+6
+	ST   -Y,R30
+	MOVW R30,R28
+	ADIW R30,1
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _MPU6050ReadByte
+	MOV  R17,R30
+	CPI  R30,0
+	BREQ _0x4000A
+; 0002 0065             unsigned char mask = ((1 << length) - 1) << (bitStart - length + 1);
+; 0002 0066             b &= mask;
+	SBIW R28,1
+;	regAddr -> Y+7
+;	bitStart -> Y+6
+;	length -> Y+5
+;	*data -> Y+3
+;	b -> Y+1
+;	mask -> Y+0
+	LDD  R30,Y+5
+	LDI  R26,LOW(1)
+	CALL __LSLB12
+	SUBI R30,LOW(1)
+	MOV  R0,R30
+	LDD  R26,Y+5
+	LDD  R30,Y+6
+	SUB  R30,R26
+	SUBI R30,-LOW(1)
+	MOV  R26,R0
+	CALL __LSLB12
+	ST   Y,R30
+	LDD  R26,Y+1
+	AND  R30,R26
+	STD  Y+1,R30
+; 0002 0067             b >>= (bitStart - length + 1);
+	LDD  R26,Y+5
+	LDD  R30,Y+6
+	SUB  R30,R26
+	SUBI R30,-LOW(1)
+	LDD  R26,Y+1
+	CALL __LSRB12
+	STD  Y+1,R30
+; 0002 0068             *data = b;
+	LDD  R26,Y+3
+	LDD  R27,Y+3+1
+	ST   X,R30
+; 0002 0069         }
+	ADIW R28,1
+; 0002 006A     }
+_0x4000A:
+	ADIW R28,1
+; 0002 006B     return count;
+_0x40009:
+	MOV  R30,R17
+	LDD  R17,Y+0
+	ADIW R28,6
+	RET
+; 0002 006C }
+;
+;// read 1 bit from chip register
+;signed char mpu6050_readBit(unsigned char regAddr, unsigned char bitNum, unsigned char *data) {
+; 0002 006F signed char mpu6050_readBit(unsigned char regAddr, unsigned char bitNum, unsigned char *data) {
+; 0002 0070     unsigned char b;
+; 0002 0071     unsigned char count = MPU6050ReadByte(regAddr, &b);
+; 0002 0072     *data = b & (1 << bitNum);
+;	regAddr -> Y+5
+;	bitNum -> Y+4
+;	*data -> Y+2
+;	b -> R17
+;	count -> R16
+; 0002 0073     return count;
+; 0002 0074 }
+;
+;// write bit/bits to chip register
+;void mpu6050_writeBits(unsigned char regAddr, unsigned char bitStart, unsigned char length, unsigned char data) {
+; 0002 0077 void mpu6050_writeBits(unsigned char regAddr, unsigned char bitStart, unsigned char length, unsigned char data) {
+_mpu6050_writeBits:
+; 0002 0078     //      010 value to write
+; 0002 0079     // 76543210 bit numbers
+; 0002 007A     //    xxx   args: bitStart=4, length=3
+; 0002 007B     // 00011100 mask byte
+; 0002 007C     // 10101111 original value (sample)
+; 0002 007D     // 10100011 original & ~mask
+; 0002 007E     // 10101011 masked | value
+; 0002 007F     if(length > 0) {
+;	regAddr -> Y+3
+;	bitStart -> Y+2
+;	length -> Y+1
+;	data -> Y+0
+	LDD  R26,Y+1
+	CPI  R26,LOW(0x1)
+	BRLO _0x4000B
+; 0002 0080         unsigned char b = 0;
+; 0002 0081         if (MPU6050ReadByte(regAddr, &b) != 0) { //get current data
+	SBIW R28,1
+	LDI  R30,LOW(0)
+	ST   Y,R30
+;	regAddr -> Y+4
+;	bitStart -> Y+3
+;	length -> Y+2
+;	data -> Y+1
+;	b -> Y+0
+	LDD  R30,Y+4
+	ST   -Y,R30
+	MOVW R30,R28
+	ADIW R30,1
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _MPU6050ReadByte
+	CPI  R30,0
+	BREQ _0x4000C
+; 0002 0082             unsigned char mask = ((1 << length) - 1) << (bitStart - length + 1);
+; 0002 0083             data <<= (bitStart - length + 1); // shift data into correct position
+	SBIW R28,1
+;	regAddr -> Y+5
+;	bitStart -> Y+4
+;	length -> Y+3
+;	data -> Y+2
+;	b -> Y+1
+;	mask -> Y+0
+	LDD  R30,Y+3
+	LDI  R26,LOW(1)
+	CALL __LSLB12
+	SUBI R30,LOW(1)
+	MOV  R0,R30
+	LDD  R26,Y+3
+	LDD  R30,Y+4
+	SUB  R30,R26
+	SUBI R30,-LOW(1)
+	MOV  R26,R0
+	CALL __LSLB12
+	ST   Y,R30
+	LDD  R26,Y+3
+	LDD  R30,Y+4
+	SUB  R30,R26
+	SUBI R30,-LOW(1)
+	LDD  R26,Y+2
+	CALL __LSLB12
+	STD  Y+2,R30
+; 0002 0084             data &= mask; // zero all non-important bits in data
+	LD   R30,Y
+	LDD  R26,Y+2
+	AND  R30,R26
+	STD  Y+2,R30
+; 0002 0085             b &= ~(mask); // zero all important bits in existing byte
+	LD   R30,Y
+	COM  R30
+	LDD  R26,Y+1
+	AND  R30,R26
+	STD  Y+1,R30
+; 0002 0086             b |= data; // combine data with existing byte
+	LDD  R30,Y+2
+	LDD  R26,Y+1
+	OR   R30,R26
+	STD  Y+1,R30
+; 0002 0087             MPU6050WriteByte(regAddr, b);
+	LDD  R30,Y+5
+	ST   -Y,R30
+	LDD  R30,Y+2
+	ST   -Y,R30
+	RCALL _MPU6050WriteByte
+; 0002 0088         }
+	ADIW R28,1
+; 0002 0089     }
+_0x4000C:
+	ADIW R28,1
+; 0002 008A }
+_0x4000B:
+	RJMP _0x2080005
+;
+;// write one bit to chip register
+;void mpu6050_writeBit(unsigned char regAddr, unsigned char bitNum, unsigned char data) {
+; 0002 008D void mpu6050_writeBit(unsigned char regAddr, unsigned char bitNum, unsigned char data) {
+_mpu6050_writeBit:
+; 0002 008E     unsigned char b;
+; 0002 008F     MPU6050ReadByte(regAddr, &b);
+	ST   -Y,R17
+;	regAddr -> Y+3
+;	bitNum -> Y+2
+;	data -> Y+1
+;	b -> R17
+	LDD  R30,Y+3
+	ST   -Y,R30
+	IN   R30,SPL
+	IN   R31,SPH
+	ST   -Y,R31
+	ST   -Y,R30
+	PUSH R17
+	RCALL _MPU6050ReadByte
+	POP  R17
+; 0002 0090     b = (data != 0) ? (b | (1 << bitNum)) : (b & ~(1 << bitNum));
+	LDD  R26,Y+1
+	CPI  R26,LOW(0x0)
+	BREQ _0x4000D
+	LDD  R30,Y+2
+	LDI  R26,LOW(1)
+	CALL __LSLB12
+	OR   R30,R17
+	RJMP _0x4000E
+_0x4000D:
+	LDD  R30,Y+2
+	LDI  R26,LOW(1)
+	CALL __LSLB12
+	COM  R30
+	AND  R30,R17
+_0x4000E:
+	MOV  R17,R30
+; 0002 0091     MPU6050WriteByte(regAddr, b);
+	LDD  R30,Y+3
+	ST   -Y,R30
+	ST   -Y,R17
+	RCALL _MPU6050WriteByte
+; 0002 0092 }
+	LDD  R17,Y+0
+_0x2080005:
+	ADIW R28,4
+	RET
+;
+;
+;// set sleep disabled
+;void MPU6050_SleepDisabled() {
+; 0002 0096 void MPU6050_SleepDisabled() {
+_MPU6050_SleepDisabled:
+; 0002 0097     mpu6050_writeBit(MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, 0);
+	LDI  R30,LOW(107)
+	ST   -Y,R30
+	LDI  R30,LOW(6)
+	ST   -Y,R30
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _mpu6050_writeBit
+; 0002 0098 }
+	RET
+;
+;#pragma used+
+;// set sleep enabled
+;void MPU6050_SleepEnabled() {
+; 0002 009C void MPU6050_SleepEnabled() {
+; 0002 009D     mpu6050_writeBit(MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, 1);
+; 0002 009E }
+;#pragma used-
+;
+;// test connectino to chip
+;#pragma used+
+;unsigned char MPU6050_TestConnection() {
+; 0002 00A3 unsigned char MPU6050_TestConnection() {
+_MPU6050_TestConnection:
+; 0002 00A4     mpu6050_readBits(MPU6050_RA_WHO_AM_I, MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, (unsigned char *)buffer);
+	LDI  R30,LOW(117)
+	ST   -Y,R30
+	LDI  R30,LOW(6)
+	ST   -Y,R30
+	ST   -Y,R30
+	LDI  R30,LOW(_buffer)
+	LDI  R31,HIGH(_buffer)
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _mpu6050_readBits
+; 0002 00A5     if(buffer[0] == 0x34)
+	LDS  R26,_buffer
+	CPI  R26,LOW(0x34)
+	BRNE _0x40010
+; 0002 00A6         return 1;
+	LDI  R30,LOW(1)
+	RET
+; 0002 00A7     else
+_0x40010:
+; 0002 00A8         return 0;
+	LDI  R30,LOW(0)
+	RET
+; 0002 00A9 }
+	RET
+;#pragma used-
+;
+;// initialize the accel and gyro
+;void MPU6050_Init(void)
+; 0002 00AE {   //allow mpu6050 chip clocks to start up
+_MPU6050_Init:
+; 0002 00AF     delay_ms(100);
+	LDI  R30,LOW(100)
+	LDI  R31,HIGH(100)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _delay_ms
+; 0002 00B0     //set sleep disabled
+; 0002 00B1     MPU6050_SleepDisabled();
+	RCALL _MPU6050_SleepDisabled
+; 0002 00B2     //wake up delay needed sleep disabled
+; 0002 00B3     delay_ms(10);
+	LDI  R30,LOW(10)
+	LDI  R31,HIGH(10)
+	ST   -Y,R31
+	ST   -Y,R30
+	CALL _delay_ms
+; 0002 00B4     //set clock source
+; 0002 00B5     //  it is highly recommended that the device be configured to use one of the gyroscopes (or an external clock source)
+; 0002 00B6     //  as the clock reference for improved stability
+; 0002 00B7     mpu6050_writeBits(MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CLKSEL_BIT, MPU6050_PWR1_CLKSEL_LENGTH, MPU6050_CLOCK_PLL_XGYRO);
+	LDI  R30,LOW(107)
+	ST   -Y,R30
+	LDI  R30,LOW(2)
+	ST   -Y,R30
+	LDI  R30,LOW(3)
+	ST   -Y,R30
+	LDI  R30,LOW(1)
+	ST   -Y,R30
+	RCALL _mpu6050_writeBits
+; 0002 00B8     //set DLPF bandwidth to 42Hz
+; 0002 00B9     mpu6050_writeBits(MPU6050_RA_CONFIG, MPU6050_CFG_DLPF_CFG_BIT, MPU6050_CFG_DLPF_CFG_LENGTH, MPU6050_DLPF_BW_42);
+	LDI  R30,LOW(26)
+	ST   -Y,R30
+	LDI  R30,LOW(2)
+	ST   -Y,R30
+	LDI  R30,LOW(3)
+	ST   -Y,R30
+	ST   -Y,R30
+	RCALL _mpu6050_writeBits
+; 0002 00BA     //set sampe rate
+; 0002 00BB     MPU6050WriteByte(MPU6050_RA_SMPLRT_DIV, 4); //1khz / (1 + 4) = 200Hz
+	LDI  R30,LOW(25)
+	ST   -Y,R30
+	LDI  R30,LOW(4)
+	ST   -Y,R30
+	RCALL _MPU6050WriteByte
+; 0002 00BC     //set gyro range
+; 0002 00BD     mpu6050_writeBits(MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, MPU6050_GYRO_FS);
+	LDI  R30,LOW(27)
+	ST   -Y,R30
+	LDI  R30,LOW(4)
+	ST   -Y,R30
+	LDI  R30,LOW(2)
+	ST   -Y,R30
+	LDI  R30,LOW(3)
+	ST   -Y,R30
+	RCALL _mpu6050_writeBits
+; 0002 00BE     //set accel range
+; 0002 00BF     mpu6050_writeBits(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_AFS_SEL_BIT, MPU6050_ACONFIG_AFS_SEL_LENGTH, MPU6050_ACCEL_FS);
+	LDI  R30,LOW(28)
+	ST   -Y,R30
+	LDI  R30,LOW(4)
+	ST   -Y,R30
+	LDI  R30,LOW(2)
+	ST   -Y,R30
+	LDI  R30,LOW(0)
+	ST   -Y,R30
+	RCALL _mpu6050_writeBits
+; 0002 00C0 }
+	RET
+;
+;
+;#pragma used+
+;void ReadAccelerometer(void)
+; 0002 00C5 {   unsigned int ax, ay, az;
+_ReadAccelerometer:
+; 0002 00C6     unsigned char buffer[6];
+; 0002 00C7     MPU6050ReadBytes(MPU6050_RA_ACCEL_XOUT_H, 6, (unsigned char *)buffer);
+	SBIW R28,6
+	CALL __SAVELOCR6
+;	ax -> R16,R17
+;	ay -> R18,R19
+;	az -> R20,R21
+;	buffer -> Y+6
+	LDI  R30,LOW(59)
+	ST   -Y,R30
+	LDI  R30,LOW(6)
+	ST   -Y,R30
+	MOVW R30,R28
+	ADIW R30,8
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _MPU6050ReadBytes
+; 0002 00C8     ax = peekw(&buffer[4]);
+	__GETWRS 16,17,10
+; 0002 00C9     ay = peekw(&buffer[2]);
+	__GETWRS 18,19,8
+; 0002 00CA     az = peekw(&buffer[0]);
+	__GETWRS 20,21,6
+; 0002 00CB 
+; 0002 00CC     //ax = (((int)buffer[5]) << 8) | buffer[4];
+; 0002 00CD     //ay = (((int)buffer[3]) << 8) | buffer[2];
+; 0002 00CE     //az = (((int)buffer[1]) << 8) | buffer[0];
+; 0002 00CF     #if MPU6050_CALIBRATEDACCGYRO == 1
+; 0002 00D0 	 Axg = (float)(ax-MPU6050_AXOFFSET)/MPU6050_AXGAIN;
+	MOVW R30,R16
+	SBIW R30,0
+	CLR  R22
+	CLR  R23
+	CALL __CDF1
+	MOVW R26,R30
+	MOVW R24,R22
+	__GETD1N 0x46800000
+	CALL __DIVF21
+	STS  _Axg,R30
+	STS  _Axg+1,R31
+	STS  _Axg+2,R22
+	STS  _Axg+3,R23
+; 0002 00D1 	 Ayg = (float)(ay-MPU6050_AYOFFSET)/MPU6050_AYGAIN;
+	MOVW R30,R18
+	SBIW R30,0
+	CLR  R22
+	CLR  R23
+	CALL __CDF1
+	MOVW R26,R30
+	MOVW R24,R22
+	__GETD1N 0x46800000
+	CALL __DIVF21
+	STS  _Ayg,R30
+	STS  _Ayg+1,R31
+	STS  _Ayg+2,R22
+	STS  _Ayg+3,R23
+; 0002 00D2 	 Azg = (float)(az-MPU6050_AZOFFSET)/MPU6050_AZGAIN;
+	MOVW R30,R20
+	SBIW R30,0
+	CLR  R22
+	CLR  R23
+	CALL __CDF1
+	MOVW R26,R30
+	MOVW R24,R22
+	__GETD1N 0x46800000
+	CALL __DIVF21
+	STS  _Azg,R30
+	STS  _Azg+1,R31
+	STS  _Azg+2,R22
+	STS  _Azg+3,R23
+; 0002 00D3 	#else
+; 0002 00D4 	 Axg = (float)(ax)/MPU6050_AGAIN;
+; 0002 00D5 	 Ayg = (float)(ay)/MPU6050_AGAIN;
+; 0002 00D6 	 Azg = (float)(az)/MPU6050_AGAIN;
+; 0002 00D7 	#endif
+; 0002 00D8 }
+	RJMP _0x2080004
+;#pragma used-
+;
+;#pragma used+
+;void ReadGyroScope(void)
+; 0002 00DD {   int gx, gy, gz;
+_ReadGyroScope:
+; 0002 00DE     unsigned char buffer[6];
+; 0002 00DF     MPU6050ReadBytes(MPU6050_RA_ACCEL_XOUT_H, 6, (unsigned char *)buffer);
+	SBIW R28,6
+	CALL __SAVELOCR6
+;	gx -> R16,R17
+;	gy -> R18,R19
+;	gz -> R20,R21
+;	buffer -> Y+6
+	LDI  R30,LOW(59)
+	ST   -Y,R30
+	LDI  R30,LOW(6)
+	ST   -Y,R30
+	MOVW R30,R28
+	ADIW R30,8
+	ST   -Y,R31
+	ST   -Y,R30
+	RCALL _MPU6050ReadBytes
+; 0002 00E0     gx = peekw(&buffer[4]);
+	__GETWRS 16,17,10
+; 0002 00E1     gy = peekw(&buffer[2]);
+	__GETWRS 18,19,8
+; 0002 00E2     gz = peekw(&buffer[0]);
+	__GETWRS 20,21,6
+; 0002 00E3 
+; 0002 00E4     //gx = (((int)buffer[0]) << 8) | buffer[1];
+; 0002 00E5     //gy = (((int)buffer[2]) << 8) | buffer[3];
+; 0002 00E6     //gz = (((int)buffer[4]) << 8) | buffer[5];
+; 0002 00E7     #if MPU6050_CALIBRATEDACCGYRO == 1
+; 0002 00E8 	 Gxrs = (float)(gx-MPU6050_GXOFFSET)/MPU6050_GXGAIN*0.01745329; //degree to radians
+	MOVW R30,R16
+	SUBI R30,LOW(65494)
+	SBCI R31,HIGH(65494)
+	CALL __CWD1
+	CALL __CDF1
+	MOVW R26,R30
+	MOVW R24,R22
+	__GETD1N 0x41833333
+	CALL __DIVF21
+	__GETD2N 0x3C8EFA34
+	CALL __MULF12
+	STS  _Gxrs,R30
+	STS  _Gxrs+1,R31
+	STS  _Gxrs+2,R22
+	STS  _Gxrs+3,R23
+; 0002 00E9 	 Gyrs = (float)(gy-MPU6050_GYOFFSET)/MPU6050_GYGAIN*0.01745329; //degree to radians
+	MOVW R30,R18
+	SBIW R30,9
+	CALL __CWD1
+	CALL __CDF1
+	MOVW R26,R30
+	MOVW R24,R22
+	__GETD1N 0x41833333
+	CALL __DIVF21
+	__GETD2N 0x3C8EFA34
+	CALL __MULF12
+	STS  _Gyrs,R30
+	STS  _Gyrs+1,R31
+	STS  _Gyrs+2,R22
+	STS  _Gyrs+3,R23
+; 0002 00EA 	 Gzrs = (float)(gz-MPU6050_GZOFFSET)/MPU6050_GZGAIN*0.01745329; //degree to radians
+	MOVW R30,R20
+	SUBI R30,LOW(65507)
+	SBCI R31,HIGH(65507)
+	CALL __CWD1
+	CALL __CDF1
+	MOVW R26,R30
+	MOVW R24,R22
+	__GETD1N 0x41833333
+	CALL __DIVF21
+	__GETD2N 0x3C8EFA34
+	CALL __MULF12
+	STS  _Gzrs,R30
+	STS  _Gzrs+1,R31
+	STS  _Gzrs+2,R22
+	STS  _Gzrs+3,R23
+; 0002 00EB 	#else
+; 0002 00EC 	 Gxrs = (float)(gx)/MPU6050_GGAIN*0.01745329; //degree to radians
+; 0002 00ED 	 Gyrs = (float)(gy)/MPU6050_GGAIN*0.01745329; //degree to radians
+; 0002 00EE 	 Gzrs = (float)(gz)/MPU6050_GGAIN*0.01745329; //degree to radians
+; 0002 00EF 	#endif
+; 0002 00F0 }
+_0x2080004:
+	CALL __LOADLOCR6
+	ADIW R28,12
+	RET
+;#pragma used-
+;
+;#if UseMahonyFilter == 1
+;void UpdateMahonyFilter(void)
+; 0002 00F5 {	float norm;
+_UpdateMahonyFilter:
+; 0002 00F6 	float halfvx, halfvy, halfvz;
+; 0002 00F7 	float halfex, halfey, halfez;
+; 0002 00F8 	float qa, qb, qc;
+; 0002 00F9 
+; 0002 00FA 	// Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
+; 0002 00FB 	if(!((Axg == 0.0f) && (Ayg == 0.0f) && (Azg == 0.0f))) {
+	SBIW R28,40
+;	norm -> Y+36
+;	halfvx -> Y+32
+;	halfvy -> Y+28
+;	halfvz -> Y+24
+;	halfex -> Y+20
+;	halfey -> Y+16
+;	halfez -> Y+12
+;	qa -> Y+8
+;	qb -> Y+4
+;	qc -> Y+0
+	LDS  R26,_Axg
+	LDS  R27,_Axg+1
+	LDS  R24,_Axg+2
+	LDS  R25,_Axg+3
+	CALL __CPD02
+	BRNE _0x40013
+	LDS  R26,_Ayg
+	LDS  R27,_Ayg+1
+	LDS  R24,_Ayg+2
+	LDS  R25,_Ayg+3
+	CALL __CPD02
+	BRNE _0x40013
+	LDS  R26,_Azg
+	LDS  R27,_Azg+1
+	LDS  R24,_Azg+2
+	LDS  R25,_Azg+3
+	CALL __CPD02
+	BRNE _0x40013
+	RJMP _0x40012
+_0x40013:
+; 0002 00FC 
+; 0002 00FD 		// Normalise accelerometer measurement
+; 0002 00FE 		norm = sqrt(Axg * Axg + Ayg * Ayg + Azg * Azg);
+	LDS  R30,_Axg
+	LDS  R31,_Axg+1
+	LDS  R22,_Axg+2
+	LDS  R23,_Axg+3
+	LDS  R26,_Axg
+	LDS  R27,_Axg+1
+	LDS  R24,_Axg+2
+	LDS  R25,_Axg+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Ayg
+	LDS  R31,_Ayg+1
+	LDS  R22,_Ayg+2
+	LDS  R23,_Ayg+3
+	LDS  R26,_Ayg
+	LDS  R27,_Ayg+1
+	LDS  R24,_Ayg+2
+	LDS  R25,_Ayg+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Azg
+	LDS  R31,_Azg+1
+	LDS  R22,_Azg+2
+	LDS  R23,_Azg+3
+	LDS  R26,_Azg
+	LDS  R27,_Azg+1
+	LDS  R24,_Azg+2
+	LDS  R25,_Azg+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	CALL __PUTPARD1
+	CALL _sqrt
+	__PUTD1S 36
+; 0002 00FF 		Axg /= norm;
+	LDS  R26,_Axg
+	LDS  R27,_Axg+1
+	LDS  R24,_Axg+2
+	LDS  R25,_Axg+3
+	CALL __DIVF21
+	STS  _Axg,R30
+	STS  _Axg+1,R31
+	STS  _Axg+2,R22
+	STS  _Axg+3,R23
+; 0002 0100 		Ayg /= norm;
+	__GETD1S 36
+	LDS  R26,_Ayg
+	LDS  R27,_Ayg+1
+	LDS  R24,_Ayg+2
+	LDS  R25,_Ayg+3
+	CALL __DIVF21
+	STS  _Ayg,R30
+	STS  _Ayg+1,R31
+	STS  _Ayg+2,R22
+	STS  _Ayg+3,R23
+; 0002 0101 		Azg /= norm;
+	__GETD1S 36
+	LDS  R26,_Azg
+	LDS  R27,_Azg+1
+	LDS  R24,_Azg+2
+	LDS  R25,_Azg+3
+	CALL __DIVF21
+	STS  _Azg,R30
+	STS  _Azg+1,R31
+	STS  _Azg+2,R22
+	STS  _Azg+3,R23
+; 0002 0102 
+; 0002 0103 		// Estimated direction of gravity and vector perpendicular to magnetic flux
+; 0002 0104 		halfvx = q1 * q3 - q0 * q2;
+	LDS  R30,_q3
+	LDS  R31,_q3+1
+	LDS  R22,_q3+2
+	LDS  R23,_q3+3
+	LDS  R26,_q1
+	LDS  R27,_q1+1
+	LDS  R24,_q1+2
+	LDS  R25,_q1+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q2
+	LDS  R31,_q2+1
+	LDS  R22,_q2+2
+	LDS  R23,_q2+3
+	LDS  R26,_q0
+	LDS  R27,_q0+1
+	LDS  R24,_q0+2
+	LDS  R25,_q0+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	__PUTD1S 32
+; 0002 0105 		halfvy = q0 * q1 + q2 * q3;
+	LDS  R30,_q1
+	LDS  R31,_q1+1
+	LDS  R22,_q1+2
+	LDS  R23,_q1+3
+	LDS  R26,_q0
+	LDS  R27,_q0+1
+	LDS  R24,_q0+2
+	LDS  R25,_q0+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q3
+	LDS  R31,_q3+1
+	LDS  R22,_q3+2
+	LDS  R23,_q3+3
+	LDS  R26,_q2
+	LDS  R27,_q2+1
+	LDS  R24,_q2+2
+	LDS  R25,_q2+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	__PUTD1S 28
+; 0002 0106 		halfvz = q0 * q0 - 0.5f + q3 * q3;
+	LDS  R30,_q0
+	LDS  R31,_q0+1
+	LDS  R22,_q0+2
+	LDS  R23,_q0+3
+	LDS  R26,_q0
+	LDS  R27,_q0+1
+	LDS  R24,_q0+2
+	LDS  R25,_q0+3
+	CALL __MULF12
+	MOVW R26,R30
+	MOVW R24,R22
+	__GETD1N 0x3F000000
+	CALL __SWAPD12
+	CALL __SUBF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q3
+	LDS  R31,_q3+1
+	LDS  R22,_q3+2
+	LDS  R23,_q3+3
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	__PUTD1S 24
+; 0002 0107 
+; 0002 0108 		// Error is sum of cross product between estimated and measured direction of gravity
+; 0002 0109 		halfex = (Ayg * halfvz - Azg * halfvy);
+	LDS  R26,_Ayg
+	LDS  R27,_Ayg+1
+	LDS  R24,_Ayg+2
+	LDS  R25,_Ayg+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	__GETD1S 28
+	LDS  R26,_Azg
+	LDS  R27,_Azg+1
+	LDS  R24,_Azg+2
+	LDS  R25,_Azg+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	__PUTD1S 20
+; 0002 010A 		halfey = (Azg * halfvx - Axg * halfvz);
+	__GETD1S 32
+	LDS  R26,_Azg
+	LDS  R27,_Azg+1
+	LDS  R24,_Azg+2
+	LDS  R25,_Azg+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	__GETD1S 24
+	LDS  R26,_Axg
+	LDS  R27,_Axg+1
+	LDS  R24,_Axg+2
+	LDS  R25,_Axg+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	__PUTD1S 16
+; 0002 010B 		halfez = (Axg * halfvy - Ayg * halfvx);
+	__GETD1S 28
+	LDS  R26,_Axg
+	LDS  R27,_Axg+1
+	LDS  R24,_Axg+2
+	LDS  R25,_Axg+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	__GETD1S 32
+	LDS  R26,_Ayg
+	LDS  R27,_Ayg+1
+	LDS  R24,_Ayg+2
+	LDS  R25,_Ayg+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	__PUTD1S 12
+; 0002 010C 
+; 0002 010D 		// Compute and apply integral feedback if enabled
+; 0002 010E 		if(mpu6050_mahonytwoKiDef > 0.0f) {
+; 0002 010F 			integralFBx += mpu6050_mahonytwoKiDef * halfex * (1.0f / mpu6050_mahonysampleFreq);	// integral error scaled by Ki
+	__GETD1S 20
+	__GETD2N 0x3E4CCCCD
+	CALL __MULF12
+	__GETD2N 0x3C23D70A
+	CALL __MULF12
+	LDS  R26,_integralFBx
+	LDS  R27,_integralFBx+1
+	LDS  R24,_integralFBx+2
+	LDS  R25,_integralFBx+3
+	CALL __ADDF12
+	STS  _integralFBx,R30
+	STS  _integralFBx+1,R31
+	STS  _integralFBx+2,R22
+	STS  _integralFBx+3,R23
+; 0002 0110 			integralFBy += mpu6050_mahonytwoKiDef * halfey * (1.0f / mpu6050_mahonysampleFreq);
+	__GETD1S 16
+	__GETD2N 0x3E4CCCCD
+	CALL __MULF12
+	__GETD2N 0x3C23D70A
+	CALL __MULF12
+	LDS  R26,_integralFBy
+	LDS  R27,_integralFBy+1
+	LDS  R24,_integralFBy+2
+	LDS  R25,_integralFBy+3
+	CALL __ADDF12
+	STS  _integralFBy,R30
+	STS  _integralFBy+1,R31
+	STS  _integralFBy+2,R22
+	STS  _integralFBy+3,R23
+; 0002 0111 			integralFBz += mpu6050_mahonytwoKiDef * halfez * (1.0f / mpu6050_mahonysampleFreq);
+	__GETD1S 12
+	__GETD2N 0x3E4CCCCD
+	CALL __MULF12
+	__GETD2N 0x3C23D70A
+	CALL __MULF12
+	LDS  R26,_integralFBz
+	LDS  R27,_integralFBz+1
+	LDS  R24,_integralFBz+2
+	LDS  R25,_integralFBz+3
+	CALL __ADDF12
+	STS  _integralFBz,R30
+	STS  _integralFBz+1,R31
+	STS  _integralFBz+2,R22
+	STS  _integralFBz+3,R23
+; 0002 0112 			Gxrs += integralFBx;	// apply integral feedback
+	LDS  R30,_integralFBx
+	LDS  R31,_integralFBx+1
+	LDS  R22,_integralFBx+2
+	LDS  R23,_integralFBx+3
+	LDS  R26,_Gxrs
+	LDS  R27,_Gxrs+1
+	LDS  R24,_Gxrs+2
+	LDS  R25,_Gxrs+3
+	CALL __ADDF12
+	STS  _Gxrs,R30
+	STS  _Gxrs+1,R31
+	STS  _Gxrs+2,R22
+	STS  _Gxrs+3,R23
+; 0002 0113 			Gyrs += integralFBy;
+	LDS  R30,_integralFBy
+	LDS  R31,_integralFBy+1
+	LDS  R22,_integralFBy+2
+	LDS  R23,_integralFBy+3
+	LDS  R26,_Gyrs
+	LDS  R27,_Gyrs+1
+	LDS  R24,_Gyrs+2
+	LDS  R25,_Gyrs+3
+	CALL __ADDF12
+	STS  _Gyrs,R30
+	STS  _Gyrs+1,R31
+	STS  _Gyrs+2,R22
+	STS  _Gyrs+3,R23
+; 0002 0114 			Gzrs += integralFBz;
+	LDS  R30,_integralFBz
+	LDS  R31,_integralFBz+1
+	LDS  R22,_integralFBz+2
+	LDS  R23,_integralFBz+3
+	LDS  R26,_Gzrs
+	LDS  R27,_Gzrs+1
+	LDS  R24,_Gzrs+2
+	LDS  R25,_Gzrs+3
+	CALL __ADDF12
+	STS  _Gzrs,R30
+	STS  _Gzrs+1,R31
+	STS  _Gzrs+2,R22
+	STS  _Gzrs+3,R23
+; 0002 0115 		} else {
+; 0002 0116 			integralFBx = 0.0f;	// prevent integral windup
+; 0002 0117 			integralFBy = 0.0f;
+; 0002 0118 			integralFBz = 0.0f;
+; 0002 0119 		}
+; 0002 011A 
+; 0002 011B 		// Apply proportional feedback
+; 0002 011C 		Gxrs += mpu6050_mahonytwoKpDef * halfex;
+	__GETD1S 20
+	__GETD2N 0x3F800000
+	CALL __MULF12
+	LDS  R26,_Gxrs
+	LDS  R27,_Gxrs+1
+	LDS  R24,_Gxrs+2
+	LDS  R25,_Gxrs+3
+	CALL __ADDF12
+	STS  _Gxrs,R30
+	STS  _Gxrs+1,R31
+	STS  _Gxrs+2,R22
+	STS  _Gxrs+3,R23
+; 0002 011D 		Gyrs += mpu6050_mahonytwoKpDef * halfey;
+	__GETD1S 16
+	__GETD2N 0x3F800000
+	CALL __MULF12
+	LDS  R26,_Gyrs
+	LDS  R27,_Gyrs+1
+	LDS  R24,_Gyrs+2
+	LDS  R25,_Gyrs+3
+	CALL __ADDF12
+	STS  _Gyrs,R30
+	STS  _Gyrs+1,R31
+	STS  _Gyrs+2,R22
+	STS  _Gyrs+3,R23
+; 0002 011E 		Gzrs += mpu6050_mahonytwoKpDef * halfez;
+	__GETD1S 12
+	__GETD2N 0x3F800000
+	CALL __MULF12
+	LDS  R26,_Gzrs
+	LDS  R27,_Gzrs+1
+	LDS  R24,_Gzrs+2
+	LDS  R25,_Gzrs+3
+	CALL __ADDF12
+	STS  _Gzrs,R30
+	STS  _Gzrs+1,R31
+	STS  _Gzrs+2,R22
+	STS  _Gzrs+3,R23
+; 0002 011F 	}
+; 0002 0120 
+; 0002 0121 	// Integrate rate of change of quaternion
+; 0002 0122 	Gxrs *= (0.5f * (1.0f / mpu6050_mahonysampleFreq));		// pre-multiply common factors
+_0x40012:
+	LDS  R26,_Gxrs
+	LDS  R27,_Gxrs+1
+	LDS  R24,_Gxrs+2
+	LDS  R25,_Gxrs+3
+	__GETD1N 0x3BA3D70A
+	CALL __MULF12
+	STS  _Gxrs,R30
+	STS  _Gxrs+1,R31
+	STS  _Gxrs+2,R22
+	STS  _Gxrs+3,R23
+; 0002 0123 	Gyrs *= (0.5f * (1.0f / mpu6050_mahonysampleFreq));
+	LDS  R26,_Gyrs
+	LDS  R27,_Gyrs+1
+	LDS  R24,_Gyrs+2
+	LDS  R25,_Gyrs+3
+	__GETD1N 0x3BA3D70A
+	CALL __MULF12
+	STS  _Gyrs,R30
+	STS  _Gyrs+1,R31
+	STS  _Gyrs+2,R22
+	STS  _Gyrs+3,R23
+; 0002 0124 	Gzrs *= (0.5f * (1.0f / mpu6050_mahonysampleFreq));
+	LDS  R26,_Gzrs
+	LDS  R27,_Gzrs+1
+	LDS  R24,_Gzrs+2
+	LDS  R25,_Gzrs+3
+	__GETD1N 0x3BA3D70A
+	CALL __MULF12
+	STS  _Gzrs,R30
+	STS  _Gzrs+1,R31
+	STS  _Gzrs+2,R22
+	STS  _Gzrs+3,R23
+; 0002 0125 	qa = q0;
+	LDS  R30,_q0
+	LDS  R31,_q0+1
+	LDS  R22,_q0+2
+	LDS  R23,_q0+3
+	__PUTD1S 8
+; 0002 0126 	qb = q1;
+	LDS  R30,_q1
+	LDS  R31,_q1+1
+	LDS  R22,_q1+2
+	LDS  R23,_q1+3
+	__PUTD1S 4
+; 0002 0127 	qc = q2;
+	LDS  R30,_q2
+	LDS  R31,_q2+1
+	LDS  R22,_q2+2
+	LDS  R23,_q2+3
+	CALL __PUTD1S0
+; 0002 0128 	q0 += (-qb * Gxrs - qc * Gyrs - q3 * Gzrs);
+	__GETD1S 4
+	CALL __ANEGF1
+	LDS  R26,_Gxrs
+	LDS  R27,_Gxrs+1
+	LDS  R24,_Gxrs+2
+	LDS  R25,_Gxrs+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Gyrs
+	LDS  R31,_Gyrs+1
+	LDS  R22,_Gyrs+2
+	LDS  R23,_Gyrs+3
+	CALL __GETD2S0
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Gzrs
+	LDS  R31,_Gzrs+1
+	LDS  R22,_Gzrs+2
+	LDS  R23,_Gzrs+3
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	LDS  R26,_q0
+	LDS  R27,_q0+1
+	LDS  R24,_q0+2
+	LDS  R25,_q0+3
+	CALL __ADDF12
+	STS  _q0,R30
+	STS  _q0+1,R31
+	STS  _q0+2,R22
+	STS  _q0+3,R23
+; 0002 0129 	q1 += (qa * Gxrs + qc * Gzrs - q3 * Gyrs);
+	LDS  R30,_Gxrs
+	LDS  R31,_Gxrs+1
+	LDS  R22,_Gxrs+2
+	LDS  R23,_Gxrs+3
+	__GETD2S 8
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Gzrs
+	LDS  R31,_Gzrs+1
+	LDS  R22,_Gzrs+2
+	LDS  R23,_Gzrs+3
+	CALL __GETD2S0
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Gyrs
+	LDS  R31,_Gyrs+1
+	LDS  R22,_Gyrs+2
+	LDS  R23,_Gyrs+3
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	LDS  R26,_q1
+	LDS  R27,_q1+1
+	LDS  R24,_q1+2
+	LDS  R25,_q1+3
+	CALL __ADDF12
+	STS  _q1,R30
+	STS  _q1+1,R31
+	STS  _q1+2,R22
+	STS  _q1+3,R23
+; 0002 012A 	q2 += (qa * Gyrs - qb * Gzrs + q3 * Gxrs);
+	LDS  R30,_Gyrs
+	LDS  R31,_Gyrs+1
+	LDS  R22,_Gyrs+2
+	LDS  R23,_Gyrs+3
+	__GETD2S 8
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Gzrs
+	LDS  R31,_Gzrs+1
+	LDS  R22,_Gzrs+2
+	LDS  R23,_Gzrs+3
+	__GETD2S 4
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Gxrs
+	LDS  R31,_Gxrs+1
+	LDS  R22,_Gxrs+2
+	LDS  R23,_Gxrs+3
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	LDS  R26,_q2
+	LDS  R27,_q2+1
+	LDS  R24,_q2+2
+	LDS  R25,_q2+3
+	CALL __ADDF12
+	STS  _q2,R30
+	STS  _q2+1,R31
+	STS  _q2+2,R22
+	STS  _q2+3,R23
+; 0002 012B 	q3 += (qa * Gzrs + qb * Gyrs - qc * Gxrs);
+	LDS  R30,_Gzrs
+	LDS  R31,_Gzrs+1
+	LDS  R22,_Gzrs+2
+	LDS  R23,_Gzrs+3
+	__GETD2S 8
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Gyrs
+	LDS  R31,_Gyrs+1
+	LDS  R22,_Gyrs+2
+	LDS  R23,_Gyrs+3
+	__GETD2S 4
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_Gxrs
+	LDS  R31,_Gxrs+1
+	LDS  R22,_Gxrs+2
+	LDS  R23,_Gxrs+3
+	CALL __GETD2S0
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __ADDF12
+	STS  _q3,R30
+	STS  _q3+1,R31
+	STS  _q3+2,R22
+	STS  _q3+3,R23
+; 0002 012C 
+; 0002 012D 	// Normalise quaternion
+; 0002 012E 	norm = sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+	LDS  R30,_q0
+	LDS  R31,_q0+1
+	LDS  R22,_q0+2
+	LDS  R23,_q0+3
+	LDS  R26,_q0
+	LDS  R27,_q0+1
+	LDS  R24,_q0+2
+	LDS  R25,_q0+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q1
+	LDS  R31,_q1+1
+	LDS  R22,_q1+2
+	LDS  R23,_q1+3
+	LDS  R26,_q1
+	LDS  R27,_q1+1
+	LDS  R24,_q1+2
+	LDS  R25,_q1+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q2
+	LDS  R31,_q2+1
+	LDS  R22,_q2+2
+	LDS  R23,_q2+3
+	LDS  R26,_q2
+	LDS  R27,_q2+1
+	LDS  R24,_q2+2
+	LDS  R25,_q2+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q3
+	LDS  R31,_q3+1
+	LDS  R22,_q3+2
+	LDS  R23,_q3+3
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	CALL __PUTPARD1
+	CALL _sqrt
+	__PUTD1S 36
+; 0002 012F 	q0 /= norm;
+	LDS  R26,_q0
+	LDS  R27,_q0+1
+	LDS  R24,_q0+2
+	LDS  R25,_q0+3
+	CALL __DIVF21
+	STS  _q0,R30
+	STS  _q0+1,R31
+	STS  _q0+2,R22
+	STS  _q0+3,R23
+; 0002 0130 	q1 /= norm;
+	__GETD1S 36
+	LDS  R26,_q1
+	LDS  R27,_q1+1
+	LDS  R24,_q1+2
+	LDS  R25,_q1+3
+	CALL __DIVF21
+	STS  _q1,R30
+	STS  _q1+1,R31
+	STS  _q1+2,R22
+	STS  _q1+3,R23
+; 0002 0131 	q2 /= norm;
+	__GETD1S 36
+	LDS  R26,_q2
+	LDS  R27,_q2+1
+	LDS  R24,_q2+2
+	LDS  R25,_q2+3
+	CALL __DIVF21
+	STS  _q2,R30
+	STS  _q2+1,R31
+	STS  _q2+2,R22
+	STS  _q2+3,R23
+; 0002 0132 	q3 /= norm;
+	__GETD1S 36
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __DIVF21
+	STS  _q3,R30
+	STS  _q3+1,R31
+	STS  _q3+2,R22
+	STS  _q3+3,R23
+; 0002 0133 }
+	ADIW R28,40
+	RET
+;
+;// get euler angles
+;// aerospace sequence, to obtain sensor attitude:
+;// 1. rotate around sensor Z plane by yaw
+;// 2. rotate around sensor Y plane by pitch
+;// 3. rotate around sensor X plane by roll
+;void UpdateRollPitchYaw(void)
+; 0002 013B {   Yaw = atan2(2*q1*q2 - 2*q0*q3, 2*q0*q0 + 2*q1*q1 - 1);
+_UpdateRollPitchYaw:
+	LDS  R30,_q1
+	LDS  R31,_q1+1
+	LDS  R22,_q1+2
+	LDS  R23,_q1+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q2
+	LDS  R27,_q2+1
+	LDS  R24,_q2+2
+	LDS  R25,_q2+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q0
+	LDS  R31,_q0+1
+	LDS  R22,_q0+2
+	LDS  R23,_q0+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	CALL __PUTPARD1
+	LDS  R30,_q0
+	LDS  R31,_q0+1
+	LDS  R22,_q0+2
+	LDS  R23,_q0+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q0
+	LDS  R27,_q0+1
+	LDS  R24,_q0+2
+	LDS  R25,_q0+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q1
+	LDS  R31,_q1+1
+	LDS  R22,_q1+2
+	LDS  R23,_q1+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q1
+	LDS  R27,_q1+1
+	LDS  R24,_q1+2
+	LDS  R25,_q1+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	MOVW R26,R30
+	MOVW R24,R22
+	__GETD1N 0x3F800000
+	CALL __SWAPD12
+	CALL __SUBF12
+	CALL __PUTPARD1
+	CALL _atan2
+	STS  _Yaw,R30
+	STS  _Yaw+1,R31
+	STS  _Yaw+2,R22
+	STS  _Yaw+3,R23
+; 0002 013C     Pitch = -asin(2*q1*q3 + 2*q0*q2);
+	LDS  R30,_q1
+	LDS  R31,_q1+1
+	LDS  R22,_q1+2
+	LDS  R23,_q1+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q0
+	LDS  R31,_q0+1
+	LDS  R22,_q0+2
+	LDS  R23,_q0+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q2
+	LDS  R27,_q2+1
+	LDS  R24,_q2+2
+	LDS  R25,_q2+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	CALL __PUTPARD1
+	CALL _asin
+	CALL __ANEGF1
+	STS  _Pitch,R30
+	STS  _Pitch+1,R31
+	STS  _Pitch+2,R22
+	STS  _Pitch+3,R23
+; 0002 013D     Roll = atan2(2*q2*q3 - 2*q0*q1, 2*q0*q0 + 2*q3*q3 - 1);
+	LDS  R30,_q2
+	LDS  R31,_q2+1
+	LDS  R22,_q2+2
+	LDS  R23,_q2+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q0
+	LDS  R31,_q0+1
+	LDS  R22,_q0+2
+	LDS  R23,_q0+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q1
+	LDS  R27,_q1+1
+	LDS  R24,_q1+2
+	LDS  R25,_q1+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __SWAPD12
+	CALL __SUBF12
+	CALL __PUTPARD1
+	LDS  R30,_q0
+	LDS  R31,_q0+1
+	LDS  R22,_q0+2
+	LDS  R23,_q0+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q0
+	LDS  R27,_q0+1
+	LDS  R24,_q0+2
+	LDS  R25,_q0+3
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	LDS  R30,_q3
+	LDS  R31,_q3+1
+	LDS  R22,_q3+2
+	LDS  R23,_q3+3
+	__GETD2N 0x40000000
+	CALL __MULF12
+	LDS  R26,_q3
+	LDS  R27,_q3+1
+	LDS  R24,_q3+2
+	LDS  R25,_q3+3
+	CALL __MULF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __ADDF12
+	MOVW R26,R30
+	MOVW R24,R22
+	__GETD1N 0x3F800000
+	CALL __SWAPD12
+	CALL __SUBF12
+	CALL __PUTPARD1
+	CALL _atan2
+	STS  _Roll,R30
+	STS  _Roll+1,R31
+	STS  _Roll+2,R22
+	STS  _Roll+3,R23
+; 0002 013E }
+	RET
+;#endif // use of mahony Filter
+;#endif // use of IMU
+;
+;
+;
+;
+;/*
+;// Mahony update function (for 6DOF)
+;void mpu6050_mahonyUpdate(float gx, float gy, float gz, float ax, float ay, float az) {
+;    float norm;
+;    float halfvx, halfvy, halfvz;
+;    float halfex, halfey, halfez;
+;    float qa, qb, qc;
+;
+;    // Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
+;    if(!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
+;
+;        // Normalise accelerometer measurement
+;        norm = sqrt(ax * ax + ay * ay + az * az);
+;        ax /= norm;
+;        ay /= norm;
+;        az /= norm;
+;
+;        // Estimated direction of gravity and vector perpendicular to magnetic flux
+;        halfvx = q1 * q3 - q0 * q2;
+;        halfvy = q0 * q1 + q2 * q3;
+;        halfvz = q0 * q0 - 0.5f + q3 * q3;
+;
+;        // Error is sum of cross product between estimated and measured direction of gravity
+;        halfex = (ay * halfvz - az * halfvy);
+;        halfey = (az * halfvx - ax * halfvz);
+;        halfez = (ax * halfvy - ay * halfvx);
+;
+;        // Compute and apply integral feedback if enabled
+;        if(mpu6050_mahonytwoKiDef > 0.0f) {
+;            integralFBx += mpu6050_mahonytwoKiDef * halfex * (1.0f / mpu6050_mahonysampleFreq);    // integral error scaled by Ki
+;            integralFBy += mpu6050_mahonytwoKiDef * halfey * (1.0f / mpu6050_mahonysampleFreq);
+;            integralFBz += mpu6050_mahonytwoKiDef * halfez * (1.0f / mpu6050_mahonysampleFreq);
+;            gx += integralFBx;    // apply integral feedback
+;            gy += integralFBy;
+;            gz += integralFBz;
+;        } else {
+;            integralFBx = 0.0f;    // prevent integral windup
+;            integralFBy = 0.0f;
+;            integralFBz = 0.0f;
+;        }
+;
+;        // Apply proportional feedback
+;        gx += mpu6050_mahonytwoKpDef * halfex;
+;        gy += mpu6050_mahonytwoKpDef * halfey;
+;        gz += mpu6050_mahonytwoKpDef * halfez;
+;    }
+;
+;    // Integrate rate of change of quaternion
+;    gx *= (0.5f * (1.0f / mpu6050_mahonysampleFreq));        // pre-multiply common factors
+;    gy *= (0.5f * (1.0f / mpu6050_mahonysampleFreq));
+;    gz *= (0.5f * (1.0f / mpu6050_mahonysampleFreq));
+;    qa = q0;
+;    qb = q1;
+;    qc = q2;
+;    q0 += (-qb * gx - qc * gy - q3 * gz);
+;    q1 += (qa * gx + qc * gz - q3 * gy);
+;    q2 += (qa * gy - qb * gz + q3 * gx);
+;    q3 += (qa * gz + qb * gy - qc * gx);
+;
+;    // Normalise quaternion
+;    norm = sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+;    q0 /= norm;
+;    q1 /= norm;
+;    q2 /= norm;
+;    q3 /= norm;
+;}
+;
+;// update quaternion
+;void mpu6050_updateQuaternion() {
+;    int ax = 0;
+;    int ay = 0;
+;    int az = 0;
+;    int gx = 0;
+;    int gy = 0;
+;    int gz = 0;
+;    double axg = 0;
+;    double ayg = 0;
+;    double azg = 0;
+;    double gxrs = 0;
+;    double gyrs = 0;
+;    double gzrs = 0;
+;
+;    //get raw data
+;    while(1) {
+;        mpu6050_readBit(MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_DATA_RDY_BIT, (unsigned char *)buffer);
+;        if(buffer[0])
+;            break;
+;        delay_us(10);
+;    }
+;
+;    mpu6050_readBytes(MPU6050_RA_ACCEL_XOUT_H, 14, (unsigned char *)buffer);
+;    ax = (((int)buffer[0]) << 8) | buffer[1];
+;    ay = (((int)buffer[2]) << 8) | buffer[3];
+;    az = (((int)buffer[4]) << 8) | buffer[5];
+;    gx = (((int)buffer[8]) << 8) | buffer[9];
+;    gy = (((int)buffer[10]) << 8) | buffer[11];
+;    gz = (((int)buffer[12]) << 8) | buffer[13];
+;
+;    #if MPU6050_CALIBRATEDACCGYRO == 1
+;    axg = (double)(ax-MPU6050_AXOFFSET)/MPU6050_AXGAIN;
+;    ayg = (double)(ay-MPU6050_AYOFFSET)/MPU6050_AYGAIN;
+;    azg = (double)(az-MPU6050_AZOFFSET)/MPU6050_AZGAIN;
+;    gxrs = (double)(gx-MPU6050_GXOFFSET)/MPU6050_GXGAIN*0.01745329; //degree to radians
+;    gyrs = (double)(gy-MPU6050_GYOFFSET)/MPU6050_GYGAIN*0.01745329; //degree to radians
+;    gzrs = (double)(gz-MPU6050_GZOFFSET)/MPU6050_GZGAIN*0.01745329; //degree to radians
+;    #else
+;    axg = (double)(ax)/MPU6050_AGAIN;
+;    ayg = (double)(ay)/MPU6050_AGAIN;
+;    azg = (double)(az)/MPU6050_AGAIN;
+;    gxrs = (double)(gx)/MPU6050_GGAIN*0.01745329; //degree to radians
+;    gyrs = (double)(gy)/MPU6050_GGAIN*0.01745329; //degree to radians
+;    gzrs = (double)(gz)/MPU6050_GGAIN*0.01745329; //degree to radians
+;    #endif
+;
+;    //compute data
+;    mpu6050_mahonyUpdate(gxrs, gyrs, gzrs, axg, ayg, azg);
+;}
+;
+;// get quaternion
+;void mpu6050_getQuaternion(double *qw, double *qx, double *qy, double *qz) {
+;    *qw = q0;
+;    *qx = q1;
+;    *qy = q2;
+;    *qz = q3;
+;}
+;*/
+;
+;
+;
+;
+
+	.CSEG
+_xatan:
+	SBIW R28,4
+	__GETD1S 4
+	__GETD2S 4
+	CALL __MULF12
+	CALL __PUTD1S0
+	__GETD2N 0x40CBD065
+	CALL __MULF12
+	__GETD2N 0x414A8F4E
+	CALL __ADDF12
+	__GETD2S 4
+	CALL __MULF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	CALL __GETD1S0
+	__GETD2N 0x41296D00
+	CALL __ADDF12
+	CALL __GETD2S0
+	CALL __MULF12
+	__GETD2N 0x414A8F4E
+	CALL __ADDF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __DIVF21
+	ADIW R28,8
+	RET
+_yatan:
+	CALL __GETD2S0
+	__GETD1N 0x3ED413CD
+	CALL __CMPF12
+	BRSH _0x2000020
+	CALL __GETD1S0
+	CALL __PUTPARD1
+	RCALL _xatan
+	RJMP _0x2080003
+_0x2000020:
+	CALL __GETD2S0
+	__GETD1N 0x401A827A
+	CALL __CMPF12
+	BREQ PC+2
+	BRCC PC+3
+	JMP  _0x2000021
+	CALL __GETD1S0
+	__GETD2N 0x3F800000
+	CALL __DIVF21
+	CALL __PUTPARD1
+	RCALL _xatan
+	__GETD2N 0x3FC90FDB
+	CALL __SWAPD12
+	CALL __SUBF12
+	RJMP _0x2080003
+_0x2000021:
+	CALL __GETD1S0
+	__GETD2N 0x3F800000
+	CALL __SUBF12
+	PUSH R23
+	PUSH R22
+	PUSH R31
+	PUSH R30
+	CALL __GETD1S0
+	__GETD2N 0x3F800000
+	CALL __ADDF12
+	POP  R26
+	POP  R27
+	POP  R24
+	POP  R25
+	CALL __DIVF21
+	CALL __PUTPARD1
+	RCALL _xatan
+	__GETD2N 0x3F490FDB
+	CALL __ADDF12
+_0x2080003:
+	ADIW R28,4
+	RET
+_asin:
+	SBIW R28,4
+	ST   -Y,R17
+	LDI  R17,0
+	__GETD2S 5
+	__GETD1N 0xBF800000
+	CALL __CMPF12
+	BRLO _0x2000023
+	__GETD1N 0x3F800000
+	CALL __CMPF12
+	BREQ PC+4
+	BRCS PC+3
+	JMP  _0x2000023
+	RJMP _0x2000022
+_0x2000023:
+	__GETD1N 0x7F7FFFFF
+	RJMP _0x2080002
+_0x2000022:
+	LDD  R26,Y+8
+	TST  R26
+	BRPL _0x2000025
+	__GETD1S 5
+	CALL __ANEGF1
+	__PUTD1S 5
+	LDI  R17,LOW(1)
+_0x2000025:
+	__GETD1S 5
+	__GETD2S 5
+	CALL __MULF12
+	__GETD2N 0x3F800000
+	CALL __SWAPD12
+	CALL __SUBF12
+	CALL __PUTPARD1
+	CALL _sqrt
+	__PUTD1S 1
+	__GETD2S 5
+	__GETD1N 0x3F3504F3
+	CALL __CMPF12
+	BREQ PC+2
+	BRCC PC+3
+	JMP  _0x2000026
+	__GETD1S 5
+	__GETD2S 1
+	CALL __DIVF21
+	CALL __PUTPARD1
+	RCALL _yatan
+	__GETD2N 0x3FC90FDB
+	CALL __SWAPD12
+	CALL __SUBF12
+	RJMP _0x2000035
+_0x2000026:
+	__GETD1S 1
+	__GETD2S 5
+	CALL __DIVF21
+	CALL __PUTPARD1
+	RCALL _yatan
+_0x2000035:
+	__PUTD1S 1
+	CPI  R17,0
+	BREQ _0x2000028
+	CALL __ANEGF1
+	RJMP _0x2080002
+_0x2000028:
+	__GETD1S 1
+_0x2080002:
+	LDD  R17,Y+0
+	ADIW R28,9
+	RET
+_atan2:
+	SBIW R28,4
+	__GETD1S 4
+	CALL __CPD10
+	BRNE _0x200002D
+	__GETD1S 8
+	CALL __CPD10
+	BRNE _0x200002E
+	__GETD1N 0x7F7FFFFF
+	RJMP _0x2080001
+_0x200002E:
+	__GETD2S 8
+	CALL __CPD02
+	BRGE _0x200002F
+	__GETD1N 0x3FC90FDB
+	RJMP _0x2080001
+_0x200002F:
+	__GETD1N 0xBFC90FDB
+	RJMP _0x2080001
+_0x200002D:
+	__GETD1S 4
+	__GETD2S 8
+	CALL __DIVF21
+	CALL __PUTD1S0
+	__GETD2S 4
+	CALL __CPD02
+	BRGE _0x2000030
+	LDD  R26,Y+11
+	TST  R26
+	BRMI _0x2000031
+	CALL __PUTPARD1
+	RCALL _yatan
+	RJMP _0x2080001
+_0x2000031:
+	CALL __GETD1S0
+	CALL __ANEGF1
+	CALL __PUTPARD1
+	RCALL _yatan
+	CALL __ANEGF1
+	RJMP _0x2080001
+_0x2000030:
+	LDD  R26,Y+11
+	TST  R26
+	BRMI _0x2000032
+	CALL __GETD1S0
+	CALL __ANEGF1
+	CALL __PUTPARD1
+	RCALL _yatan
+	__GETD2N 0x40490FDB
+	CALL __SWAPD12
+	CALL __SUBF12
+	RJMP _0x2080001
+_0x2000032:
+	CALL __GETD1S0
+	CALL __PUTPARD1
+	RCALL _yatan
+	__GETD2N 0xC0490FDB
+	CALL __ADDF12
+_0x2080001:
+	ADIW R28,12
+	RET
+
+	.CSEG
+
+	.DSEG
+
+	.CSEG
+
+	.CSEG
+
+	.CSEG
+
+	.DSEG
+_Enkoder1:
+	.BYTE 0x2
+_Enkoder2:
+	.BYTE 0x2
+_ServoCounter:
+	.BYTE 0x2
+_dServo5:
+	.BYTE 0x1
+_dServo1:
+	.BYTE 0x1
+_dServo2:
+	.BYTE 0x1
+_dServo3:
+	.BYTE 0x1
+_dServo4:
+	.BYTE 0x1
+_dSpeed1:
+	.BYTE 0x1
+_dSpeed2:
+	.BYTE 0x1
+_SysTick:
+	.BYTE 0x1
+_dCounter1:
+	.BYTE 0x1
+_dCounter2:
+	.BYTE 0x1
+_dMotor1:
+	.BYTE 0x1
+_dMotor2:
+	.BYTE 0x1
+_Axg:
+	.BYTE 0x4
+_Ayg:
+	.BYTE 0x4
+_Azg:
+	.BYTE 0x4
+_Gxrs:
+	.BYTE 0x4
+_Gyrs:
+	.BYTE 0x4
+_Gzrs:
+	.BYTE 0x4
+_q0:
+	.BYTE 0x4
+_q1:
+	.BYTE 0x4
+_q2:
+	.BYTE 0x4
+_q3:
+	.BYTE 0x4
+_integralFBx:
+	.BYTE 0x4
+_integralFBy:
+	.BYTE 0x4
+_integralFBz:
+	.BYTE 0x4
+_Roll:
+	.BYTE 0x4
+_Pitch:
+	.BYTE 0x4
+_Yaw:
+	.BYTE 0x4
+_rx_buffer1:
+	.BYTE 0x8
+_lErrorM2_S0000025000:
+	.BYTE 0x1
+_iErrorM2_S0000025000:
+	.BYTE 0x1
+_lErrorM1_S0000026000:
+	.BYTE 0x1
+_iErrorM1_S0000026000:
+	.BYTE 0x1
+_LaguTick_S0000027000:
+	.BYTE 0x1
+__dCounter1_S0000027000:
+	.BYTE 0x1
+__dCounter2_S0000027000:
+	.BYTE 0x1
+_TempoTick_S0000027000:
+	.BYTE 0x1
+_PIDTickMotor_S0000027000:
+	.BYTE 0x1
+_iError:
+	.BYTE 0x4
+_KD:
+	.BYTE 0x2
+_buffer:
+	.BYTE 0x6
+__seed_G101:
+	.BYTE 0x4
+
+	.CSEG
+
+	.CSEG
+_delay_ms:
+	ld   r30,y+
+	ld   r31,y+
+	adiw r30,0
+	breq __delay_ms1
+__delay_ms0:
+	__DELAY_USW 0xFA0
+	wdr
+	sbiw r30,1
+	brne __delay_ms0
+__delay_ms1:
+	ret
+
+__ANEGF1:
+	SBIW R30,0
+	SBCI R22,0
+	SBCI R23,0
+	BREQ __ANEGF10
+	SUBI R23,0x80
+__ANEGF10:
+	RET
+
+__ROUND_REPACK:
+	TST  R21
+	BRPL __REPACK
+	CPI  R21,0x80
+	BRNE __ROUND_REPACK0
+	SBRS R30,0
+	RJMP __REPACK
+__ROUND_REPACK0:
+	ADIW R30,1
+	ADC  R22,R25
+	ADC  R23,R25
+	BRVS __REPACK1
+
+__REPACK:
+	LDI  R21,0x80
+	EOR  R21,R23
+	BRNE __REPACK0
+	PUSH R21
+	RJMP __ZERORES
+__REPACK0:
+	CPI  R21,0xFF
+	BREQ __REPACK1
+	LSL  R22
+	LSL  R0
+	ROR  R21
+	ROR  R22
+	MOV  R23,R21
+	RET
+__REPACK1:
+	PUSH R21
+	TST  R0
+	BRMI __REPACK2
+	RJMP __MAXRES
+__REPACK2:
+	RJMP __MINRES
+
+__UNPACK:
+	LDI  R21,0x80
+	MOV  R1,R25
+	AND  R1,R21
+	LSL  R24
+	ROL  R25
+	EOR  R25,R21
+	LSL  R21
+	ROR  R24
+
+__UNPACK1:
+	LDI  R21,0x80
+	MOV  R0,R23
+	AND  R0,R21
+	LSL  R22
+	ROL  R23
+	EOR  R23,R21
+	LSL  R21
+	ROR  R22
+	RET
+
+__CFD1U:
+	SET
+	RJMP __CFD1U0
+__CFD1:
+	CLT
+__CFD1U0:
+	PUSH R21
+	RCALL __UNPACK1
+	CPI  R23,0x80
+	BRLO __CFD10
+	CPI  R23,0xFF
+	BRCC __CFD10
+	RJMP __ZERORES
+__CFD10:
+	LDI  R21,22
+	SUB  R21,R23
+	BRPL __CFD11
+	NEG  R21
+	CPI  R21,8
+	BRTC __CFD19
+	CPI  R21,9
+__CFD19:
+	BRLO __CFD17
+	SER  R30
+	SER  R31
+	SER  R22
+	LDI  R23,0x7F
+	BLD  R23,7
+	RJMP __CFD15
+__CFD17:
+	CLR  R23
+	TST  R21
+	BREQ __CFD15
+__CFD18:
+	LSL  R30
+	ROL  R31
+	ROL  R22
+	ROL  R23
+	DEC  R21
+	BRNE __CFD18
+	RJMP __CFD15
+__CFD11:
+	CLR  R23
+__CFD12:
+	CPI  R21,8
+	BRLO __CFD13
+	MOV  R30,R31
+	MOV  R31,R22
+	MOV  R22,R23
+	SUBI R21,8
+	RJMP __CFD12
+__CFD13:
+	TST  R21
+	BREQ __CFD15
+__CFD14:
+	LSR  R23
+	ROR  R22
+	ROR  R31
+	ROR  R30
+	DEC  R21
+	BRNE __CFD14
+__CFD15:
+	TST  R0
+	BRPL __CFD16
+	RCALL __ANEGD1
+__CFD16:
+	POP  R21
+	RET
+
+__CDF1U:
+	SET
+	RJMP __CDF1U0
+__CDF1:
+	CLT
+__CDF1U0:
+	SBIW R30,0
+	SBCI R22,0
+	SBCI R23,0
+	BREQ __CDF10
+	CLR  R0
+	BRTS __CDF11
+	TST  R23
+	BRPL __CDF11
+	COM  R0
+	RCALL __ANEGD1
+__CDF11:
+	MOV  R1,R23
+	LDI  R23,30
+	TST  R1
+__CDF12:
+	BRMI __CDF13
+	DEC  R23
+	LSL  R30
+	ROL  R31
+	ROL  R22
+	ROL  R1
+	RJMP __CDF12
+__CDF13:
+	MOV  R30,R31
+	MOV  R31,R22
+	MOV  R22,R1
+	PUSH R21
+	RCALL __REPACK
+	POP  R21
+__CDF10:
+	RET
+
+__SWAPACC:
+	PUSH R20
+	MOVW R20,R30
+	MOVW R30,R26
+	MOVW R26,R20
+	MOVW R20,R22
+	MOVW R22,R24
+	MOVW R24,R20
+	MOV  R20,R0
+	MOV  R0,R1
+	MOV  R1,R20
+	POP  R20
+	RET
+
+__UADD12:
+	ADD  R30,R26
+	ADC  R31,R27
+	ADC  R22,R24
+	RET
+
+__NEGMAN1:
+	COM  R30
+	COM  R31
+	COM  R22
+	SUBI R30,-1
+	SBCI R31,-1
+	SBCI R22,-1
+	RET
+
+__SUBF12:
+	PUSH R21
+	RCALL __UNPACK
+	CPI  R25,0x80
+	BREQ __ADDF129
+	LDI  R21,0x80
+	EOR  R1,R21
+
+	RJMP __ADDF120
+
+__ADDF12:
+	PUSH R21
+	RCALL __UNPACK
+	CPI  R25,0x80
+	BREQ __ADDF129
+
+__ADDF120:
+	CPI  R23,0x80
+	BREQ __ADDF128
+__ADDF121:
+	MOV  R21,R23
+	SUB  R21,R25
+	BRVS __ADDF1211
+	BRPL __ADDF122
+	RCALL __SWAPACC
+	RJMP __ADDF121
+__ADDF122:
+	CPI  R21,24
+	BRLO __ADDF123
+	CLR  R26
+	CLR  R27
+	CLR  R24
+__ADDF123:
+	CPI  R21,8
+	BRLO __ADDF124
+	MOV  R26,R27
+	MOV  R27,R24
+	CLR  R24
+	SUBI R21,8
+	RJMP __ADDF123
+__ADDF124:
+	TST  R21
+	BREQ __ADDF126
+__ADDF125:
+	LSR  R24
+	ROR  R27
+	ROR  R26
+	DEC  R21
+	BRNE __ADDF125
+__ADDF126:
+	MOV  R21,R0
+	EOR  R21,R1
+	BRMI __ADDF127
+	RCALL __UADD12
+	BRCC __ADDF129
+	ROR  R22
+	ROR  R31
+	ROR  R30
+	INC  R23
+	BRVC __ADDF129
+	RJMP __MAXRES
+__ADDF128:
+	RCALL __SWAPACC
+__ADDF129:
+	RCALL __REPACK
+	POP  R21
+	RET
+__ADDF1211:
+	BRCC __ADDF128
+	RJMP __ADDF129
+__ADDF127:
+	SUB  R30,R26
+	SBC  R31,R27
+	SBC  R22,R24
+	BREQ __ZERORES
+	BRCC __ADDF1210
+	COM  R0
+	RCALL __NEGMAN1
+__ADDF1210:
+	TST  R22
+	BRMI __ADDF129
+	LSL  R30
+	ROL  R31
+	ROL  R22
+	DEC  R23
+	BRVC __ADDF1210
+
+__ZERORES:
+	CLR  R30
+	CLR  R31
+	CLR  R22
+	CLR  R23
+	POP  R21
+	RET
+
+__MINRES:
+	SER  R30
+	SER  R31
+	LDI  R22,0x7F
+	SER  R23
+	POP  R21
+	RET
+
+__MAXRES:
+	SER  R30
+	SER  R31
+	LDI  R22,0x7F
+	LDI  R23,0x7F
+	POP  R21
+	RET
+
+__MULF12:
+	PUSH R21
+	RCALL __UNPACK
+	CPI  R23,0x80
+	BREQ __ZERORES
+	CPI  R25,0x80
+	BREQ __ZERORES
+	EOR  R0,R1
+	SEC
+	ADC  R23,R25
+	BRVC __MULF124
+	BRLT __ZERORES
+__MULF125:
+	TST  R0
+	BRMI __MINRES
+	RJMP __MAXRES
+__MULF124:
+	PUSH R0
+	PUSH R17
+	PUSH R18
+	PUSH R19
+	PUSH R20
+	CLR  R17
+	CLR  R18
+	CLR  R25
+	MUL  R22,R24
+	MOVW R20,R0
+	MUL  R24,R31
+	MOV  R19,R0
+	ADD  R20,R1
+	ADC  R21,R25
+	MUL  R22,R27
+	ADD  R19,R0
+	ADC  R20,R1
+	ADC  R21,R25
+	MUL  R24,R30
+	RCALL __MULF126
+	MUL  R27,R31
+	RCALL __MULF126
+	MUL  R22,R26
+	RCALL __MULF126
+	MUL  R27,R30
+	RCALL __MULF127
+	MUL  R26,R31
+	RCALL __MULF127
+	MUL  R26,R30
+	ADD  R17,R1
+	ADC  R18,R25
+	ADC  R19,R25
+	ADC  R20,R25
+	ADC  R21,R25
+	MOV  R30,R19
+	MOV  R31,R20
+	MOV  R22,R21
+	MOV  R21,R18
+	POP  R20
+	POP  R19
+	POP  R18
+	POP  R17
+	POP  R0
+	TST  R22
+	BRMI __MULF122
+	LSL  R21
+	ROL  R30
+	ROL  R31
+	ROL  R22
+	RJMP __MULF123
+__MULF122:
+	INC  R23
+	BRVS __MULF125
+__MULF123:
+	RCALL __ROUND_REPACK
+	POP  R21
+	RET
+
+__MULF127:
+	ADD  R17,R0
+	ADC  R18,R1
+	ADC  R19,R25
+	RJMP __MULF128
+__MULF126:
+	ADD  R18,R0
+	ADC  R19,R1
+__MULF128:
+	ADC  R20,R25
+	ADC  R21,R25
+	RET
+
+__DIVF21:
+	PUSH R21
+	RCALL __UNPACK
+	CPI  R23,0x80
+	BRNE __DIVF210
+	TST  R1
+__DIVF211:
+	BRPL __DIVF219
+	RJMP __MINRES
+__DIVF219:
+	RJMP __MAXRES
+__DIVF210:
+	CPI  R25,0x80
+	BRNE __DIVF218
+__DIVF217:
+	RJMP __ZERORES
+__DIVF218:
+	EOR  R0,R1
+	SEC
+	SBC  R25,R23
+	BRVC __DIVF216
+	BRLT __DIVF217
+	TST  R0
+	RJMP __DIVF211
+__DIVF216:
+	MOV  R23,R25
+	PUSH R17
+	PUSH R18
+	PUSH R19
+	PUSH R20
+	CLR  R1
+	CLR  R17
+	CLR  R18
+	CLR  R19
+	CLR  R20
+	CLR  R21
+	LDI  R25,32
+__DIVF212:
+	CP   R26,R30
+	CPC  R27,R31
+	CPC  R24,R22
+	CPC  R20,R17
+	BRLO __DIVF213
+	SUB  R26,R30
+	SBC  R27,R31
+	SBC  R24,R22
+	SBC  R20,R17
+	SEC
+	RJMP __DIVF214
+__DIVF213:
+	CLC
+__DIVF214:
+	ROL  R21
+	ROL  R18
+	ROL  R19
+	ROL  R1
+	ROL  R26
+	ROL  R27
+	ROL  R24
+	ROL  R20
+	DEC  R25
+	BRNE __DIVF212
+	MOVW R30,R18
+	MOV  R22,R1
+	POP  R20
+	POP  R19
+	POP  R18
+	POP  R17
+	TST  R22
+	BRMI __DIVF215
+	LSL  R21
+	ROL  R30
+	ROL  R31
+	ROL  R22
+	DEC  R23
+	BRVS __DIVF217
+__DIVF215:
+	RCALL __ROUND_REPACK
+	POP  R21
+	RET
+
+__CMPF12:
+	TST  R25
+	BRMI __CMPF120
+	TST  R23
+	BRMI __CMPF121
+	CP   R25,R23
+	BRLO __CMPF122
+	BRNE __CMPF121
+	CP   R26,R30
+	CPC  R27,R31
+	CPC  R24,R22
+	BRLO __CMPF122
+	BREQ __CMPF123
+__CMPF121:
+	CLZ
+	CLC
+	RET
+__CMPF122:
+	CLZ
+	SEC
+	RET
+__CMPF123:
+	SEZ
+	CLC
+	RET
+__CMPF120:
+	TST  R23
+	BRPL __CMPF122
+	CP   R25,R23
+	BRLO __CMPF121
+	BRNE __CMPF122
+	CP   R30,R26
+	CPC  R31,R27
+	CPC  R22,R24
+	BRLO __CMPF122
+	BREQ __CMPF123
+	RJMP __CMPF121
+
+_sqrt:
+	sbiw r28,4
+	push r21
+	ldd  r25,y+7
+	tst  r25
+	brne __sqrt0
+	adiw r28,8
+	rjmp __zerores
+__sqrt0:
+	brpl __sqrt1
+	adiw r28,8
+	rjmp __maxres
+__sqrt1:
+	push r20
+	ldi  r20,66
+	ldd  r24,y+6
+	ldd  r27,y+5
+	ldd  r26,y+4
+__sqrt2:
+	st   y,r24
+	std  y+1,r25
+	std  y+2,r26
+	std  y+3,r27
+	movw r30,r26
+	movw r22,r24
+	ldd  r26,y+4
+	ldd  r27,y+5
+	ldd  r24,y+6
+	ldd  r25,y+7
+	rcall __divf21
+	ld   r24,y
+	ldd  r25,y+1
+	ldd  r26,y+2
+	ldd  r27,y+3
+	rcall __addf12
+	rcall __unpack1
+	dec  r23
+	rcall __repack
+	ld   r24,y
+	ldd  r25,y+1
+	ldd  r26,y+2
+	ldd  r27,y+3
+	eor  r26,r30
+	andi r26,0xf8
+	brne __sqrt4
+	cp   r27,r31
+	cpc  r24,r22
+	cpc  r25,r23
+	breq __sqrt3
+__sqrt4:
+	dec  r20
+	breq __sqrt3
+	movw r26,r30
+	movw r24,r22
+	rjmp __sqrt2
+__sqrt3:
+	pop  r20
+	pop  r21
+	adiw r28,8
+	ret
+
+__ADDD12:
+	ADD  R30,R26
+	ADC  R31,R27
+	ADC  R22,R24
+	ADC  R23,R25
+	RET
+
+__ANEGW1:
+	NEG  R31
+	NEG  R30
+	SBCI R31,0
+	RET
+
+__ANEGD1:
+	COM  R31
+	COM  R22
+	COM  R23
+	NEG  R30
+	SBCI R31,-1
+	SBCI R22,-1
+	SBCI R23,-1
+	RET
+
+__LSLB12:
+	TST  R30
+	MOV  R0,R30
+	MOV  R30,R26
+	BREQ __LSLB12R
+__LSLB12L:
+	LSL  R30
+	DEC  R0
+	BRNE __LSLB12L
+__LSLB12R:
+	RET
+
+__LSRB12:
+	TST  R30
+	MOV  R0,R30
+	MOV  R30,R26
+	BREQ __LSRB12R
+__LSRB12L:
+	LSR  R30
+	DEC  R0
+	BRNE __LSRB12L
+__LSRB12R:
+	RET
+
+__LSLD1:
+	LSL  R30
+	ROL  R31
+	ROL  R22
+	ROL  R23
+	RET
+
+__CWD1:
+	MOV  R22,R31
+	ADD  R22,R22
+	SBC  R22,R22
+	MOV  R23,R22
+	RET
+
+__MULW12U:
+	MUL  R31,R26
+	MOV  R31,R0
+	MUL  R30,R27
+	ADD  R31,R0
+	MUL  R30,R26
+	MOV  R30,R0
+	ADD  R31,R1
+	RET
+
+__MULB1W2U:
+	MOV  R22,R30
+	MUL  R22,R26
+	MOVW R30,R0
+	MUL  R22,R27
+	ADD  R31,R0
+	RET
+
+__MULW12:
+	RCALL __CHKSIGNW
+	RCALL __MULW12U
+	BRTC __MULW121
+	RCALL __ANEGW1
+__MULW121:
+	RET
+
+__DIVB21U:
+	CLR  R0
+	LDI  R25,8
+__DIVB21U1:
+	LSL  R26
+	ROL  R0
+	SUB  R0,R30
+	BRCC __DIVB21U2
+	ADD  R0,R30
+	RJMP __DIVB21U3
+__DIVB21U2:
+	SBR  R26,1
+__DIVB21U3:
+	DEC  R25
+	BRNE __DIVB21U1
+	MOV  R30,R26
+	MOV  R26,R0
+	RET
+
+__DIVW21U:
+	CLR  R0
+	CLR  R1
+	LDI  R25,16
+__DIVW21U1:
+	LSL  R26
+	ROL  R27
+	ROL  R0
+	ROL  R1
+	SUB  R0,R30
+	SBC  R1,R31
+	BRCC __DIVW21U2
+	ADD  R0,R30
+	ADC  R1,R31
+	RJMP __DIVW21U3
+__DIVW21U2:
+	SBR  R26,1
+__DIVW21U3:
+	DEC  R25
+	BRNE __DIVW21U1
+	MOVW R30,R26
+	MOVW R26,R0
+	RET
+
+__DIVW21:
+	RCALL __CHKSIGNW
+	RCALL __DIVW21U
+	BRTC __DIVW211
+	RCALL __ANEGW1
+__DIVW211:
+	RET
+
+__DIVD21U:
+	PUSH R19
+	PUSH R20
+	PUSH R21
+	CLR  R0
+	CLR  R1
+	CLR  R20
+	CLR  R21
+	LDI  R19,32
+__DIVD21U1:
+	LSL  R26
+	ROL  R27
+	ROL  R24
+	ROL  R25
+	ROL  R0
+	ROL  R1
+	ROL  R20
+	ROL  R21
+	SUB  R0,R30
+	SBC  R1,R31
+	SBC  R20,R22
+	SBC  R21,R23
+	BRCC __DIVD21U2
+	ADD  R0,R30
+	ADC  R1,R31
+	ADC  R20,R22
+	ADC  R21,R23
+	RJMP __DIVD21U3
+__DIVD21U2:
+	SBR  R26,1
+__DIVD21U3:
+	DEC  R19
+	BRNE __DIVD21U1
+	MOVW R30,R26
+	MOVW R22,R24
+	MOVW R26,R0
+	MOVW R24,R20
+	POP  R21
+	POP  R20
+	POP  R19
+	RET
+
+__DIVD21:
+	RCALL __CHKSIGND
+	RCALL __DIVD21U
+	BRTC __DIVD211
+	RCALL __ANEGD1
+__DIVD211:
+	RET
+
+__MODB21U:
+	RCALL __DIVB21U
+	MOV  R30,R26
+	RET
+
+__MODW21:
+	CLT
+	SBRS R27,7
+	RJMP __MODW211
+	COM  R26
+	COM  R27
+	ADIW R26,1
+	SET
+__MODW211:
+	SBRC R31,7
+	RCALL __ANEGW1
+	RCALL __DIVW21U
+	MOVW R30,R26
+	BRTC __MODW212
+	RCALL __ANEGW1
+__MODW212:
+	RET
+
+__CHKSIGNW:
+	CLT
+	SBRS R31,7
+	RJMP __CHKSW1
+	RCALL __ANEGW1
+	SET
+__CHKSW1:
+	SBRS R27,7
+	RJMP __CHKSW2
+	COM  R26
+	COM  R27
+	ADIW R26,1
+	BLD  R0,0
+	INC  R0
+	BST  R0,0
+__CHKSW2:
+	RET
+
+__CHKSIGND:
+	CLT
+	SBRS R23,7
+	RJMP __CHKSD1
+	RCALL __ANEGD1
+	SET
+__CHKSD1:
+	SBRS R25,7
+	RJMP __CHKSD2
+	CLR  R0
+	COM  R26
+	COM  R27
+	COM  R24
+	COM  R25
+	ADIW R26,1
+	ADC  R24,R0
+	ADC  R25,R0
+	BLD  R0,0
+	INC  R0
+	BST  R0,0
+__CHKSD2:
+	RET
+
+__GETD1P_INC:
+	LD   R30,X+
+	LD   R31,X+
+	LD   R22,X+
+	LD   R23,X+
+	RET
+
+__PUTDP1_DEC:
+	ST   -X,R23
+	ST   -X,R22
+	ST   -X,R31
+	ST   -X,R30
+	RET
+
+__GETW1PF:
+	OUT  RAMPZ,R22
+	ELPM R0,Z+
+	ELPM R31,Z
+	MOV  R30,R0
+	RET
+
+__GETD1S0:
+	LD   R30,Y
+	LDD  R31,Y+1
+	LDD  R22,Y+2
+	LDD  R23,Y+3
+	RET
+
+__GETD2S0:
+	LD   R26,Y
+	LDD  R27,Y+1
+	LDD  R24,Y+2
+	LDD  R25,Y+3
+	RET
+
+__PUTD1S0:
+	ST   Y,R30
+	STD  Y+1,R31
+	STD  Y+2,R22
+	STD  Y+3,R23
+	RET
+
+__PUTPARD1:
+	ST   -Y,R23
+	ST   -Y,R22
+	ST   -Y,R31
+	ST   -Y,R30
+	RET
+
+__SWAPD12:
+	MOV  R1,R24
+	MOV  R24,R22
+	MOV  R22,R1
+	MOV  R1,R25
+	MOV  R25,R23
+	MOV  R23,R1
+
+__SWAPW12:
+	MOV  R1,R27
+	MOV  R27,R31
+	MOV  R31,R1
+
+__SWAPB12:
+	MOV  R1,R26
+	MOV  R26,R30
+	MOV  R30,R1
+	RET
+
+__CPD10:
+	SBIW R30,0
+	SBCI R22,0
+	SBCI R23,0
+	RET
+
+__CPD02:
+	CLR  R0
+	CP   R0,R26
+	CPC  R0,R27
+	CPC  R0,R24
+	CPC  R0,R25
+	RET
+
+__SAVELOCR6:
+	ST   -Y,R21
+__SAVELOCR5:
+	ST   -Y,R20
+__SAVELOCR4:
+	ST   -Y,R19
+__SAVELOCR3:
+	ST   -Y,R18
+__SAVELOCR2:
+	ST   -Y,R17
+	ST   -Y,R16
+	RET
+
+__LOADLOCR6:
+	LDD  R21,Y+5
+__LOADLOCR5:
+	LDD  R20,Y+4
+__LOADLOCR4:
+	LDD  R19,Y+3
+__LOADLOCR3:
+	LDD  R18,Y+2
+__LOADLOCR2:
+	LDD  R17,Y+1
+	LD   R16,Y
+	RET
+
+;END OF CODE MARKER
+__END_OF_CODE:

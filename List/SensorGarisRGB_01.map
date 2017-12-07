@@ -1,0 +1,25 @@
+RAM Allocation
+Variable                                                          Address   Size
+--------------------------------------------------------------------------------
+ThresholdR                                                        0x0160       8
+ThresholdG                                                        0x0168       8
+ThresholdB                                                        0x0170       8
+rx_buffer                                                         0x0178       8
+
+EEPROM Allocation
+Variable                                                          Address   Size
+--------------------------------------------------------------------------------
+_ThresholdR                                                       0x0000       8
+_ThresholdG                                                       0x0008       8
+_ThresholdB                                                       0x0010       8
+_Mode                                                             0x0018       1
+_DeviceAddress                                                    0x0019       1
+
+Register Allocation
+Variable                                                          Register  Size
+--------------------------------------------------------------------------------
+DeviceAddress                                                     R4           1
+rx_wr_index                                                       R3           1
+rx_rd_index                                                       R6           1
+rx_counter                                                        R5           1
+rx_buffer_overflow                                                R2.0      1bit

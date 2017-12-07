@@ -1,0 +1,72 @@
+RAM Allocation
+Variable                                                          Address   Size
+--------------------------------------------------------------------------------
+dMotor1                                                           0x0900       1
+dMotor2                                                           0x0901       1
+dSpeed1                                                           0x0902       1
+dSpeed2                                                           0x0903       1
+dCounter1                                                         0x0904       1
+dCounter2                                                         0x0905       1
+lErrorM2                                                          0x0906       1
+iErrorM2                                                          0x0907       1
+lErrorM1                                                          0x0908       1
+iErrorM1                                                          0x0909       1
+rx_buffer0                                                        0x090A     512
+rx_buffer1                                                        0x0B0A     512
+rx_wr_index1                                                      0x0D0A       1
+rx_rd_index1                                                      0x0D0B       1
+rx_counter1                                                       0x0D0C       1
+SysTick                                                           0x0D0D       1
+usCounter                                                         0x0D0E       2
+ServoCounter                                                      0x0D10       2
+ServoCounter                                                      0x0D12       1
+LaguTick                                                          0x0D13       1
+TempoTick                                                         0x0D14       1
+DTime                                                             0x0D15       2
+DTimeTick                                                         0x0D17       1
+_dCounter1                                                        0x0D18       1
+_dCounter2                                                        0x0D19       1
+Timer2Tick                                                        0x0D1A       1
+LastError                                                         0x0D1B       2
+LastSpeed                                                         0x0D1D       2
+LastSpeed                                                         0x0D1F       2
+LastSpeed                                                         0x0D21       2
+LastErrorDKi                                                      0x0D23       2
+LastErrorDKa                                                      0x0D25       2
+LastSpeed                                                         0x0D27       2
+LastSpeed                                                         0x0D29       2
+notasi_bebas                                                      0x0D2B       5
+notasi_dinding                                                    0x0D30       5
+notasi_buzzer                                                     0x0D35       4
+notasi_lcd                                                        0x0D39      17
+notasi_gripper                                                    0x0D4A       3
+notasi_garis                                                      0x0D4D       4
+notasi_delay                                                      0x0D51       1
+notasi_tes                                                        0x0D52       5
+xstring                                                           0x0D57      16
+i                                                                 0x0D67       1
+flag_aksi                                                         0x0D68       1
+_seed                                                             0x0D69       4
+
+EEPROM Allocation
+Variable                                                          Address   Size
+--------------------------------------------------------------------------------
+SetKP                                                             0x0000       2
+SetKD                                                             0x0002       2
+
+Register Allocation
+Variable                                                          Register  Size
+--------------------------------------------------------------------------------
+PIDMotorOn                                                        R2.0      1bit
+LaguOn                                                            R2.1      1bit
+FlagSerial                                                        R2.2      1bit
+LCD_BackLight                                                     R2.3      1bit
+ImuStart                                                          R2.4      1bit
+rx_wr_index0                                                      R4,R5        2
+rx_rd_index0                                                      R6,R7        2
+rx_counter0                                                       R8,R9        2
+rx_buffer_overflow0                                               R2.5      1bit
+rx_buffer_overflow1                                               R2.6      1bit
+Enkoder1                                                          R10,R11      2
+Enkoder2                                                          R12,R13      2
+FlagBelok                                                         R2.7      1bit

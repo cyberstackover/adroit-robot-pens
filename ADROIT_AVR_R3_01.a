@@ -1,0 +1,19 @@
+;/*****************************************************
+;Project : ADROIT AVR Rev.3
+;Version : 1
+;Date    : 3/13/2014
+;Author  : Eko Henfri Binugroho
+;Company : ER2C
+;
+;Chip type           : ATmega128
+;Program type        : Application
+;Clock frequency     : 16,000000 MHz
+;Memory model        : Small
+;External SRAM size  : 0
+;Data Stack size     : 1024
+;*****************************************************/
+;
+;#include <stdio.h>
+;#include <mem.h>
+;#include <math.h>
+;#include "Include/mySystem.h"

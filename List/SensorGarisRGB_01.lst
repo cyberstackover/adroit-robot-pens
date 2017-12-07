@@ -1,0 +1,3706 @@
+
+AVRASM ver. 2.1.30  C:\Users\Eko Henfri\Dropbox\ER2C.share\ER2C Robot Education\Program\List\SensorGarisRGB_01.asm Sat Nov 01 12:18:55 2014
+
+C:\Users\Eko Henfri\Dropbox\ER2C.share\ER2C Robot Education\Program\List\SensorGarisRGB_01.asm(1070): warning: Register r4 already defined by the .DEF directive
+C:\Users\Eko Henfri\Dropbox\ER2C.share\ER2C Robot Education\Program\List\SensorGarisRGB_01.asm(1071): warning: Register r3 already defined by the .DEF directive
+C:\Users\Eko Henfri\Dropbox\ER2C.share\ER2C Robot Education\Program\List\SensorGarisRGB_01.asm(1072): warning: Register r6 already defined by the .DEF directive
+C:\Users\Eko Henfri\Dropbox\ER2C.share\ER2C Robot Education\Program\List\SensorGarisRGB_01.asm(1073): warning: Register r5 already defined by the .DEF directive
+                 
+                 
+                 ;CodeVisionAVR C Compiler V2.05.3 Standard
+                 ;(C) Copyright 1998-2011 Pavel Haiduc, HP InfoTech s.r.l.
+                 ;http://www.hpinfotech.com
+                 
+                 ;Chip type                : ATmega8
+                 ;Program type             : Application
+                 ;Clock frequency          : 16,000000 MHz
+                 ;Memory model             : Small
+                 ;Optimize for             : Speed
+                 ;(s)printf features       : int, width
+                 ;(s)scanf features        : int, width
+                 ;External RAM size        : 0
+                 ;Data Stack size          : 256 byte(s)
+                 ;Heap size                : 0 byte(s)
+                 ;Promote 'char' to 'int'  : No
+                 ;'char' is unsigned       : No
+                 ;8 bit enums              : Yes
+                 ;Global 'const' stored in FLASH     : No
+                 ;Enhanced function parameter passing: Yes
+                 ;Enhanced core instructions         : On
+                 ;Smart register allocation          : On
+                 ;Automatic register allocation      : On
+                 
+                 	#pragma AVRPART ADMIN PART_NAME ATmega8
+                 	#pragma AVRPART MEMORY PROG_FLASH 8192
+                 	#pragma AVRPART MEMORY EEPROM 512
+                 	#pragma AVRPART MEMORY INT_SRAM SIZE 1119
+                 	#pragma AVRPART MEMORY INT_SRAM START_ADDR 0x60
+                 
+                 	.LISTMAC
+                 	.EQU UDRE=0x5
+                 	.EQU RXC=0x7
+                 	.EQU USR=0xB
+                 	.EQU UDR=0xC
+                 	.EQU SPSR=0xE
+                 	.EQU SPDR=0xF
+                 	.EQU EERE=0x0
+                 	.EQU EEWE=0x1
+                 	.EQU EEMWE=0x2
+                 	.EQU EECR=0x1C
+                 	.EQU EEDR=0x1D
+                 	.EQU EEARL=0x1E
+                 	.EQU EEARH=0x1F
+                 	.EQU WDTCR=0x21
+                 	.EQU MCUCR=0x35
+                 	.EQU GICR=0x3B
+                 	.EQU SPL=0x3D
+                 	.EQU SPH=0x3E
+                 	.EQU SREG=0x3F
+                 
+                 	.DEF R0X0=R0
+                 	.DEF R0X1=R1
+                 	.DEF R0X2=R2
+                 	.DEF R0X3=R3
+                 	.DEF R0X4=R4
+                 	.DEF R0X5=R5
+                 	.DEF R0X6=R6
+                 	.DEF R0X7=R7
+                 	.DEF R0X8=R8
+                 	.DEF R0X9=R9
+                 	.DEF R0XA=R10
+                 	.DEF R0XB=R11
+                 	.DEF R0XC=R12
+                 	.DEF R0XD=R13
+                 	.DEF R0XE=R14
+                 	.DEF R0XF=R15
+                 	.DEF R0X10=R16
+                 	.DEF R0X11=R17
+                 	.DEF R0X12=R18
+                 	.DEF R0X13=R19
+                 	.DEF R0X14=R20
+                 	.DEF R0X15=R21
+                 	.DEF R0X16=R22
+                 	.DEF R0X17=R23
+                 	.DEF R0X18=R24
+                 	.DEF R0X19=R25
+                 	.DEF R0X1A=R26
+                 	.DEF R0X1B=R27
+                 	.DEF R0X1C=R28
+                 	.DEF R0X1D=R29
+                 	.DEF R0X1E=R30
+                 	.DEF R0X1F=R31
+                 
+                 	.EQU __SRAM_START=0x0060
+                 	.EQU __SRAM_END=0x045F
+                 	.EQU __DSTACK_SIZE=0x0100
+                 	.EQU __HEAP_SIZE=0x0000
+                 	.EQU __CLEAR_SRAM_SIZE=__SRAM_END-__SRAM_START+1
+                 
+                 	.MACRO __CPD1N
+                 	CPI  R30,LOW(@0)
+                 	LDI  R26,HIGH(@0)
+                 	CPC  R31,R26
+                 	LDI  R26,BYTE3(@0)
+                 	CPC  R22,R26
+                 	LDI  R26,BYTE4(@0)
+                 	CPC  R23,R26
+                 	.ENDM
+                 
+                 	.MACRO __CPD2N
+                 	CPI  R26,LOW(@0)
+                 	LDI  R30,HIGH(@0)
+                 	CPC  R27,R30
+                 	LDI  R30,BYTE3(@0)
+                 	CPC  R24,R30
+                 	LDI  R30,BYTE4(@0)
+                 	CPC  R25,R30
+                 	.ENDM
+                 
+                 	.MACRO __CPWRR
+                 	CP   R@0,R@2
+                 	CPC  R@1,R@3
+                 	.ENDM
+                 
+                 	.MACRO __CPWRN
+                 	CPI  R@0,LOW(@2)
+                 	LDI  R30,HIGH(@2)
+                 	CPC  R@1,R30
+                 	.ENDM
+                 
+                 	.MACRO __ADDB1MN
+                 	SUBI R30,LOW(-@0-(@1))
+                 	.ENDM
+                 
+                 	.MACRO __ADDB2MN
+                 	SUBI R26,LOW(-@0-(@1))
+                 	.ENDM
+                 
+                 	.MACRO __ADDW1MN
+                 	SUBI R30,LOW(-@0-(@1))
+                 	SBCI R31,HIGH(-@0-(@1))
+                 	.ENDM
+                 
+                 	.MACRO __ADDW2MN
+                 	SUBI R26,LOW(-@0-(@1))
+                 	SBCI R27,HIGH(-@0-(@1))
+                 	.ENDM
+                 
+                 	.MACRO __ADDW1FN
+                 	SUBI R30,LOW(-2*@0-(@1))
+                 	SBCI R31,HIGH(-2*@0-(@1))
+                 	.ENDM
+                 
+                 	.MACRO __ADDD1FN
+                 	SUBI R30,LOW(-2*@0-(@1))
+                 	SBCI R31,HIGH(-2*@0-(@1))
+                 	SBCI R22,BYTE3(-2*@0-(@1))
+                 	.ENDM
+                 
+                 	.MACRO __ADDD1N
+                 	SUBI R30,LOW(-@0)
+                 	SBCI R31,HIGH(-@0)
+                 	SBCI R22,BYTE3(-@0)
+                 	SBCI R23,BYTE4(-@0)
+                 	.ENDM
+                 
+                 	.MACRO __ADDD2N
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	SBCI R24,BYTE3(-@0)
+                 	SBCI R25,BYTE4(-@0)
+                 	.ENDM
+                 
+                 	.MACRO __SUBD1N
+                 	SUBI R30,LOW(@0)
+                 	SBCI R31,HIGH(@0)
+                 	SBCI R22,BYTE3(@0)
+                 	SBCI R23,BYTE4(@0)
+                 	.ENDM
+                 
+                 	.MACRO __SUBD2N
+                 	SUBI R26,LOW(@0)
+                 	SBCI R27,HIGH(@0)
+                 	SBCI R24,BYTE3(@0)
+                 	SBCI R25,BYTE4(@0)
+                 	.ENDM
+                 
+                 	.MACRO __ANDBMNN
+                 	LDS  R30,@0+(@1)
+                 	ANDI R30,LOW(@2)
+                 	STS  @0+(@1),R30
+                 	.ENDM
+                 
+                 	.MACRO __ANDWMNN
+                 	LDS  R30,@0+(@1)
+                 	ANDI R30,LOW(@2)
+                 	STS  @0+(@1),R30
+                 	LDS  R30,@0+(@1)+1
+                 	ANDI R30,HIGH(@2)
+                 	STS  @0+(@1)+1,R30
+                 	.ENDM
+                 
+                 	.MACRO __ANDD1N
+                 	ANDI R30,LOW(@0)
+                 	ANDI R31,HIGH(@0)
+                 	ANDI R22,BYTE3(@0)
+                 	ANDI R23,BYTE4(@0)
+                 	.ENDM
+                 
+                 	.MACRO __ANDD2N
+                 	ANDI R26,LOW(@0)
+                 	ANDI R27,HIGH(@0)
+                 	ANDI R24,BYTE3(@0)
+                 	ANDI R25,BYTE4(@0)
+                 	.ENDM
+                 
+                 	.MACRO __ORBMNN
+                 	LDS  R30,@0+(@1)
+                 	ORI  R30,LOW(@2)
+                 	STS  @0+(@1),R30
+                 	.ENDM
+                 
+                 	.MACRO __ORWMNN
+                 	LDS  R30,@0+(@1)
+                 	ORI  R30,LOW(@2)
+                 	STS  @0+(@1),R30
+                 	LDS  R30,@0+(@1)+1
+                 	ORI  R30,HIGH(@2)
+                 	STS  @0+(@1)+1,R30
+                 	.ENDM
+                 
+                 	.MACRO __ORD1N
+                 	ORI  R30,LOW(@0)
+                 	ORI  R31,HIGH(@0)
+                 	ORI  R22,BYTE3(@0)
+                 	ORI  R23,BYTE4(@0)
+                 	.ENDM
+                 
+                 	.MACRO __ORD2N
+                 	ORI  R26,LOW(@0)
+                 	ORI  R27,HIGH(@0)
+                 	ORI  R24,BYTE3(@0)
+                 	ORI  R25,BYTE4(@0)
+                 	.ENDM
+                 
+                 	.MACRO __DELAY_USB
+                 	LDI  R24,LOW(@0)
+                 __DELAY_USB_LOOP:
+                 	DEC  R24
+                 	BRNE __DELAY_USB_LOOP
+                 	.ENDM
+                 
+                 	.MACRO __DELAY_USW
+                 	LDI  R24,LOW(@0)
+                 	LDI  R25,HIGH(@0)
+                 __DELAY_USW_LOOP:
+                 	SBIW R24,1
+                 	BRNE __DELAY_USW_LOOP
+                 	.ENDM
+                 
+                 	.MACRO __GETD1S
+                 	LDD  R30,Y+@0
+                 	LDD  R31,Y+@0+1
+                 	LDD  R22,Y+@0+2
+                 	LDD  R23,Y+@0+3
+                 	.ENDM
+                 
+                 	.MACRO __GETD2S
+                 	LDD  R26,Y+@0
+                 	LDD  R27,Y+@0+1
+                 	LDD  R24,Y+@0+2
+                 	LDD  R25,Y+@0+3
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1S
+                 	STD  Y+@0,R30
+                 	STD  Y+@0+1,R31
+                 	STD  Y+@0+2,R22
+                 	STD  Y+@0+3,R23
+                 	.ENDM
+                 
+                 	.MACRO __PUTD2S
+                 	STD  Y+@0,R26
+                 	STD  Y+@0+1,R27
+                 	STD  Y+@0+2,R24
+                 	STD  Y+@0+3,R25
+                 	.ENDM
+                 
+                 	.MACRO __PUTDZ2
+                 	STD  Z+@0,R26
+                 	STD  Z+@0+1,R27
+                 	STD  Z+@0+2,R24
+                 	STD  Z+@0+3,R25
+                 	.ENDM
+                 
+                 	.MACRO __CLRD1S
+                 	STD  Y+@0,R30
+                 	STD  Y+@0+1,R30
+                 	STD  Y+@0+2,R30
+                 	STD  Y+@0+3,R30
+                 	.ENDM
+                 
+                 	.MACRO __POINTB1MN
+                 	LDI  R30,LOW(@0+(@1))
+                 	.ENDM
+                 
+                 	.MACRO __POINTW1MN
+                 	LDI  R30,LOW(@0+(@1))
+                 	LDI  R31,HIGH(@0+(@1))
+                 	.ENDM
+                 
+                 	.MACRO __POINTD1M
+                 	LDI  R30,LOW(@0)
+                 	LDI  R31,HIGH(@0)
+                 	LDI  R22,BYTE3(@0)
+                 	LDI  R23,BYTE4(@0)
+                 	.ENDM
+                 
+                 	.MACRO __POINTW1FN
+                 	LDI  R30,LOW(2*@0+(@1))
+                 	LDI  R31,HIGH(2*@0+(@1))
+                 	.ENDM
+                 
+                 	.MACRO __POINTD1FN
+                 	LDI  R30,LOW(2*@0+(@1))
+                 	LDI  R31,HIGH(2*@0+(@1))
+                 	LDI  R22,BYTE3(2*@0+(@1))
+                 	LDI  R23,BYTE4(2*@0+(@1))
+                 	.ENDM
+                 
+                 	.MACRO __POINTB2MN
+                 	LDI  R26,LOW(@0+(@1))
+                 	.ENDM
+                 
+                 	.MACRO __POINTW2MN
+                 	LDI  R26,LOW(@0+(@1))
+                 	LDI  R27,HIGH(@0+(@1))
+                 	.ENDM
+                 
+                 	.MACRO __POINTW2FN
+                 	LDI  R26,LOW(2*@0+(@1))
+                 	LDI  R27,HIGH(2*@0+(@1))
+                 	.ENDM
+                 
+                 	.MACRO __POINTD2FN
+                 	LDI  R26,LOW(2*@0+(@1))
+                 	LDI  R27,HIGH(2*@0+(@1))
+                 	LDI  R24,BYTE3(2*@0+(@1))
+                 	LDI  R25,BYTE4(2*@0+(@1))
+                 	.ENDM
+                 
+                 	.MACRO __POINTBRM
+                 	LDI  R@0,LOW(@1)
+                 	.ENDM
+                 
+                 	.MACRO __POINTWRM
+                 	LDI  R@0,LOW(@2)
+                 	LDI  R@1,HIGH(@2)
+                 	.ENDM
+                 
+                 	.MACRO __POINTBRMN
+                 	LDI  R@0,LOW(@1+(@2))
+                 	.ENDM
+                 
+                 	.MACRO __POINTWRMN
+                 	LDI  R@0,LOW(@2+(@3))
+                 	LDI  R@1,HIGH(@2+(@3))
+                 	.ENDM
+                 
+                 	.MACRO __POINTWRFN
+                 	LDI  R@0,LOW(@2*2+(@3))
+                 	LDI  R@1,HIGH(@2*2+(@3))
+                 	.ENDM
+                 
+                 	.MACRO __GETD1N
+                 	LDI  R30,LOW(@0)
+                 	LDI  R31,HIGH(@0)
+                 	LDI  R22,BYTE3(@0)
+                 	LDI  R23,BYTE4(@0)
+                 	.ENDM
+                 
+                 	.MACRO __GETD2N
+                 	LDI  R26,LOW(@0)
+                 	LDI  R27,HIGH(@0)
+                 	LDI  R24,BYTE3(@0)
+                 	LDI  R25,BYTE4(@0)
+                 	.ENDM
+                 
+                 	.MACRO __GETB1MN
+                 	LDS  R30,@0+(@1)
+                 	.ENDM
+                 
+                 	.MACRO __GETB1HMN
+                 	LDS  R31,@0+(@1)
+                 	.ENDM
+                 
+                 	.MACRO __GETW1MN
+                 	LDS  R30,@0+(@1)
+                 	LDS  R31,@0+(@1)+1
+                 	.ENDM
+                 
+                 	.MACRO __GETD1MN
+                 	LDS  R30,@0+(@1)
+                 	LDS  R31,@0+(@1)+1
+                 	LDS  R22,@0+(@1)+2
+                 	LDS  R23,@0+(@1)+3
+                 	.ENDM
+                 
+                 	.MACRO __GETBRMN
+                 	LDS  R@0,@1+(@2)
+                 	.ENDM
+                 
+                 	.MACRO __GETWRMN
+                 	LDS  R@0,@2+(@3)
+                 	LDS  R@1,@2+(@3)+1
+                 	.ENDM
+                 
+                 	.MACRO __GETWRZ
+                 	LDD  R@0,Z+@2
+                 	LDD  R@1,Z+@2+1
+                 	.ENDM
+                 
+                 	.MACRO __GETD2Z
+                 	LDD  R26,Z+@0
+                 	LDD  R27,Z+@0+1
+                 	LDD  R24,Z+@0+2
+                 	LDD  R25,Z+@0+3
+                 	.ENDM
+                 
+                 	.MACRO __GETB2MN
+                 	LDS  R26,@0+(@1)
+                 	.ENDM
+                 
+                 	.MACRO __GETW2MN
+                 	LDS  R26,@0+(@1)
+                 	LDS  R27,@0+(@1)+1
+                 	.ENDM
+                 
+                 	.MACRO __GETD2MN
+                 	LDS  R26,@0+(@1)
+                 	LDS  R27,@0+(@1)+1
+                 	LDS  R24,@0+(@1)+2
+                 	LDS  R25,@0+(@1)+3
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1MN
+                 	STS  @0+(@1),R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1MN
+                 	STS  @0+(@1),R30
+                 	STS  @0+(@1)+1,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1MN
+                 	STS  @0+(@1),R30
+                 	STS  @0+(@1)+1,R31
+                 	STS  @0+(@1)+2,R22
+                 	STS  @0+(@1)+3,R23
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1EN
+                 	LDI  R26,LOW(@0+(@1))
+                 	LDI  R27,HIGH(@0+(@1))
+                 	RCALL __EEPROMWRB
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1EN
+                 	LDI  R26,LOW(@0+(@1))
+                 	LDI  R27,HIGH(@0+(@1))
+                 	RCALL __EEPROMWRW
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1EN
+                 	LDI  R26,LOW(@0+(@1))
+                 	LDI  R27,HIGH(@0+(@1))
+                 	RCALL __EEPROMWRD
+                 	.ENDM
+                 
+                 	.MACRO __PUTBR0MN
+                 	STS  @0+(@1),R0
+                 	.ENDM
+                 
+                 	.MACRO __PUTBMRN
+                 	STS  @0+(@1),R@2
+                 	.ENDM
+                 
+                 	.MACRO __PUTWMRN
+                 	STS  @0+(@1),R@2
+                 	STS  @0+(@1)+1,R@3
+                 	.ENDM
+                 
+                 	.MACRO __PUTBZR
+                 	STD  Z+@1,R@0
+                 	.ENDM
+                 
+                 	.MACRO __PUTWZR
+                 	STD  Z+@2,R@0
+                 	STD  Z+@2+1,R@1
+                 	.ENDM
+                 
+                 	.MACRO __GETW1R
+                 	MOV  R30,R@0
+                 	MOV  R31,R@1
+                 	.ENDM
+                 
+                 	.MACRO __GETW2R
+                 	MOV  R26,R@0
+                 	MOV  R27,R@1
+                 	.ENDM
+                 
+                 	.MACRO __GETWRN
+                 	LDI  R@0,LOW(@2)
+                 	LDI  R@1,HIGH(@2)
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1R
+                 	MOV  R@0,R30
+                 	MOV  R@1,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTW2R
+                 	MOV  R@0,R26
+                 	MOV  R@1,R27
+                 	.ENDM
+                 
+                 	.MACRO __ADDWRN
+                 	SUBI R@0,LOW(-@2)
+                 	SBCI R@1,HIGH(-@2)
+                 	.ENDM
+                 
+                 	.MACRO __ADDWRR
+                 	ADD  R@0,R@2
+                 	ADC  R@1,R@3
+                 	.ENDM
+                 
+                 	.MACRO __SUBWRN
+                 	SUBI R@0,LOW(@2)
+                 	SBCI R@1,HIGH(@2)
+                 	.ENDM
+                 
+                 	.MACRO __SUBWRR
+                 	SUB  R@0,R@2
+                 	SBC  R@1,R@3
+                 	.ENDM
+                 
+                 	.MACRO __ANDWRN
+                 	ANDI R@0,LOW(@2)
+                 	ANDI R@1,HIGH(@2)
+                 	.ENDM
+                 
+                 	.MACRO __ANDWRR
+                 	AND  R@0,R@2
+                 	AND  R@1,R@3
+                 	.ENDM
+                 
+                 	.MACRO __ORWRN
+                 	ORI  R@0,LOW(@2)
+                 	ORI  R@1,HIGH(@2)
+                 	.ENDM
+                 
+                 	.MACRO __ORWRR
+                 	OR   R@0,R@2
+                 	OR   R@1,R@3
+                 	.ENDM
+                 
+                 	.MACRO __EORWRR
+                 	EOR  R@0,R@2
+                 	EOR  R@1,R@3
+                 	.ENDM
+                 
+                 	.MACRO __GETWRS
+                 	LDD  R@0,Y+@2
+                 	LDD  R@1,Y+@2+1
+                 	.ENDM
+                 
+                 	.MACRO __PUTBSR
+                 	STD  Y+@1,R@0
+                 	.ENDM
+                 
+                 	.MACRO __PUTWSR
+                 	STD  Y+@2,R@0
+                 	STD  Y+@2+1,R@1
+                 	.ENDM
+                 
+                 	.MACRO __MOVEWRR
+                 	MOV  R@0,R@2
+                 	MOV  R@1,R@3
+                 	.ENDM
+                 
+                 	.MACRO __INWR
+                 	IN   R@0,@2
+                 	IN   R@1,@2+1
+                 	.ENDM
+                 
+                 	.MACRO __OUTWR
+                 	OUT  @2+1,R@1
+                 	OUT  @2,R@0
+                 	.ENDM
+                 
+                 	.MACRO __CALL1MN
+                 	LDS  R30,@0+(@1)
+                 	LDS  R31,@0+(@1)+1
+                 	ICALL
+                 	.ENDM
+                 
+                 	.MACRO __CALL1FN
+                 	LDI  R30,LOW(2*@0+(@1))
+                 	LDI  R31,HIGH(2*@0+(@1))
+                 	RCALL __GETW1PF
+                 	ICALL
+                 	.ENDM
+                 
+                 	.MACRO __CALL2EN
+                 	LDI  R26,LOW(@0+(@1))
+                 	LDI  R27,HIGH(@0+(@1))
+                 	RCALL __EEPROMRDW
+                 	ICALL
+                 	.ENDM
+                 
+                 	.MACRO __GETW1STACK
+                 	IN   R26,SPL
+                 	IN   R27,SPH
+                 	ADIW R26,@0+1
+                 	LD   R30,X+
+                 	LD   R31,X
+                 	.ENDM
+                 
+                 	.MACRO __GETD1STACK
+                 	IN   R26,SPL
+                 	IN   R27,SPH
+                 	ADIW R26,@0+1
+                 	LD   R30,X+
+                 	LD   R31,X+
+                 	LD   R22,X
+                 	.ENDM
+                 
+                 	.MACRO __NBST
+                 	BST  R@0,@1
+                 	IN   R30,SREG
+                 	LDI  R31,0x40
+                 	EOR  R30,R31
+                 	OUT  SREG,R30
+                 	.ENDM
+                 
+                 
+                 	.MACRO __PUTB1SN
+                 	LDD  R26,Y+@0
+                 	LDD  R27,Y+@0+1
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1SN
+                 	LDD  R26,Y+@0
+                 	LDD  R27,Y+@0+1
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1SN
+                 	LDD  R26,Y+@0
+                 	LDD  R27,Y+@0+1
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	RCALL __PUTDP1
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1SNS
+                 	LDD  R26,Y+@0
+                 	LDD  R27,Y+@0+1
+                 	ADIW R26,@1
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1SNS
+                 	LDD  R26,Y+@0
+                 	LDD  R27,Y+@0+1
+                 	ADIW R26,@1
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1SNS
+                 	LDD  R26,Y+@0
+                 	LDD  R27,Y+@0+1
+                 	ADIW R26,@1
+                 	RCALL __PUTDP1
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1PMN
+                 	LDS  R26,@0
+                 	LDS  R27,@0+1
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1PMN
+                 	LDS  R26,@0
+                 	LDS  R27,@0+1
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1PMN
+                 	LDS  R26,@0
+                 	LDS  R27,@0+1
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	RCALL __PUTDP1
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1PMNS
+                 	LDS  R26,@0
+                 	LDS  R27,@0+1
+                 	ADIW R26,@1
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1PMNS
+                 	LDS  R26,@0
+                 	LDS  R27,@0+1
+                 	ADIW R26,@1
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1PMNS
+                 	LDS  R26,@0
+                 	LDS  R27,@0+1
+                 	ADIW R26,@1
+                 	RCALL __PUTDP1
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1RN
+                 	MOVW R26,R@0
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1RN
+                 	MOVW R26,R@0
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1RN
+                 	MOVW R26,R@0
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	RCALL __PUTDP1
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1RNS
+                 	MOVW R26,R@0
+                 	ADIW R26,@1
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1RNS
+                 	MOVW R26,R@0
+                 	ADIW R26,@1
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1RNS
+                 	MOVW R26,R@0
+                 	ADIW R26,@1
+                 	RCALL __PUTDP1
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1RON
+                 	MOV  R26,R@0
+                 	MOV  R27,R@1
+                 	SUBI R26,LOW(-@2)
+                 	SBCI R27,HIGH(-@2)
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1RON
+                 	MOV  R26,R@0
+                 	MOV  R27,R@1
+                 	SUBI R26,LOW(-@2)
+                 	SBCI R27,HIGH(-@2)
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1RON
+                 	MOV  R26,R@0
+                 	MOV  R27,R@1
+                 	SUBI R26,LOW(-@2)
+                 	SBCI R27,HIGH(-@2)
+                 	RCALL __PUTDP1
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1RONS
+                 	MOV  R26,R@0
+                 	MOV  R27,R@1
+                 	ADIW R26,@2
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1RONS
+                 	MOV  R26,R@0
+                 	MOV  R27,R@1
+                 	ADIW R26,@2
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1RONS
+                 	MOV  R26,R@0
+                 	MOV  R27,R@1
+                 	ADIW R26,@2
+                 	RCALL __PUTDP1
+                 	.ENDM
+                 
+                 
+                 	.MACRO __GETB1SX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@0)
+                 	SBCI R31,HIGH(-@0)
+                 	LD   R30,Z
+                 	.ENDM
+                 
+                 	.MACRO __GETB1HSX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@0)
+                 	SBCI R31,HIGH(-@0)
+                 	LD   R31,Z
+                 	.ENDM
+                 
+                 	.MACRO __GETW1SX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@0)
+                 	SBCI R31,HIGH(-@0)
+                 	LD   R0,Z+
+                 	LD   R31,Z
+                 	MOV  R30,R0
+                 	.ENDM
+                 
+                 	.MACRO __GETD1SX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@0)
+                 	SBCI R31,HIGH(-@0)
+                 	LD   R0,Z+
+                 	LD   R1,Z+
+                 	LD   R22,Z+
+                 	LD   R23,Z
+                 	MOVW R30,R0
+                 	.ENDM
+                 
+                 	.MACRO __GETB2SX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	LD   R26,X
+                 	.ENDM
+                 
+                 	.MACRO __GETW2SX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	LD   R0,X+
+                 	LD   R27,X
+                 	MOV  R26,R0
+                 	.ENDM
+                 
+                 	.MACRO __GETD2SX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	LD   R0,X+
+                 	LD   R1,X+
+                 	LD   R24,X+
+                 	LD   R25,X
+                 	MOVW R26,R0
+                 	.ENDM
+                 
+                 	.MACRO __GETBRSX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@1)
+                 	SBCI R31,HIGH(-@1)
+                 	LD   R@0,Z
+                 	.ENDM
+                 
+                 	.MACRO __GETWRSX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@2)
+                 	SBCI R31,HIGH(-@2)
+                 	LD   R@0,Z+
+                 	LD   R@1,Z
+                 	.ENDM
+                 
+                 	.MACRO __GETBRSX2
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	LD   R@0,X
+                 	.ENDM
+                 
+                 	.MACRO __GETWRSX2
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@2)
+                 	SBCI R27,HIGH(-@2)
+                 	LD   R@0,X+
+                 	LD   R@1,X
+                 	.ENDM
+                 
+                 	.MACRO __LSLW8SX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@0)
+                 	SBCI R31,HIGH(-@0)
+                 	LD   R31,Z
+                 	CLR  R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1SX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1SX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1SX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	ST   X+,R30
+                 	ST   X+,R31
+                 	ST   X+,R22
+                 	ST   X,R23
+                 	.ENDM
+                 
+                 	.MACRO __CLRW1SX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	ST   X+,R30
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __CLRD1SX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	ST   X+,R30
+                 	ST   X+,R30
+                 	ST   X+,R30
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTB2SX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@0)
+                 	SBCI R31,HIGH(-@0)
+                 	ST   Z,R26
+                 	.ENDM
+                 
+                 	.MACRO __PUTW2SX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@0)
+                 	SBCI R31,HIGH(-@0)
+                 	ST   Z+,R26
+                 	ST   Z,R27
+                 	.ENDM
+                 
+                 	.MACRO __PUTD2SX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@0)
+                 	SBCI R31,HIGH(-@0)
+                 	ST   Z+,R26
+                 	ST   Z+,R27
+                 	ST   Z+,R24
+                 	ST   Z,R25
+                 	.ENDM
+                 
+                 	.MACRO __PUTBSRX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@1)
+                 	SBCI R31,HIGH(-@1)
+                 	ST   Z,R@0
+                 	.ENDM
+                 
+                 	.MACRO __PUTWSRX
+                 	MOVW R30,R28
+                 	SUBI R30,LOW(-@2)
+                 	SBCI R31,HIGH(-@2)
+                 	ST   Z+,R@0
+                 	ST   Z,R@1
+                 	.ENDM
+                 
+                 	.MACRO __PUTB1SNX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	LD   R0,X+
+                 	LD   R27,X
+                 	MOV  R26,R0
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	ST   X,R30
+                 	.ENDM
+                 
+                 	.MACRO __PUTW1SNX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	LD   R0,X+
+                 	LD   R27,X
+                 	MOV  R26,R0
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	ST   X+,R30
+                 	ST   X,R31
+                 	.ENDM
+                 
+                 	.MACRO __PUTD1SNX
+                 	MOVW R26,R28
+                 	SUBI R26,LOW(-@0)
+                 	SBCI R27,HIGH(-@0)
+                 	LD   R0,X+
+                 	LD   R27,X
+                 	MOV  R26,R0
+                 	SUBI R26,LOW(-@1)
+                 	SBCI R27,HIGH(-@1)
+                 	ST   X+,R30
+                 	ST   X+,R31
+                 	ST   X+,R22
+                 	ST   X,R23
+                 	.ENDM
+                 
+                 	.MACRO __MULBRR
+                 	MULS R@0,R@1
+                 	MOVW R30,R0
+                 	.ENDM
+                 
+                 	.MACRO __MULBRRU
+                 	MUL  R@0,R@1
+                 	MOVW R30,R0
+                 	.ENDM
+                 
+                 	.MACRO __MULBRR0
+                 	MULS R@0,R@1
+                 	.ENDM
+                 
+                 	.MACRO __MULBRRU0
+                 	MUL  R@0,R@1
+                 	.ENDM
+                 
+                 	.MACRO __MULBNWRU
+                 	LDI  R26,@2
+                 	MUL  R26,R@0
+                 	MOVW R30,R0
+                 	MUL  R26,R@1
+                 	ADD  R31,R0
+                 	.ENDM
+                 
+                 ;NAME DEFINITIONS FOR GLOBAL VARIABLES ALLOCATED TO REGISTERS
+                 	.DEF _DeviceAddress=R4
+                 	.DEF _rx_wr_index=R3
+                 	.DEF _rx_rd_index=R6
+                 	.DEF _rx_counter=R5
+                 
+                 	.CSEG
+                 	.ORG 0x00
+                 
+                 ;START OF CODE MARKER
+                 __START_OF_CODE:
+                 
+                 ;INTERRUPT VECTORS
+000000 c020      	RJMP __RESET
+000001 cffe      	RJMP 0x00
+000002 cffd      	RJMP 0x00
+000003 cffc      	RJMP 0x00
+000004 cffb      	RJMP 0x00
+000005 cffa      	RJMP 0x00
+000006 cff9      	RJMP 0x00
+000007 cff8      	RJMP 0x00
+000008 cff7      	RJMP 0x00
+000009 cff6      	RJMP 0x00
+00000a cff5      	RJMP 0x00
+00000b c044      	RJMP _usart_rx_isr
+00000c cff3      	RJMP 0x00
+00000d cff2      	RJMP 0x00
+00000e cff1      	RJMP 0x00
+00000f cff0      	RJMP 0x00
+000010 cfef      	RJMP 0x00
+000011 cfee      	RJMP 0x00
+000012 cfed      	RJMP 0x00
+                 
+                 _tbl10_G100:
+000013 2710
+000014 03e8
+000015 0064
+000016 000a      	.DB  0x10,0x27,0xE8,0x3,0x64,0x0,0xA,0x0
+000017 0001      	.DB  0x1,0x0
+                 _tbl16_G100:
+000018 1000
+000019 0100
+00001a 0010
+00001b 0001      	.DB  0x0,0x10,0x0,0x1,0x10,0x0,0x1,0x0
+                 
+                 ;REGISTER BIT VARIABLES INITIALIZATION
+                 __REG_BIT_VARS:
+00001c 0000      	.DW  0x0000
+                 
+                 
+                 __GLOBAL_INI_TBL:
+00001d 0001      	.DW  0x01
+00001e 0002      	.DW  0x02
+00001f 0038      	.DW  __REG_BIT_VARS*2
+                 
+                 _0xFFFFFFFF:
+000020 0000      	.DW  0
+                 
+                 __RESET:
+000021 94f8      	CLI
+000022 27ee      	CLR  R30
+000023 bbec      	OUT  EECR,R30
+                 
+                 ;INTERRUPT VECTORS ARE PLACED
+                 ;AT THE START OF FLASH
+000024 e0f1      	LDI  R31,1
+000025 bffb      	OUT  GICR,R31
+000026 bfeb      	OUT  GICR,R30
+000027 bfe5      	OUT  MCUCR,R30
+                 
+                 ;DISABLE WATCHDOG
+000028 e1f8      	LDI  R31,0x18
+000029 bdf1      	OUT  WDTCR,R31
+00002a bde1      	OUT  WDTCR,R30
+                 
+                 ;CLEAR R2-R14
+00002b e08d      	LDI  R24,(14-2)+1
+00002c e0a2      	LDI  R26,2
+00002d 27bb      	CLR  R27
+                 __CLEAR_REG:
+00002e 93ed      	ST   X+,R30
+00002f 958a      	DEC  R24
+000030 f7e9      	BRNE __CLEAR_REG
+                 
+                 ;CLEAR SRAM
+000031 e080      	LDI  R24,LOW(__CLEAR_SRAM_SIZE)
+000032 e094      	LDI  R25,HIGH(__CLEAR_SRAM_SIZE)
+000033 e6a0      	LDI  R26,__SRAM_START
+                 __CLEAR_SRAM:
+000034 93ed      	ST   X+,R30
+000035 9701      	SBIW R24,1
+000036 f7e9      	BRNE __CLEAR_SRAM
+                 
+                 ;GLOBAL VARIABLES INITIALIZATION
+000037 e3ea      	LDI  R30,LOW(__GLOBAL_INI_TBL*2)
+000038 e0f0      	LDI  R31,HIGH(__GLOBAL_INI_TBL*2)
+                 __GLOBAL_INI_NEXT:
+000039 9185      	LPM  R24,Z+
+00003a 9195      	LPM  R25,Z+
+00003b 9700      	SBIW R24,0
+00003c f061      	BREQ __GLOBAL_INI_END
+00003d 91a5      	LPM  R26,Z+
+00003e 91b5      	LPM  R27,Z+
+00003f 9005      	LPM  R0,Z+
+000040 9015      	LPM  R1,Z+
+000041 01bf      	MOVW R22,R30
+000042 01f0      	MOVW R30,R0
+                 __GLOBAL_INI_LOOP:
+000043 9005      	LPM  R0,Z+
+000044 920d      	ST   X+,R0
+000045 9701      	SBIW R24,1
+000046 f7e1      	BRNE __GLOBAL_INI_LOOP
+000047 01fb      	MOVW R30,R22
+000048 cff0      	RJMP __GLOBAL_INI_NEXT
+                 __GLOBAL_INI_END:
+                 
+                 ;HARDWARE STACK POINTER INITIALIZATION
+000049 e5ef      	LDI  R30,LOW(__SRAM_END-__HEAP_SIZE)
+00004a bfed      	OUT  SPL,R30
+00004b e0e4      	LDI  R30,HIGH(__SRAM_END-__HEAP_SIZE)
+00004c bfee      	OUT  SPH,R30
+                 
+                 ;DATA STACK POINTER INITIALIZATION
+00004d e6c0      	LDI  R28,LOW(__SRAM_START+__DSTACK_SIZE)
+00004e e0d1      	LDI  R29,HIGH(__SRAM_START+__DSTACK_SIZE)
+                 
+00004f c3d6      	RJMP _main
+                 
+                 	.ESEG
+                 	.ORG 0
+                 
+                 	.DSEG
+                 	.ORG 0x160
+                 
+                 	.CSEG
+                 ;/*****************************************************
+                 ;This program was produced by the
+                 ;CodeWizardAVR V2.05.0 Professional
+                 ;Automatic Program Generator
+                 ;© Copyright 1998-2010 Pavel Haiduc, HP InfoTech s.r.l.
+                 ;http://www.hpinfotech.com
+                 ;
+                 ;Project :
+                 ;Version :
+                 ;Date    : 3/19/2014
+                 ;Author  : NeVaDa
+                 ;Company :
+                 ;Comments:
+                 ;
+                 ;
+                 ;Chip type               : ATmega8
+                 ;Program type            : Application
+                 ;AVR Core Clock frequency: 16,000000 MHz
+                 ;Memory model            : Small
+                 ;External RAM size       : 0
+                 ;Data Stack size         : 256
+                 ;*****************************************************/
+                 ;
+                 ;#include <mega8.h>
+                 	#ifndef __SLEEP_DEFINED__
+                 	#define __SLEEP_DEFINED__
+                 	.EQU __se_bit=0x80
+                 	.EQU __sm_mask=0x70
+                 	.EQU __sm_powerdown=0x20
+                 	.EQU __sm_powersave=0x30
+                 	.EQU __sm_standby=0x60
+                 	.EQU __sm_ext_standby=0x70
+                 	.EQU __sm_adc_noise_red=0x10
+                 	.SET power_ctrl_reg=mcucr
+                 	#endif
+                 ;#include <delay.h>
+                 ;
+                 ;
+                 ;// protokol untuk sensor garis terbagi atas:
+                 ;// 4 bit identifikasi perintah (bit 4-7)
+                 ;// 4 bit identifikasi alamat sensor (bit 0-3) --> Alamat Sensor bernilai antara 0-15
+                 ;
+                 ;#define pBacaSensorRGB  (unsigned char) 0B01110000
+                 ;#define pBacaSensorRG   (unsigned char) 0B01100000
+                 ;#define pBacaSensorRB   (unsigned char) 0B01010000
+                 ;#define pBacaSensorGB   (unsigned char) 0B00110000
+                 ;#define pBacaSensorR    (unsigned char) 0B01000000
+                 ;#define pBacaSensorG    (unsigned char) 0B00100000
+                 ;#define pBacaSensorB    (unsigned char) 0B00010000
+                 ;#define pKalibrasiRGB   (unsigned char) 0B11110000
+                 ;#define pKalibrasiRB    (unsigned char) 0B11010000
+                 ;#define pKalibrasiRG    (unsigned char) 0B11100000
+                 ;#define pKalibrasiHPR   (unsigned char) 0B11000000
+                 ;#define pKalibrasiHPG   (unsigned char) 0B10100000
+                 ;#define pKalibrasiHPB   (unsigned char) 0B10010000
+                 ;#define pError          (unsigned char) 0B00000000
+                 ;
+                 ;/*
+                 ;#define pBacaSensorRGB  (uint8_t) 0B01110000
+                 ;#define pBacaSensorRG   (uint8_t) 0B01100000
+                 ;#define pBacaSensorRB   (uint8_t) 0B01010000
+                 ;#define pBacaSensorGB   (uint8_t) 0B00110000
+                 ;#define pBacaSensorR    (uint8_t) 0B01000000
+                 ;#define pBacaSensorG    (uint8_t) 0B00100000
+                 ;#define pBacaSensorB    (uint8_t) 0B00010000
+                 ;#define pKalibrasiRGB   (uint8_t) 0B11110000
+                 ;#define pKalibrasiRB    (uint8_t) 0B11010000
+                 ;#define pKalibrasiRG    (uint8_t) 0B11100000
+                 ;#define pKalibrasiHPR   (uint8_t) 0B11000000
+                 ;#define pKalibrasiHPG   (uint8_t) 0B10100000
+                 ;#define pKalibrasiHPB   (uint8_t) 0B10010000
+                 ;#define pError          (uint8_t) 0B00000000
+                 ; */
+                 ;
+                 ;register unsigned char DeviceAddress;
+                 ;unsigned char ThresholdR[8], ThresholdG[8], ThresholdB[8];
+                 ;eeprom unsigned char _ThresholdR[8], _ThresholdG[8], _ThresholdB[8], _Mode, _DeviceAddress;
+                 ;
+                 ;
+                 ;#ifndef RXB8
+                 ;#define RXB8 1
+                 ;#endif
+                 ;
+                 ;#ifndef TXB8
+                 ;#define TXB8 0
+                 ;#endif
+                 ;
+                 ;#ifndef UPE
+                 ;#define UPE 2
+                 ;#endif
+                 ;
+                 ;#ifndef DOR
+                 ;#define DOR 3
+                 ;#endif
+                 ;
+                 ;#ifndef FE
+                 ;#define FE 4
+                 ;#endif
+                 ;
+                 ;#ifndef UDRE
+                 ;#define UDRE 5
+                 ;#endif
+                 ;
+                 ;#ifndef RXC
+                 ;#define RXC 7
+                 ;#endif
+                 ;
+                 ;#define FRAMING_ERROR (1<<FE)
+                 ;#define PARITY_ERROR (1<<UPE)
+                 ;#define DATA_OVERRUN (1<<DOR)
+                 ;#define DATA_REGISTER_EMPTY (1<<UDRE)
+                 ;#define RX_COMPLETE (1<<RXC)
+                 ;
+                 ;// USART Receiver buffer
+                 ;#define RX_BUFFER_SIZE 8
+                 ;char rx_buffer[RX_BUFFER_SIZE];
+                 ;
+                 ;#if RX_BUFFER_SIZE <= 256
+                 ;unsigned char rx_wr_index,rx_rd_index,rx_counter;
+                 ;#else
+                 ;unsigned int rx_wr_index,rx_rd_index,rx_counter;
+                 ;#endif
+                 ;
+                 ;// This flag is set on USART Receiver buffer overflow
+                 ;bit rx_buffer_overflow;
+                 ;
+                 ;// USART Receiver interrupt service routine
+                 ;interrupt [USART_RXC] void usart_rx_isr(void)
+                 ; 0000 0076 {
+                 
+                 	.CSEG
+                 _usart_rx_isr:
+000050 93aa      	ST   -Y,R26
+000051 93ba      	ST   -Y,R27
+000052 93ea      	ST   -Y,R30
+000053 93fa      	ST   -Y,R31
+000054 b7ef      	IN   R30,SREG
+000055 93ea      	ST   -Y,R30
+                 ; 0000 0077 register unsigned char xData;
+                 ; 0000 0078 unsigned char status;
+                 ; 0000 0079 status=UCSRA;
+000056 d50e      	RCALL __SAVELOCR2
+                 ;	xData -> R17
+                 ;	status -> R16
+000057 b10b      	IN   R16,11
+                 ; 0000 007A xData=UDR;
+000058 b11c      	IN   R17,12
+                 ; 0000 007B if ((status & (FRAMING_ERROR | PARITY_ERROR | DATA_OVERRUN))==0  && ((xData & 0xF)==DeviceAddress) )
+000059 2fe0      	MOV  R30,R16
+00005a 71ec      	ANDI R30,LOW(0x1C)
+00005b f421      	BRNE _0x4
+00005c 2fe1      	MOV  R30,R17
+00005d 70ef      	ANDI R30,LOW(0xF)
+00005e 164e      	CP   R4,R30
+00005f f009      	BREQ _0x5
+                 _0x4:
+000060 c014      	RJMP _0x3
+                 _0x5:
+                 ; 0000 007C    {
+                 ; 0000 007D    rx_buffer[rx_wr_index++]=xData & 0xF0;   // mengambil 4 bit nibble atas
+000061 2de3      	MOV  R30,R3
+000062 9433      	INC  R3
+000063 e0f0      	LDI  R31,0
+000064 58e8      	SUBI R30,LOW(-_rx_buffer)
+000065 4ffe      	SBCI R31,HIGH(-_rx_buffer)
+000066 01df      	MOVW R26,R30
+000067 2fe1      	MOV  R30,R17
+000068 7fe0      	ANDI R30,LOW(0xF0)
+000069 93ec      	ST   X,R30
+                 ; 0000 007E #if RX_BUFFER_SIZE == 256
+                 ; 0000 007F    // special case for receiver buffer size=256
+                 ; 0000 0080    if (++rx_counter == 0)
+                 ; 0000 0081       {
+                 ; 0000 0082 #else
+                 ; 0000 0083    if (rx_wr_index == RX_BUFFER_SIZE) rx_wr_index=0;
+00006a e0e8      	LDI  R30,LOW(8)
+00006b 15e3      	CP   R30,R3
+00006c f409      	BRNE _0x6
+00006d 2433      	CLR  R3
+                 ; 0000 0084    if (++rx_counter == RX_BUFFER_SIZE)
+                 _0x6:
+00006e 9453      	INC  R5
+00006f e0e8      	LDI  R30,LOW(8)
+000070 15e5      	CP   R30,R5
+000071 f419      	BRNE _0x7
+                 ; 0000 0085       {
+                 ; 0000 0086       rx_counter=0;
+000072 2455      	CLR  R5
+                 ; 0000 0087 #endif
+                 ; 0000 0088       rx_buffer_overflow=1;
+000073 9468      	SET
+000074 f820      	BLD  R2,0
+                 ; 0000 0089       }
+                 ; 0000 008A    }
+                 _0x7:
+                 ; 0000 008B }
+                 _0x3:
+000075 d4f7      	RCALL __LOADLOCR2P
+000076 91e9      	LD   R30,Y+
+000077 bfef      	OUT  SREG,R30
+000078 91f9      	LD   R31,Y+
+000079 91e9      	LD   R30,Y+
+00007a 91b9      	LD   R27,Y+
+00007b 91a9      	LD   R26,Y+
+00007c 9518      	RETI
+                 ;
+                 ;#ifndef _DEBUG_TERMINAL_IO_
+                 ;// Get a character from the USART Receiver buffer
+                 ;#define _ALTERNATE_GETCHAR_
+                 ;#pragma used+
+                 ;char getchar(void)
+                 ; 0000 0092 {
+                 _getchar:
+                 ; 0000 0093 unsigned char data;
+                 ; 0000 0094 while (rx_counter==0);
+00007d 931a      	ST   -Y,R17
+                 ;	data -> R17
+                 _0x8:
+00007e 2055      	TST  R5
+00007f f3f1      	BREQ _0x8
+                 ; 0000 0095 data=rx_buffer[rx_rd_index++];
+000080 2de6      	MOV  R30,R6
+000081 9463      	INC  R6
+000082 e0f0      	LDI  R31,0
+000083 58e8      	SUBI R30,LOW(-_rx_buffer)
+000084 4ffe      	SBCI R31,HIGH(-_rx_buffer)
+000085 8110      	LD   R17,Z
+                 ; 0000 0096 #if RX_BUFFER_SIZE != 256
+                 ; 0000 0097 if (rx_rd_index == RX_BUFFER_SIZE) rx_rd_index=0;
+000086 e0e8      	LDI  R30,LOW(8)
+000087 15e6      	CP   R30,R6
+000088 f409      	BRNE _0xB
+000089 2466      	CLR  R6
+                 ; 0000 0098 #endif
+                 ; 0000 0099 #asm("cli")
+                 _0xB:
+00008a 94f8      	cli
+                 ; 0000 009A --rx_counter;
+00008b 945a      	DEC  R5
+                 ; 0000 009B #asm("sei")
+00008c 9478      	sei
+                 ; 0000 009C return data;
+00008d 2fe1      	MOV  R30,R17
+00008e c151      	RJMP _0x2060005
+                 ; 0000 009D }
+                 ;#pragma used-
+                 ;#endif
+                 ;
+                 ;// Standard Input/Output functions
+                 ;#include <stdio.h>
+                 ;
+                 ;// active Low
+                 ;#define En0     PORTB.1
+                 ;#define En1     PORTB.2
+                 ;#define En2     PORTB.3
+                 ;#define En3     PORTB.4
+                 ;#define En4     PORTD.5
+                 ;#define En5     PORTD.2
+                 ;#define En6     PORTD.3
+                 ;#define En7     PORTD.4
+                 ;#define LED     PORTB.5
+                 ;
+                 ;
+                 ;// active high
+                 ;#define EnR     PORTD.7
+                 ;#define EnB     PORTB.0
+                 ;#define EnG     PORTD.6
+                 ;
+                 ;// adc channel
+                 ;#define Data0   6
+                 ;#define Data1   7
+                 ;#define Data2   1
+                 ;#define Data3   0
+                 ;#define Data4   2
+                 ;#define Data5   3
+                 ;#define Data6   4
+                 ;#define Data7   5
+                 ;
+                 ;#define DelayOff    (delay_us(15))
+                 ;#define DelayOn     (delay_us(25))
+                 ;
+                 ;#define ADC_VREF_TYPE 0x20
+                 ;
+                 ;
+                 ;// Read the 8 most significant bits
+                 ;// of the AD conversion result
+                 ;void StartADC(unsigned char adc_input)
+                 ; 0000 00C8 {   ADMUX=adc_input | (ADC_VREF_TYPE & 0xff);
+                 _StartADC:
+00008f 93aa      	ST   -Y,R26
+                 ;	adc_input -> Y+0
+000090 81e8      	LD   R30,Y
+000091 62e0      	ORI  R30,0x20
+000092 b9e7      	OUT  0x7,R30
+                 ; 0000 00C9     delay_us(10);   // Delay menunggu input tegangan stabil
+                +
+000093 e385     +LDI R24 , LOW ( 53 )
+                +__DELAY_USB_LOOP :
+000094 958a     +DEC R24
+000095 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 53
+                 ; 0000 00CA     ADCSRA|=0x40;   // Start Konversi ADC
+000096 9a36      	SBI  0x6,6
+                 ; 0000 00CB     delay_us(5);    // waktu Sample and Hold
+                +
+000097 e18b     +LDI R24 , LOW ( 27 )
+                +__DELAY_USB_LOOP :
+000098 958a     +DEC R24
+000099 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 27
+                 ; 0000 00CC }
+00009a c46e      	RJMP _0x2060001
+                 ;
+                 ;unsigned char BacaADC()
+                 ; 0000 00CF {   while ((ADCSRA & 0x10)==0);     // menunggu proses konversi
+                 _BacaADC:
+                 _0xC:
+00009b 9b34      	SBIS 0x6,4
+00009c cffe      	RJMP _0xC
+                 ; 0000 00D0     ADCSRA|=0x10;                   // Stop konversi
+00009d 9a34      	SBI  0x6,4
+                 ; 0000 00D1     return ADCH;                    // mengembalikan data hasil konversi
+00009e b1e5      	IN   R30,0x5
+00009f 9508      	RET
+                 ; 0000 00D2 }
+                 ;
+                 ;unsigned char BacaSensorDebug(unsigned char * Threshold)
+                 ; 0000 00D5 {       register unsigned char AdcGelap, AdcTerang;
+                 ; 0000 00D6         register unsigned char Sensor=0;
+                 ; 0000 00D7         En0 = 1;    En1 = 1;    En2 = 1;    En3 = 1;
+                 ;	*Threshold -> Y+4
+                 ;	AdcGelap -> R17
+                 ;	AdcTerang -> R16
+                 ;	Sensor -> R19
+                 ; 0000 00D8         En4 = 1;    En5 = 1;    En6 = 1;    En7 = 1;
+                 ; 0000 00D9         // Sensor 0
+                 ; 0000 00DA         DelayOff;   StartADC(Data0);    En0=0;  AdcGelap = BacaADC();
+                 ; 0000 00DB         DelayOn;    StartADC(Data0);    En0=1;  AdcTerang = BacaADC();
+                 ; 0000 00DC         putchar (AdcGelap);
+                 ; 0000 00DD         putchar (AdcTerang);
+                 ; 0000 00DE         putchar (*(Threshold+0));
+                 ; 0000 00DF         if(AdcGelap<AdcTerang)
+                 ; 0000 00E0         {   if((AdcTerang-AdcGelap)>*(Threshold+0)) Sensor |=1;
+                 ; 0000 00E1         }
+                 ; 0000 00E2         // Sensor 1
+                 ; 0000 00E3         DelayOff;   StartADC(Data1);    En1=0;  AdcGelap = BacaADC();
+                 ; 0000 00E4         DelayOn;    StartADC(Data1);    En1=1;  AdcTerang = BacaADC();
+                 ; 0000 00E5         putchar (AdcGelap);
+                 ; 0000 00E6         putchar (AdcTerang);
+                 ; 0000 00E7         putchar (*(Threshold+1));
+                 ; 0000 00E8         if(AdcGelap<AdcTerang)
+                 ; 0000 00E9         {   if((AdcTerang-AdcGelap)>*(Threshold+1)) Sensor |=2;
+                 ; 0000 00EA         }
+                 ; 0000 00EB         // Sensor 2
+                 ; 0000 00EC         DelayOff;   StartADC(Data2);    En2=0;  AdcGelap = BacaADC();
+                 ; 0000 00ED         DelayOn;    StartADC(Data2);    En2=1;  AdcTerang = BacaADC();
+                 ; 0000 00EE         putchar (AdcGelap);
+                 ; 0000 00EF         putchar (AdcTerang);
+                 ; 0000 00F0         putchar (*(Threshold+2));
+                 ; 0000 00F1         if(AdcGelap<AdcTerang)
+                 ; 0000 00F2         {   if((AdcTerang-AdcGelap)>*(Threshold+2)) Sensor |=4;
+                 ; 0000 00F3         }
+                 ; 0000 00F4         // Sensor 3
+                 ; 0000 00F5         DelayOff;   StartADC(Data3);    En3=0;  AdcGelap = BacaADC();
+                 ; 0000 00F6         DelayOn;    StartADC(Data3);    En3=1;  AdcTerang = BacaADC();
+                 ; 0000 00F7         putchar (AdcGelap);
+                 ; 0000 00F8         putchar (AdcTerang);
+                 ; 0000 00F9         putchar (*(Threshold+3));
+                 ; 0000 00FA         if(AdcGelap<AdcTerang)
+                 ; 0000 00FB         {   if((AdcTerang-AdcGelap)>*(Threshold+3)) Sensor |=8;
+                 ; 0000 00FC         }
+                 ; 0000 00FD         // Sensor 4
+                 ; 0000 00FE         DelayOff;   StartADC(Data4);    En4=0;  AdcGelap = BacaADC();
+                 ; 0000 00FF         DelayOn;    StartADC(Data4);    En4=1;  AdcTerang = BacaADC();
+                 ; 0000 0100         putchar (AdcGelap);
+                 ; 0000 0101         putchar (AdcTerang);
+                 ; 0000 0102         putchar (*(Threshold+4));
+                 ; 0000 0103         if(AdcGelap<AdcTerang)
+                 ; 0000 0104         {   if((AdcTerang-AdcGelap)>*(Threshold+4)) Sensor |=16;
+                 ; 0000 0105         }
+                 ; 0000 0106         // Sensor 5
+                 ; 0000 0107         DelayOff;   StartADC(Data5);    En5=0;  AdcGelap = BacaADC();
+                 ; 0000 0108         DelayOn;    StartADC(Data5);    En5=1;  AdcTerang = BacaADC();
+                 ; 0000 0109         putchar (AdcGelap);
+                 ; 0000 010A         putchar (AdcTerang);
+                 ; 0000 010B         putchar (*(Threshold+5));
+                 ; 0000 010C         if(AdcGelap<AdcTerang)
+                 ; 0000 010D         {   if((AdcTerang-AdcGelap)>*(Threshold+5)) Sensor |=32;
+                 ; 0000 010E         }
+                 ; 0000 010F         // Sensor 6
+                 ; 0000 0110         DelayOff;   StartADC(Data6);    En6=0;  AdcGelap = BacaADC();
+                 ; 0000 0111         DelayOn;    StartADC(Data6);    En6=1;  AdcTerang = BacaADC();
+                 ; 0000 0112         putchar (AdcGelap);
+                 ; 0000 0113         putchar (AdcTerang);
+                 ; 0000 0114         putchar (*(Threshold+6));
+                 ; 0000 0115         if(AdcGelap<AdcTerang)
+                 ; 0000 0116         {   if((AdcTerang-AdcGelap)>*(Threshold+6)) Sensor |=64;
+                 ; 0000 0117         }
+                 ; 0000 0118         // Sensor 7
+                 ; 0000 0119         DelayOff;   StartADC(Data7);    En7=0;  AdcGelap = BacaADC();
+                 ; 0000 011A         DelayOn;    StartADC(Data7);    En7=1;  AdcTerang = BacaADC();
+                 ; 0000 011B         putchar (AdcGelap);
+                 ; 0000 011C         putchar (AdcTerang);
+                 ; 0000 011D         putchar (*(Threshold+7));
+                 ; 0000 011E         if(AdcGelap<AdcTerang)
+                 ; 0000 011F         {   if((AdcTerang-AdcGelap)>*(Threshold+7)) Sensor |=128;
+                 ; 0000 0120         }
+                 ; 0000 0121         EnR = 0;    EnG = 0;   EnB = 0;
+                 ; 0000 0122         return (Sensor);
+                 ; 0000 0123 }
+                 ;
+                 ;unsigned char BacaSensor(unsigned char * Threshold)
+                 ; 0000 0126 {       register unsigned char AdcGelap, AdcTerang;
+                 _BacaSensor:
+                 ; 0000 0127         register unsigned char Sensor=0;
+                 ; 0000 0128         En0 = 1;    En1 = 1;    En2 = 1;    En3 = 1;
+0000a0 93ba      	ST   -Y,R27
+0000a1 93aa      	ST   -Y,R26
+0000a2 d4c0      	RCALL __SAVELOCR4
+                 ;	*Threshold -> Y+4
+                 ;	AdcGelap -> R17
+                 ;	AdcTerang -> R16
+                 ;	Sensor -> R19
+0000a3 e030      	LDI  R19,0
+0000a4 9ac1      	SBI  0x18,1
+0000a5 9ac2      	SBI  0x18,2
+0000a6 9ac3      	SBI  0x18,3
+0000a7 9ac4      	SBI  0x18,4
+                 ; 0000 0129         En4 = 1;    En5 = 1;    En6 = 1;    En7 = 1;
+0000a8 9a95      	SBI  0x12,5
+0000a9 9a92      	SBI  0x12,2
+0000aa 9a93      	SBI  0x12,3
+0000ab 9a94      	SBI  0x12,4
+                 ; 0000 012A         // Sensor 0
+                 ; 0000 012B         DelayOff;   StartADC(Data0);    En0=0;  AdcGelap = BacaADC();
+                +
+0000ac e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+0000ad 958a     +DEC R24
+0000ae f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+0000af e0a6      	LDI  R26,LOW(6)
+0000b0 dfde      	RCALL _StartADC
+0000b1 98c1      	CBI  0x18,1
+0000b2 dfe8      	RCALL _BacaADC
+0000b3 2f1e      	MOV  R17,R30
+                 ; 0000 012C         DelayOn;    StartADC(Data0);    En0=1;  AdcTerang = BacaADC();
+                +
+0000b4 e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+0000b5 958a     +DEC R24
+0000b6 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+0000b7 e0a6      	LDI  R26,LOW(6)
+0000b8 dfd6      	RCALL _StartADC
+0000b9 9ac1      	SBI  0x18,1
+0000ba dfe0      	RCALL _BacaADC
+0000bb 2f0e      	MOV  R16,R30
+                 ; 0000 012D         if(AdcGelap<AdcTerang)
+0000bc 1710      	CP   R17,R16
+0000bd f440      	BRSH _0x69
+                 ; 0000 012E         {   if((AdcTerang-AdcGelap)>*(Threshold+0)) Sensor |=1;
+0000be 2fa0      	MOV  R26,R16
+0000bf 1ba1      	SUB  R26,R17
+0000c0 81ec      	LDD  R30,Y+4
+0000c1 81fd      	LDD  R31,Y+4+1
+0000c2 81e0      	LDD  R30,Z+0
+0000c3 17ea      	CP   R30,R26
+0000c4 f408      	BRSH _0x6A
+0000c5 6031      	ORI  R19,LOW(1)
+                 ; 0000 012F         }
+                 _0x6A:
+                 ; 0000 0130         // Sensor 1
+                 ; 0000 0131         DelayOff;   StartADC(Data1);    En1=0;  AdcGelap = BacaADC();
+                 _0x69:
+                +
+0000c6 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+0000c7 958a     +DEC R24
+0000c8 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+0000c9 e0a7      	LDI  R26,LOW(7)
+0000ca dfc4      	RCALL _StartADC
+0000cb 98c2      	CBI  0x18,2
+0000cc dfce      	RCALL _BacaADC
+0000cd 2f1e      	MOV  R17,R30
+                 ; 0000 0132         DelayOn;    StartADC(Data1);    En1=1;  AdcTerang = BacaADC();
+                +
+0000ce e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+0000cf 958a     +DEC R24
+0000d0 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+0000d1 e0a7      	LDI  R26,LOW(7)
+0000d2 dfbc      	RCALL _StartADC
+0000d3 9ac2      	SBI  0x18,2
+0000d4 dfc6      	RCALL _BacaADC
+0000d5 2f0e      	MOV  R16,R30
+                 ; 0000 0133         if(AdcGelap<AdcTerang)
+0000d6 1710      	CP   R17,R16
+0000d7 f440      	BRSH _0x6F
+                 ; 0000 0134         {   if((AdcTerang-AdcGelap)>*(Threshold+1)) Sensor |=2;
+0000d8 2fa0      	MOV  R26,R16
+0000d9 1ba1      	SUB  R26,R17
+0000da 81ec      	LDD  R30,Y+4
+0000db 81fd      	LDD  R31,Y+4+1
+0000dc 81e1      	LDD  R30,Z+1
+0000dd 17ea      	CP   R30,R26
+0000de f408      	BRSH _0x70
+0000df 6032      	ORI  R19,LOW(2)
+                 ; 0000 0135         }
+                 _0x70:
+                 ; 0000 0136         // Sensor 2
+                 ; 0000 0137         DelayOff;   StartADC(Data2);    En2=0;  AdcGelap = BacaADC();
+                 _0x6F:
+                +
+0000e0 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+0000e1 958a     +DEC R24
+0000e2 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+0000e3 e0a1      	LDI  R26,LOW(1)
+0000e4 dfaa      	RCALL _StartADC
+0000e5 98c3      	CBI  0x18,3
+0000e6 dfb4      	RCALL _BacaADC
+0000e7 2f1e      	MOV  R17,R30
+                 ; 0000 0138         DelayOn;    StartADC(Data2);    En2=1;  AdcTerang = BacaADC();
+                +
+0000e8 e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+0000e9 958a     +DEC R24
+0000ea f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+0000eb e0a1      	LDI  R26,LOW(1)
+0000ec dfa2      	RCALL _StartADC
+0000ed 9ac3      	SBI  0x18,3
+0000ee dfac      	RCALL _BacaADC
+0000ef 2f0e      	MOV  R16,R30
+                 ; 0000 0139         if(AdcGelap<AdcTerang)
+0000f0 1710      	CP   R17,R16
+0000f1 f440      	BRSH _0x75
+                 ; 0000 013A         {   if((AdcTerang-AdcGelap)>*(Threshold+2)) Sensor |=4;
+0000f2 2fa0      	MOV  R26,R16
+0000f3 1ba1      	SUB  R26,R17
+0000f4 81ec      	LDD  R30,Y+4
+0000f5 81fd      	LDD  R31,Y+4+1
+0000f6 81e2      	LDD  R30,Z+2
+0000f7 17ea      	CP   R30,R26
+0000f8 f408      	BRSH _0x76
+0000f9 6034      	ORI  R19,LOW(4)
+                 ; 0000 013B         }
+                 _0x76:
+                 ; 0000 013C         // Sensor 3
+                 ; 0000 013D         DelayOff;   StartADC(Data3);    En3=0;  AdcGelap = BacaADC();
+                 _0x75:
+                +
+0000fa e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+0000fb 958a     +DEC R24
+0000fc f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+0000fd e0a0      	LDI  R26,LOW(0)
+0000fe df90      	RCALL _StartADC
+0000ff 98c4      	CBI  0x18,4
+000100 df9a      	RCALL _BacaADC
+000101 2f1e      	MOV  R17,R30
+                 ; 0000 013E         DelayOn;    StartADC(Data3);    En3=1;  AdcTerang = BacaADC();
+                +
+000102 e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+000103 958a     +DEC R24
+000104 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+000105 e0a0      	LDI  R26,LOW(0)
+000106 df88      	RCALL _StartADC
+000107 9ac4      	SBI  0x18,4
+000108 df92      	RCALL _BacaADC
+000109 2f0e      	MOV  R16,R30
+                 ; 0000 013F         if(AdcGelap<AdcTerang)
+00010a 1710      	CP   R17,R16
+00010b f440      	BRSH _0x7B
+                 ; 0000 0140         {   if((AdcTerang-AdcGelap)>*(Threshold+3)) Sensor |=8;
+00010c 2fa0      	MOV  R26,R16
+00010d 1ba1      	SUB  R26,R17
+00010e 81ec      	LDD  R30,Y+4
+00010f 81fd      	LDD  R31,Y+4+1
+000110 81e3      	LDD  R30,Z+3
+000111 17ea      	CP   R30,R26
+000112 f408      	BRSH _0x7C
+000113 6038      	ORI  R19,LOW(8)
+                 ; 0000 0141         }
+                 _0x7C:
+                 ; 0000 0142         // Sensor 4
+                 ; 0000 0143         DelayOff;   StartADC(Data4);    En4=0;  AdcGelap = BacaADC();
+                 _0x7B:
+                +
+000114 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+000115 958a     +DEC R24
+000116 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+000117 e0a2      	LDI  R26,LOW(2)
+000118 df76      	RCALL _StartADC
+000119 9895      	CBI  0x12,5
+00011a df80      	RCALL _BacaADC
+00011b 2f1e      	MOV  R17,R30
+                 ; 0000 0144         DelayOn;    StartADC(Data4);    En4=1;  AdcTerang = BacaADC();
+                +
+00011c e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+00011d 958a     +DEC R24
+00011e f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+00011f e0a2      	LDI  R26,LOW(2)
+000120 df6e      	RCALL _StartADC
+000121 9a95      	SBI  0x12,5
+000122 df78      	RCALL _BacaADC
+000123 2f0e      	MOV  R16,R30
+                 ; 0000 0145         if(AdcGelap<AdcTerang)
+000124 1710      	CP   R17,R16
+000125 f440      	BRSH _0x81
+                 ; 0000 0146         {   if((AdcTerang-AdcGelap)>*(Threshold+4)) Sensor |=16;
+000126 2fa0      	MOV  R26,R16
+000127 1ba1      	SUB  R26,R17
+000128 81ec      	LDD  R30,Y+4
+000129 81fd      	LDD  R31,Y+4+1
+00012a 81e4      	LDD  R30,Z+4
+00012b 17ea      	CP   R30,R26
+00012c f408      	BRSH _0x82
+00012d 6130      	ORI  R19,LOW(16)
+                 ; 0000 0147         }
+                 _0x82:
+                 ; 0000 0148         // Sensor 5
+                 ; 0000 0149         DelayOff;   StartADC(Data5);    En5=0;  AdcGelap = BacaADC();
+                 _0x81:
+                +
+00012e e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+00012f 958a     +DEC R24
+000130 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+000131 e0a3      	LDI  R26,LOW(3)
+000132 df5c      	RCALL _StartADC
+000133 9892      	CBI  0x12,2
+000134 df66      	RCALL _BacaADC
+000135 2f1e      	MOV  R17,R30
+                 ; 0000 014A         DelayOn;    StartADC(Data5);    En5=1;  AdcTerang = BacaADC();
+                +
+000136 e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+000137 958a     +DEC R24
+000138 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+000139 e0a3      	LDI  R26,LOW(3)
+00013a df54      	RCALL _StartADC
+00013b 9a92      	SBI  0x12,2
+00013c df5e      	RCALL _BacaADC
+00013d 2f0e      	MOV  R16,R30
+                 ; 0000 014B         if(AdcGelap<AdcTerang)
+00013e 1710      	CP   R17,R16
+00013f f440      	BRSH _0x87
+                 ; 0000 014C         {   if((AdcTerang-AdcGelap)>*(Threshold+5)) Sensor |=32;
+000140 2fa0      	MOV  R26,R16
+000141 1ba1      	SUB  R26,R17
+000142 81ec      	LDD  R30,Y+4
+000143 81fd      	LDD  R31,Y+4+1
+000144 81e5      	LDD  R30,Z+5
+000145 17ea      	CP   R30,R26
+000146 f408      	BRSH _0x88
+000147 6230      	ORI  R19,LOW(32)
+                 ; 0000 014D         }
+                 _0x88:
+                 ; 0000 014E         // Sensor 6
+                 ; 0000 014F         DelayOff;   StartADC(Data6);    En6=0;  AdcGelap = BacaADC();
+                 _0x87:
+                +
+000148 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+000149 958a     +DEC R24
+00014a f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+00014b e0a4      	LDI  R26,LOW(4)
+00014c df42      	RCALL _StartADC
+00014d 9893      	CBI  0x12,3
+00014e df4c      	RCALL _BacaADC
+00014f 2f1e      	MOV  R17,R30
+                 ; 0000 0150         DelayOn;    StartADC(Data6);    En6=1;  AdcTerang = BacaADC();
+                +
+000150 e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+000151 958a     +DEC R24
+000152 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+000153 e0a4      	LDI  R26,LOW(4)
+000154 df3a      	RCALL _StartADC
+000155 9a93      	SBI  0x12,3
+000156 df44      	RCALL _BacaADC
+000157 2f0e      	MOV  R16,R30
+                 ; 0000 0151         if(AdcGelap<AdcTerang)
+000158 1710      	CP   R17,R16
+000159 f440      	BRSH _0x8D
+                 ; 0000 0152         {   if((AdcTerang-AdcGelap)>*(Threshold+6)) Sensor |=64;
+00015a 2fa0      	MOV  R26,R16
+00015b 1ba1      	SUB  R26,R17
+00015c 81ec      	LDD  R30,Y+4
+00015d 81fd      	LDD  R31,Y+4+1
+00015e 81e6      	LDD  R30,Z+6
+00015f 17ea      	CP   R30,R26
+000160 f408      	BRSH _0x8E
+000161 6430      	ORI  R19,LOW(64)
+                 ; 0000 0153         }
+                 _0x8E:
+                 ; 0000 0154         // Sensor 7
+                 ; 0000 0155         DelayOff;   StartADC(Data7);    En7=0;  AdcGelap = BacaADC();
+                 _0x8D:
+                +
+000162 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+000163 958a     +DEC R24
+000164 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+000165 e0a5      	LDI  R26,LOW(5)
+000166 df28      	RCALL _StartADC
+000167 9894      	CBI  0x12,4
+000168 df32      	RCALL _BacaADC
+000169 2f1e      	MOV  R17,R30
+                 ; 0000 0156         DelayOn;    StartADC(Data7);    En7=1;  AdcTerang = BacaADC();
+                +
+00016a e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+00016b 958a     +DEC R24
+00016c f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+00016d e0a5      	LDI  R26,LOW(5)
+00016e df20      	RCALL _StartADC
+00016f 9a94      	SBI  0x12,4
+000170 df2a      	RCALL _BacaADC
+000171 2f0e      	MOV  R16,R30
+                 ; 0000 0157         if(AdcGelap<AdcTerang)
+000172 1710      	CP   R17,R16
+000173 f440      	BRSH _0x93
+                 ; 0000 0158         {   if((AdcTerang-AdcGelap)>*(Threshold+7)) Sensor |=128;
+000174 2fa0      	MOV  R26,R16
+000175 1ba1      	SUB  R26,R17
+000176 81ec      	LDD  R30,Y+4
+000177 81fd      	LDD  R31,Y+4+1
+000178 81e7      	LDD  R30,Z+7
+000179 17ea      	CP   R30,R26
+00017a f408      	BRSH _0x94
+00017b 6830      	ORI  R19,LOW(128)
+                 ; 0000 0159         }
+                 _0x94:
+                 ; 0000 015A         EnR = 0;    EnG = 0;   EnB = 0;
+                 _0x93:
+00017c 9897      	CBI  0x12,7
+00017d 9896      	CBI  0x12,6
+00017e 98c0      	CBI  0x18,0
+                 ; 0000 015B         return (Sensor);
+00017f 2fe3      	MOV  R30,R19
+000180 d3e7      	RCALL __LOADLOCR4
+000181 9626      	ADIW R28,6
+000182 9508      	RET
+                 ; 0000 015C }
+                 ;
+                 ;void ReloadThreshold()
+                 ; 0000 015F {   unsigned char i;
+                 _ReloadThreshold:
+                 ; 0000 0160     for(i=0;i<8;i++)
+000183 931a      	ST   -Y,R17
+                 ;	i -> R17
+000184 e010      	LDI  R17,LOW(0)
+                 _0x9C:
+000185 3018      	CPI  R17,8
+000186 f530      	BRSH _0x9D
+                 ; 0000 0161     {   ThresholdR [i] = _ThresholdR [i];
+000187 2fe1      	MOV  R30,R17
+000188 e0f0      	LDI  R31,0
+000189 5ae0      	SUBI R30,LOW(-_ThresholdR)
+00018a 4ffe      	SBCI R31,HIGH(-_ThresholdR)
+00018b 010f      	MOVW R0,R30
+00018c 2fa1      	MOV  R26,R17
+00018d e0b0      	LDI  R27,0
+00018e 50a0      	SUBI R26,LOW(-__ThresholdR)
+00018f 40b0      	SBCI R27,HIGH(-__ThresholdR)
+000190 d3b5      	RCALL __EEPROMRDB
+000191 01d0      	MOVW R26,R0
+000192 93ec      	ST   X,R30
+                 ; 0000 0162         ThresholdG [i] = _ThresholdG [i];
+000193 2fe1      	MOV  R30,R17
+000194 e0f0      	LDI  R31,0
+000195 59e8      	SUBI R30,LOW(-_ThresholdG)
+000196 4ffe      	SBCI R31,HIGH(-_ThresholdG)
+000197 010f      	MOVW R0,R30
+000198 2fa1      	MOV  R26,R17
+000199 e0b0      	LDI  R27,0
+00019a 5fa8      	SUBI R26,LOW(-__ThresholdG)
+00019b 4fbf      	SBCI R27,HIGH(-__ThresholdG)
+00019c d3a9      	RCALL __EEPROMRDB
+00019d 01d0      	MOVW R26,R0
+00019e 93ec      	ST   X,R30
+                 ; 0000 0163         ThresholdB [i] = _ThresholdB [i];
+00019f 2fe1      	MOV  R30,R17
+0001a0 e0f0      	LDI  R31,0
+0001a1 59e0      	SUBI R30,LOW(-_ThresholdB)
+0001a2 4ffe      	SBCI R31,HIGH(-_ThresholdB)
+0001a3 010f      	MOVW R0,R30
+0001a4 2fa1      	MOV  R26,R17
+0001a5 e0b0      	LDI  R27,0
+0001a6 5fa0      	SUBI R26,LOW(-__ThresholdB)
+0001a7 4fbf      	SBCI R27,HIGH(-__ThresholdB)
+0001a8 d39d      	RCALL __EEPROMRDB
+0001a9 01d0      	MOVW R26,R0
+0001aa 93ec      	ST   X,R30
+                 ; 0000 0164     }
+0001ab 5f1f      	SUBI R17,-1
+0001ac cfd8      	RJMP _0x9C
+                 _0x9D:
+                 ; 0000 0165 }
+0001ad c032      	RJMP _0x2060005
+                 ;
+                 ;void UpdateThresholdR()
+                 ; 0000 0168 {   unsigned char i;
+                 _UpdateThresholdR:
+                 ; 0000 0169     for(i=0;i<8;i++)    _ThresholdR [i] = ThresholdR [i];
+0001ae 931a      	ST   -Y,R17
+                 ;	i -> R17
+0001af e010      	LDI  R17,LOW(0)
+                 _0x9F:
+0001b0 3018      	CPI  R17,8
+0001b1 f460      	BRSH _0xA0
+0001b2 2fa1      	MOV  R26,R17
+0001b3 e0b0      	LDI  R27,0
+0001b4 50a0      	SUBI R26,LOW(-__ThresholdR)
+0001b5 40b0      	SBCI R27,HIGH(-__ThresholdR)
+0001b6 2fe1      	MOV  R30,R17
+0001b7 e0f0      	LDI  R31,0
+0001b8 5ae0      	SUBI R30,LOW(-_ThresholdR)
+0001b9 4ffe      	SBCI R31,HIGH(-_ThresholdR)
+0001ba 81e0      	LD   R30,Z
+0001bb d396      	RCALL __EEPROMWRB
+0001bc 5f1f      	SUBI R17,-1
+0001bd cff2      	RJMP _0x9F
+                 _0xA0:
+                 ; 0000 016A }
+0001be c021      	RJMP _0x2060005
+                 ;void UpdateThresholdG()
+                 ; 0000 016C {   unsigned char i;
+                 _UpdateThresholdG:
+                 ; 0000 016D     for(i=0;i<8;i++)    _ThresholdG [i] = ThresholdG [i];
+0001bf 931a      	ST   -Y,R17
+                 ;	i -> R17
+0001c0 e010      	LDI  R17,LOW(0)
+                 _0xA2:
+0001c1 3018      	CPI  R17,8
+0001c2 f460      	BRSH _0xA3
+0001c3 2fa1      	MOV  R26,R17
+0001c4 e0b0      	LDI  R27,0
+0001c5 5fa8      	SUBI R26,LOW(-__ThresholdG)
+0001c6 4fbf      	SBCI R27,HIGH(-__ThresholdG)
+0001c7 2fe1      	MOV  R30,R17
+0001c8 e0f0      	LDI  R31,0
+0001c9 59e8      	SUBI R30,LOW(-_ThresholdG)
+0001ca 4ffe      	SBCI R31,HIGH(-_ThresholdG)
+0001cb 81e0      	LD   R30,Z
+0001cc d385      	RCALL __EEPROMWRB
+0001cd 5f1f      	SUBI R17,-1
+0001ce cff2      	RJMP _0xA2
+                 _0xA3:
+                 ; 0000 016E }
+0001cf c010      	RJMP _0x2060005
+                 ;
+                 ;void UpdateThresholdB()
+                 ; 0000 0171 {   unsigned char i;
+                 _UpdateThresholdB:
+                 ; 0000 0172     for(i=0;i<8;i++)    _ThresholdB [i] = ThresholdB [i];
+0001d0 931a      	ST   -Y,R17
+                 ;	i -> R17
+0001d1 e010      	LDI  R17,LOW(0)
+                 _0xA5:
+0001d2 3018      	CPI  R17,8
+0001d3 f460      	BRSH _0xA6
+0001d4 2fa1      	MOV  R26,R17
+0001d5 e0b0      	LDI  R27,0
+0001d6 5fa0      	SUBI R26,LOW(-__ThresholdB)
+0001d7 4fbf      	SBCI R27,HIGH(-__ThresholdB)
+0001d8 2fe1      	MOV  R30,R17
+0001d9 e0f0      	LDI  R31,0
+0001da 59e0      	SUBI R30,LOW(-_ThresholdB)
+0001db 4ffe      	SBCI R31,HIGH(-_ThresholdB)
+0001dc 81e0      	LD   R30,Z
+0001dd d374      	RCALL __EEPROMWRB
+0001de 5f1f      	SUBI R17,-1
+0001df cff2      	RJMP _0xA5
+                 _0xA6:
+                 ; 0000 0173 }
+                 _0x2060005:
+0001e0 9119      	LD   R17,Y+
+0001e1 9508      	RET
+                 ;
+                 ;
+                 ;unsigned char BacaSensorMerah(void)
+                 ; 0000 0177 {       EnR = 1;    EnG = 0;   EnB = 0;
+                 _BacaSensorMerah:
+0001e2 9a97      	SBI  0x12,7
+0001e3 9896      	CBI  0x12,6
+0001e4 98c0      	CBI  0x18,0
+                 ; 0000 0178         return (BacaSensor(&ThresholdR[0]));
+0001e5 e6a0      	LDI  R26,LOW(_ThresholdR)
+0001e6 e0b1      	LDI  R27,HIGH(_ThresholdR)
+0001e7 c00b      	RJMP _0x2060004
+                 ; 0000 0179 }
+                 ;
+                 ;unsigned char BacaSensorHijau(void)
+                 ; 0000 017C {       EnR = 0;    EnG = 1;   EnB = 0;
+                 _BacaSensorHijau:
+0001e8 9897      	CBI  0x12,7
+0001e9 9a96      	SBI  0x12,6
+0001ea 98c0      	CBI  0x18,0
+                 ; 0000 017D         return (BacaSensor(&ThresholdG[0]));
+0001eb e6a8      	LDI  R26,LOW(_ThresholdG)
+0001ec e0b1      	LDI  R27,HIGH(_ThresholdG)
+0001ed c005      	RJMP _0x2060004
+                 ; 0000 017E }
+                 ;
+                 ;unsigned char BacaSensorBiru(void)
+                 ; 0000 0181 {       EnR = 0;    EnG = 0;   EnB = 1;
+                 _BacaSensorBiru:
+0001ee 9897      	CBI  0x12,7
+0001ef 9896      	CBI  0x12,6
+0001f0 9ac0      	SBI  0x18,0
+                 ; 0000 0182         return (BacaSensor(&ThresholdB[0]));
+0001f1 e7a0      	LDI  R26,LOW(_ThresholdB)
+0001f2 e0b1      	LDI  R27,HIGH(_ThresholdB)
+                 _0x2060004:
+0001f3 deac      	RCALL _BacaSensor
+0001f4 9508      	RET
+                 ; 0000 0183 }
+                 ;
+                 ;void KalibrasiDebug(unsigned char * x, unsigned char counter)
+                 ; 0000 0186 {   unsigned char i;
+                 ; 0000 0187     unsigned int DataKalibrasi[8];
+                 ; 0000 0188     for (i=0;i<8;i++) DataKalibrasi[i]=0;
+                 ;	*x -> Y+18
+                 ;	counter -> Y+17
+                 ;	i -> R17
+                 ;	DataKalibrasi -> Y+1
+                 ; 0000 0189 for (i=0;i<10;i++)
+                 ; 0000 018A     {   DelayOff;   StartADC(Data0);    En0=0;  DataKalibrasi[0]-= BacaADC();   // LED 0 OFF
+                 ; 0000 018B         DelayOn;    StartADC(Data0);    En0=1;  DataKalibrasi[0]+= BacaADC();   // LED 0 ON
+                 ; 0000 018C         DelayOff;   StartADC(Data1);    En1=0;  DataKalibrasi[1]-= BacaADC();   // LED 1 OFF
+                 ; 0000 018D         DelayOn;    StartADC(Data1);    En1=1;  DataKalibrasi[1]+= BacaADC();   // LED 1 ON
+                 ; 0000 018E         DelayOff;   StartADC(Data2);    En2=0;  DataKalibrasi[2]-= BacaADC();   // LED 2 OFF
+                 ; 0000 018F         DelayOn;    StartADC(Data2);    En2=1;  DataKalibrasi[2]+= BacaADC();   // LED 2 ON
+                 ; 0000 0190         DelayOff;   StartADC(Data3);    En3=0;  DataKalibrasi[3]-= BacaADC();   // LED 3 OFF
+                 ; 0000 0191         DelayOn;    StartADC(Data3);    En3=1;  DataKalibrasi[3]+= BacaADC();   // LED 3 ON
+                 ; 0000 0192         DelayOff;   StartADC(Data4);    En4=0;  DataKalibrasi[4]-= BacaADC();   // LED 4 OFF
+                 ; 0000 0193         DelayOn;    StartADC(Data4);    En4=1;  DataKalibrasi[4]+= BacaADC();   // LED 4 ON
+                 ; 0000 0194         DelayOff;   StartADC(Data5);    En5=0;  DataKalibrasi[5]-= BacaADC();   // LED 5 OFF
+                 ; 0000 0195         DelayOn;    StartADC(Data5);    En5=1;  DataKalibrasi[5]+= BacaADC();   // LED 5 ON
+                 ; 0000 0196         DelayOff;   StartADC(Data6);    En6=0;  DataKalibrasi[6]-= BacaADC();   // LED 6 OFF
+                 ; 0000 0197         DelayOn;    StartADC(Data6);    En6=1;  DataKalibrasi[6]+= BacaADC();   // LED 6 ON
+                 ; 0000 0198         DelayOff;   StartADC(Data7);    En7=0;  DataKalibrasi[7]-= BacaADC();   // LED 7 OFF
+                 ; 0000 0199         DelayOn;    StartADC(Data7);    En7=1;  DataKalibrasi[7]+= BacaADC();   // LED 7 ON
+                 ; 0000 019A     }
+                 ; 0000 019B     //EnR = 0;    EnG = 0;   EnB = 0;
+                 ; 0000 019C     putchar (counter);
+                 ; 0000 019D     for (i=0;i<8;i++)
+                 ; 0000 019E     {   putchar (*(x+i));
+                 ; 0000 019F         putchar ((DataKalibrasi[i]/10));
+                 ; 0000 01A0         x[i]= (int)(((int) (*(x+i))*(counter-1)) + (DataKalibrasi[i]/10))/counter;
+                 ; 0000 01A1         putchar (x[i]);
+                 ; 0000 01A2     }
+                 ; 0000 01A3 
+                 ; 0000 01A4 }
+                 ;
+                 ;void Kalibrasi(unsigned char * x, unsigned char counter)
+                 ; 0000 01A7 {   unsigned char i;
+                 _Kalibrasi:
+                 ; 0000 01A8     unsigned int DataKalibrasi[8];
+                 ; 0000 01A9     for (i=0;i<8;i++) DataKalibrasi[i]=0;
+0001f5 93aa      	ST   -Y,R26
+0001f6 9760      	SBIW R28,16
+0001f7 931a      	ST   -Y,R17
+                 ;	*x -> Y+18
+                 ;	counter -> Y+17
+                 ;	i -> R17
+                 ;	DataKalibrasi -> Y+1
+0001f8 e010      	LDI  R17,LOW(0)
+                 _0xE3:
+0001f9 3018      	CPI  R17,8
+0001fa f470      	BRSH _0xE4
+0001fb 2fe1      	MOV  R30,R17
+0001fc e0f0      	LDI  R31,0
+0001fd 01de      	MOVW R26,R28
+0001fe 9611      	ADIW R26,1
+0001ff 0fee      	LSL  R30
+000200 1fff      	ROL  R31
+000201 0fae      	ADD  R26,R30
+000202 1fbf      	ADC  R27,R31
+000203 e0e0      	LDI  R30,LOW(0)
+000204 e0f0      	LDI  R31,HIGH(0)
+000205 93ed      	ST   X+,R30
+000206 93fc      	ST   X,R31
+000207 5f1f      	SUBI R17,-1
+000208 cff0      	RJMP _0xE3
+                 _0xE4:
+                 ; 0000 01AA for (i=0;i<10;i++)
+000209 e010      	LDI  R17,LOW(0)
+                 _0xE6:
+00020a 301a      	CPI  R17,10
+00020b f008      	BRLO PC+2
+00020c c0e2      	RJMP _0xE7
+                 ; 0000 01AB     {   DelayOff;   StartADC(Data0);    En0=0;  DataKalibrasi[0]-= BacaADC();   // LED 0 OFF
+                +
+00020d e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+00020e 958a     +DEC R24
+00020f f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+000210 e0a6      	LDI  R26,LOW(6)
+000211 de7d      	RCALL _StartADC
+000212 98c1      	CBI  0x18,1
+000213 de87      	RCALL _BacaADC
+000214 81a9      	LDD  R26,Y+1
+000215 81ba      	LDD  R27,Y+1+1
+000216 e0f0      	LDI  R31,0
+000217 1bae      	SUB  R26,R30
+000218 0bbf      	SBC  R27,R31
+000219 83a9      	STD  Y+1,R26
+00021a 83ba      	STD  Y+1+1,R27
+                 ; 0000 01AC         DelayOn;    StartADC(Data0);    En0=1;  DataKalibrasi[0]+= BacaADC();   // LED 0 ON
+                +
+00021b e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+00021c 958a     +DEC R24
+00021d f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+00021e e0a6      	LDI  R26,LOW(6)
+00021f de6f      	RCALL _StartADC
+000220 9ac1      	SBI  0x18,1
+000221 de79      	RCALL _BacaADC
+000222 81a9      	LDD  R26,Y+1
+000223 81ba      	LDD  R27,Y+1+1
+000224 e0f0      	LDI  R31,0
+000225 0fea      	ADD  R30,R26
+000226 1ffb      	ADC  R31,R27
+000227 83e9      	STD  Y+1,R30
+000228 83fa      	STD  Y+1+1,R31
+                 ; 0000 01AD         DelayOff;   StartADC(Data1);    En1=0;  DataKalibrasi[1]-= BacaADC();   // LED 1 OFF
+                +
+000229 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+00022a 958a     +DEC R24
+00022b f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+00022c e0a7      	LDI  R26,LOW(7)
+00022d de61      	RCALL _StartADC
+00022e 98c2      	CBI  0x18,2
+00022f de6b      	RCALL _BacaADC
+000230 81ab      	LDD  R26,Y+3
+000231 81bc      	LDD  R27,Y+3+1
+000232 e0f0      	LDI  R31,0
+000233 1bae      	SUB  R26,R30
+000234 0bbf      	SBC  R27,R31
+000235 83ab      	STD  Y+3,R26
+000236 83bc      	STD  Y+3+1,R27
+                 ; 0000 01AE         DelayOn;    StartADC(Data1);    En1=1;  DataKalibrasi[1]+= BacaADC();   // LED 1 ON
+                +
+000237 e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+000238 958a     +DEC R24
+000239 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+00023a e0a7      	LDI  R26,LOW(7)
+00023b de53      	RCALL _StartADC
+00023c 9ac2      	SBI  0x18,2
+00023d de5d      	RCALL _BacaADC
+00023e 81ab      	LDD  R26,Y+3
+00023f 81bc      	LDD  R27,Y+3+1
+000240 e0f0      	LDI  R31,0
+000241 0fea      	ADD  R30,R26
+000242 1ffb      	ADC  R31,R27
+000243 83eb      	STD  Y+3,R30
+000244 83fc      	STD  Y+3+1,R31
+                 ; 0000 01AF         DelayOff;   StartADC(Data2);    En2=0;  DataKalibrasi[2]-= BacaADC();   // LED 2 OFF
+                +
+000245 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+000246 958a     +DEC R24
+000247 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+000248 e0a1      	LDI  R26,LOW(1)
+000249 de45      	RCALL _StartADC
+00024a 98c3      	CBI  0x18,3
+00024b de4f      	RCALL _BacaADC
+00024c 81ad      	LDD  R26,Y+5
+00024d 81be      	LDD  R27,Y+5+1
+00024e e0f0      	LDI  R31,0
+00024f 1bae      	SUB  R26,R30
+000250 0bbf      	SBC  R27,R31
+000251 83ad      	STD  Y+5,R26
+000252 83be      	STD  Y+5+1,R27
+                 ; 0000 01B0         DelayOn;    StartADC(Data2);    En2=1;  DataKalibrasi[2]+= BacaADC();   // LED 2 ON
+                +
+000253 e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+000254 958a     +DEC R24
+000255 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+000256 e0a1      	LDI  R26,LOW(1)
+000257 de37      	RCALL _StartADC
+000258 9ac3      	SBI  0x18,3
+000259 de41      	RCALL _BacaADC
+00025a 81ad      	LDD  R26,Y+5
+00025b 81be      	LDD  R27,Y+5+1
+00025c e0f0      	LDI  R31,0
+00025d 0fea      	ADD  R30,R26
+00025e 1ffb      	ADC  R31,R27
+00025f 83ed      	STD  Y+5,R30
+000260 83fe      	STD  Y+5+1,R31
+                 ; 0000 01B1         DelayOff;   StartADC(Data3);    En3=0;  DataKalibrasi[3]-= BacaADC();   // LED 3 OFF
+                +
+000261 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+000262 958a     +DEC R24
+000263 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+000264 e0a0      	LDI  R26,LOW(0)
+000265 de29      	RCALL _StartADC
+000266 98c4      	CBI  0x18,4
+000267 de33      	RCALL _BacaADC
+000268 81af      	LDD  R26,Y+7
+000269 85b8      	LDD  R27,Y+7+1
+00026a e0f0      	LDI  R31,0
+00026b 1bae      	SUB  R26,R30
+00026c 0bbf      	SBC  R27,R31
+00026d 83af      	STD  Y+7,R26
+00026e 87b8      	STD  Y+7+1,R27
+                 ; 0000 01B2         DelayOn;    StartADC(Data3);    En3=1;  DataKalibrasi[3]+= BacaADC();   // LED 3 ON
+                +
+00026f e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+000270 958a     +DEC R24
+000271 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+000272 e0a0      	LDI  R26,LOW(0)
+000273 de1b      	RCALL _StartADC
+000274 9ac4      	SBI  0x18,4
+000275 de25      	RCALL _BacaADC
+000276 81af      	LDD  R26,Y+7
+000277 85b8      	LDD  R27,Y+7+1
+000278 e0f0      	LDI  R31,0
+000279 0fea      	ADD  R30,R26
+00027a 1ffb      	ADC  R31,R27
+00027b 83ef      	STD  Y+7,R30
+00027c 87f8      	STD  Y+7+1,R31
+                 ; 0000 01B3         DelayOff;   StartADC(Data4);    En4=0;  DataKalibrasi[4]-= BacaADC();   // LED 4 OFF
+                +
+00027d e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+00027e 958a     +DEC R24
+00027f f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+000280 e0a2      	LDI  R26,LOW(2)
+000281 de0d      	RCALL _StartADC
+000282 9895      	CBI  0x12,5
+000283 de17      	RCALL _BacaADC
+000284 85a9      	LDD  R26,Y+9
+000285 85ba      	LDD  R27,Y+9+1
+000286 e0f0      	LDI  R31,0
+000287 1bae      	SUB  R26,R30
+000288 0bbf      	SBC  R27,R31
+000289 87a9      	STD  Y+9,R26
+00028a 87ba      	STD  Y+9+1,R27
+                 ; 0000 01B4         DelayOn;    StartADC(Data4);    En4=1;  DataKalibrasi[4]+= BacaADC();   // LED 4 ON
+                +
+00028b e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+00028c 958a     +DEC R24
+00028d f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+00028e e0a2      	LDI  R26,LOW(2)
+00028f ddff      	RCALL _StartADC
+000290 9a95      	SBI  0x12,5
+000291 de09      	RCALL _BacaADC
+000292 85a9      	LDD  R26,Y+9
+000293 85ba      	LDD  R27,Y+9+1
+000294 e0f0      	LDI  R31,0
+000295 0fea      	ADD  R30,R26
+000296 1ffb      	ADC  R31,R27
+000297 87e9      	STD  Y+9,R30
+000298 87fa      	STD  Y+9+1,R31
+                 ; 0000 01B5         DelayOff;   StartADC(Data5);    En5=0;  DataKalibrasi[5]-= BacaADC();   // LED 5 OFF
+                +
+000299 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+00029a 958a     +DEC R24
+00029b f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+00029c e0a3      	LDI  R26,LOW(3)
+00029d ddf1      	RCALL _StartADC
+00029e 9892      	CBI  0x12,2
+00029f ddfb      	RCALL _BacaADC
+0002a0 85ab      	LDD  R26,Y+11
+0002a1 85bc      	LDD  R27,Y+11+1
+0002a2 e0f0      	LDI  R31,0
+0002a3 1bae      	SUB  R26,R30
+0002a4 0bbf      	SBC  R27,R31
+0002a5 87ab      	STD  Y+11,R26
+0002a6 87bc      	STD  Y+11+1,R27
+                 ; 0000 01B6         DelayOn;    StartADC(Data5);    En5=1;  DataKalibrasi[5]+= BacaADC();   // LED 5 ON
+                +
+0002a7 e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+0002a8 958a     +DEC R24
+0002a9 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+0002aa e0a3      	LDI  R26,LOW(3)
+0002ab dde3      	RCALL _StartADC
+0002ac 9a92      	SBI  0x12,2
+0002ad dded      	RCALL _BacaADC
+0002ae 85ab      	LDD  R26,Y+11
+0002af 85bc      	LDD  R27,Y+11+1
+0002b0 e0f0      	LDI  R31,0
+0002b1 0fea      	ADD  R30,R26
+0002b2 1ffb      	ADC  R31,R27
+0002b3 87eb      	STD  Y+11,R30
+0002b4 87fc      	STD  Y+11+1,R31
+                 ; 0000 01B7         DelayOff;   StartADC(Data6);    En6=0;  DataKalibrasi[6]-= BacaADC();   // LED 6 OFF
+                +
+0002b5 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+0002b6 958a     +DEC R24
+0002b7 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+0002b8 e0a4      	LDI  R26,LOW(4)
+0002b9 ddd5      	RCALL _StartADC
+0002ba 9893      	CBI  0x12,3
+0002bb dddf      	RCALL _BacaADC
+0002bc 85ad      	LDD  R26,Y+13
+0002bd 85be      	LDD  R27,Y+13+1
+0002be e0f0      	LDI  R31,0
+0002bf 1bae      	SUB  R26,R30
+0002c0 0bbf      	SBC  R27,R31
+0002c1 87ad      	STD  Y+13,R26
+0002c2 87be      	STD  Y+13+1,R27
+                 ; 0000 01B8         DelayOn;    StartADC(Data6);    En6=1;  DataKalibrasi[6]+= BacaADC();   // LED 6 ON
+                +
+0002c3 e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+0002c4 958a     +DEC R24
+0002c5 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+0002c6 e0a4      	LDI  R26,LOW(4)
+0002c7 ddc7      	RCALL _StartADC
+0002c8 9a93      	SBI  0x12,3
+0002c9 ddd1      	RCALL _BacaADC
+0002ca 85ad      	LDD  R26,Y+13
+0002cb 85be      	LDD  R27,Y+13+1
+0002cc e0f0      	LDI  R31,0
+0002cd 0fea      	ADD  R30,R26
+0002ce 1ffb      	ADC  R31,R27
+0002cf 87ed      	STD  Y+13,R30
+0002d0 87fe      	STD  Y+13+1,R31
+                 ; 0000 01B9         DelayOff;   StartADC(Data7);    En7=0;  DataKalibrasi[7]-= BacaADC();   // LED 7 OFF
+                +
+0002d1 e580     +LDI R24 , LOW ( 80 )
+                +__DELAY_USB_LOOP :
+0002d2 958a     +DEC R24
+0002d3 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 80
+0002d4 e0a5      	LDI  R26,LOW(5)
+0002d5 ddb9      	RCALL _StartADC
+0002d6 9894      	CBI  0x12,4
+0002d7 ddc3      	RCALL _BacaADC
+0002d8 85af      	LDD  R26,Y+15
+0002d9 89b8      	LDD  R27,Y+15+1
+0002da e0f0      	LDI  R31,0
+0002db 1bae      	SUB  R26,R30
+0002dc 0bbf      	SBC  R27,R31
+0002dd 87af      	STD  Y+15,R26
+0002de 8bb8      	STD  Y+15+1,R27
+                 ; 0000 01BA         DelayOn;    StartADC(Data7);    En7=1;  DataKalibrasi[7]+= BacaADC();   // LED 7 ON
+                +
+0002df e885     +LDI R24 , LOW ( 133 )
+                +__DELAY_USB_LOOP :
+0002e0 958a     +DEC R24
+0002e1 f7f1     +BRNE __DELAY_USB_LOOP
+                 	__DELAY_USB 133
+0002e2 e0a5      	LDI  R26,LOW(5)
+0002e3 ddab      	RCALL _StartADC
+0002e4 9a94      	SBI  0x12,4
+0002e5 ddb5      	RCALL _BacaADC
+0002e6 85af      	LDD  R26,Y+15
+0002e7 89b8      	LDD  R27,Y+15+1
+0002e8 e0f0      	LDI  R31,0
+0002e9 0fea      	ADD  R30,R26
+0002ea 1ffb      	ADC  R31,R27
+0002eb 87ef      	STD  Y+15,R30
+0002ec 8bf8      	STD  Y+15+1,R31
+                 ; 0000 01BB     }
+0002ed 5f1f      	SUBI R17,-1
+0002ee cf1b      	RJMP _0xE6
+                 _0xE7:
+                 ; 0000 01BC     //EnR = 0;    EnG = 0;   EnB = 0;
+                 ; 0000 01BD     //putchar (counter);
+                 ; 0000 01BE     for (i=0;i<8;i++)
+0002ef e010      	LDI  R17,LOW(0)
+                 _0x109:
+0002f0 3018      	CPI  R17,8
+0002f1 f550      	BRSH _0x10A
+                 ; 0000 01BF     {   //putchar (*(x+i));
+                 ; 0000 01C0         //putchar ((DataKalibrasi[i]/10));
+                 ; 0000 01C1         x[i]= (int)(((int) (*(x+i))*(counter-1)) + (DataKalibrasi[i]/10))/counter;
+0002f2 2fe1      	MOV  R30,R17
+0002f3 89aa      	LDD  R26,Y+18
+0002f4 89bb      	LDD  R27,Y+18+1
+0002f5 e0f0      	LDI  R31,0
+0002f6 0fea      	ADD  R30,R26
+0002f7 1ffb      	ADC  R31,R27
+0002f8 93ff      	PUSH R31
+0002f9 93ef      	PUSH R30
+0002fa 27ee      	CLR  R30
+0002fb 0fa1      	ADD  R26,R17
+0002fc 1fbe      	ADC  R27,R30
+0002fd 91ac      	LD   R26,X
+0002fe 27bb      	CLR  R27
+0002ff 89e9      	LDD  R30,Y+17
+000300 50e1      	SUBI R30,LOW(1)
+000301 e0f0      	LDI  R31,0
+000302 d214      	RCALL __MULW12
+000303 01bf      	MOVW R22,R30
+000304 2fe1      	MOV  R30,R17
+000305 e0f0      	LDI  R31,0
+000306 01de      	MOVW R26,R28
+000307 9611      	ADIW R26,1
+000308 0fee      	LSL  R30
+000309 1fff      	ROL  R31
+00030a 0fae      	ADD  R26,R30
+00030b 1fbf      	ADC  R27,R31
+00030c d235      	RCALL __GETW1P
+00030d 01df      	MOVW R26,R30
+00030e e0ea      	LDI  R30,LOW(10)
+00030f e0f0      	LDI  R31,HIGH(10)
+000310 d20b      	RCALL __DIVW21U
+000311 01db      	MOVW R26,R22
+000312 0fae      	ADD  R26,R30
+000313 1fbf      	ADC  R27,R31
+000314 89e9      	LDD  R30,Y+17
+000315 e0f0      	LDI  R31,0
+000316 d218      	RCALL __DIVW21
+000317 91af      	POP  R26
+000318 91bf      	POP  R27
+000319 93ec      	ST   X,R30
+                 ; 0000 01C2         //putchar (x[i]);
+                 ; 0000 01C3     }
+00031a 5f1f      	SUBI R17,-1
+00031b cfd4      	RJMP _0x109
+                 _0x10A:
+                 ; 0000 01C4 
+                 ; 0000 01C5 }
+00031c 8118      	LDD  R17,Y+0
+00031d 9664      	ADIW R28,20
+00031e 9508      	RET
+                 ;
+                 ;char KalibrasiRGB()
+                 ; 0000 01C8 {   /*  Threshold Sensor Merah diambil antara data di atas warna merah dan biru
+                 ; 0000 01C9         Threshold Sensor Hijau diambil antara data di atas warna hijau dan hitam
+                 ; 0000 01CA         Threshold Sensor Biru diambil antara data di atas warna biru dan hijau
+                 ; 0000 01CB     */
+                 _KalibrasiRGB:
+                 ; 0000 01CC     // Kalibrasi Di atas warna merah hanya dilakukan untuk sensor merah saja
+                 ; 0000 01CD     if (getchar()== pKalibrasiRGB) // jika protokol bukan kalibrasi RGB, maka proses kalibrasi dihentikan
+00031f dd5d      	RCALL _getchar
+000320 3fe0      	CPI  R30,LOW(0xF0)
+000321 f009      	BREQ PC+2
+000322 c046      	RJMP _0x10B
+                 ; 0000 01CE     {    EnR = 1;    EnG = 0;   EnB = 0;
+000323 9a97      	SBI  0x12,7
+000324 9896      	CBI  0x12,6
+000325 98c0      	CBI  0x18,0
+                 ; 0000 01CF         Kalibrasi(ThresholdR,1);
+000326 e6e0      	LDI  R30,LOW(_ThresholdR)
+000327 e0f1      	LDI  R31,HIGH(_ThresholdR)
+000328 93fa      	ST   -Y,R31
+000329 93ea      	ST   -Y,R30
+00032a e0a1      	LDI  R26,LOW(1)
+00032b dec9      	RCALL _Kalibrasi
+                 ; 0000 01D0         // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna hijau
+                 ; 0000 01D1         if (getchar()== pKalibrasiRGB) // jika protokol bukan kalibrasi RGB, maka proses kalibrasi dihentikan
+00032c dd50      	RCALL _getchar
+00032d 3fe0      	CPI  R30,LOW(0xF0)
+00032e f5d1      	BRNE _0x112
+                 ; 0000 01D2         {   // Kalibrasi di atas warna hijau dilakukan untuk sensor biru dan hijau
+                 ; 0000 01D3             EnR = 0;    EnG = 1;   EnB = 0;
+00032f 9897      	CBI  0x12,7
+000330 9a96      	SBI  0x12,6
+000331 98c0      	CBI  0x18,0
+                 ; 0000 01D4             Kalibrasi(ThresholdG,1);
+000332 e6e8      	LDI  R30,LOW(_ThresholdG)
+000333 e0f1      	LDI  R31,HIGH(_ThresholdG)
+000334 93fa      	ST   -Y,R31
+000335 93ea      	ST   -Y,R30
+000336 e0a1      	LDI  R26,LOW(1)
+000337 debd      	RCALL _Kalibrasi
+                 ; 0000 01D5             EnR = 0;    EnG = 0;   EnB = 1;
+000338 9897      	CBI  0x12,7
+000339 9896      	CBI  0x12,6
+00033a 9ac0      	SBI  0x18,0
+                 ; 0000 01D6             Kalibrasi(ThresholdB,1);
+00033b e7e0      	LDI  R30,LOW(_ThresholdB)
+00033c e0f1      	LDI  R31,HIGH(_ThresholdB)
+00033d 93fa      	ST   -Y,R31
+00033e 93ea      	ST   -Y,R30
+00033f e0a1      	LDI  R26,LOW(1)
+000340 deb4      	RCALL _Kalibrasi
+                 ; 0000 01D7             // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna biru
+                 ; 0000 01D8             if (getchar()== pKalibrasiRGB) // jika protokol bukan kalibrasi RGB, maka proses kalibrasi dihentikan
+000341 dd3b      	RCALL _getchar
+000342 3fe0      	CPI  R30,LOW(0xF0)
+000343 f529      	BRNE _0x11F
+                 ; 0000 01D9             {   // Kalibrasi di atas warna biru dilakukan untuk sensor merah dan biru
+                 ; 0000 01DA                 EnR = 1;    EnG = 0;   EnB = 0;
+000344 9a97      	SBI  0x12,7
+000345 9896      	CBI  0x12,6
+000346 98c0      	CBI  0x18,0
+                 ; 0000 01DB                 Kalibrasi(ThresholdR,2);
+000347 e6e0      	LDI  R30,LOW(_ThresholdR)
+000348 e0f1      	LDI  R31,HIGH(_ThresholdR)
+000349 93fa      	ST   -Y,R31
+00034a 93ea      	ST   -Y,R30
+00034b e0a2      	LDI  R26,LOW(2)
+00034c dea8      	RCALL _Kalibrasi
+                 ; 0000 01DC                 EnR = 0;    EnG = 0;   EnB = 1;
+00034d 9897      	CBI  0x12,7
+00034e 9896      	CBI  0x12,6
+00034f 9ac0      	SBI  0x18,0
+                 ; 0000 01DD                 Kalibrasi(ThresholdB,2);
+000350 e7e0      	LDI  R30,LOW(_ThresholdB)
+000351 e0f1      	LDI  R31,HIGH(_ThresholdB)
+000352 93fa      	ST   -Y,R31
+000353 93ea      	ST   -Y,R30
+000354 e0a2      	LDI  R26,LOW(2)
+000355 de9f      	RCALL _Kalibrasi
+                 ; 0000 01DE                 // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna hitam
+                 ; 0000 01DF                 if (getchar()== pKalibrasiRGB) // jika protokol bukan kalibrasi RGB, maka proses kalibrasi dihentikan
+000356 dd26      	RCALL _getchar
+000357 3fe0      	CPI  R30,LOW(0xF0)
+000358 f481      	BRNE _0x12C
+                 ; 0000 01E0                 {   // Kalibrasi di atas warna hitam dilakukan untuk sensor hijau saja
+                 ; 0000 01E1                     EnR = 0;    EnG = 1;   EnB = 0;
+000359 9897      	CBI  0x12,7
+00035a 9a96      	SBI  0x12,6
+00035b 98c0      	CBI  0x18,0
+                 ; 0000 01E2                     Kalibrasi(ThresholdG,2);
+00035c e6e8      	LDI  R30,LOW(_ThresholdG)
+00035d e0f1      	LDI  R31,HIGH(_ThresholdG)
+00035e 93fa      	ST   -Y,R31
+00035f 93ea      	ST   -Y,R30
+000360 e0a2      	LDI  R26,LOW(2)
+000361 de93      	RCALL _Kalibrasi
+                 ; 0000 01E3                     UpdateThresholdR();         // menyimpan data kalibrasi sensor merah ke EEPROM
+000362 de4b      	RCALL _UpdateThresholdR
+                 ; 0000 01E4                     UpdateThresholdG();         // menyimpan data kalibrasi sensor hijau ke EEPROM
+000363 de5b      	RCALL _UpdateThresholdG
+                 ; 0000 01E5                     UpdateThresholdB();         // menyimpan data kalibrasi sensor biru ke EEPROM
+000364 de6b      	RCALL _UpdateThresholdB
+                 ; 0000 01E6                     _Mode = pKalibrasiRGB;
+000365 e1a8      	LDI  R26,LOW(__Mode)
+000366 e0b0      	LDI  R27,HIGH(__Mode)
+000367 efe0      	LDI  R30,LOW(240)
+000368 c0b8      	RJMP _0x2060003
+                 ; 0000 01E7                     return 1;
+                 ; 0000 01E8                 }
+                 ; 0000 01E9             }
+                 _0x12C:
+                 ; 0000 01EA         }
+                 _0x11F:
+                 ; 0000 01EB     } return 0;
+                 _0x112:
+                 _0x10B:
+000369 c0ba      	RJMP _0x2060002
+                 ; 0000 01EC }
+                 ;
+                 ;char KalibrasiMerahBiru(void)
+                 ; 0000 01EF {   /*  Threshold Sensor Merah diambil antara data di atas warna merah dan biru
+                 ; 0000 01F0         Threshold Sensor Biru diambil antara data di atas warna biru dan hitam
+                 ; 0000 01F1     */
+                 _KalibrasiMerahBiru:
+                 ; 0000 01F2     // Kalibrasi Di atas warna merah hanya dilakukan untuk sensor merah saja
+                 ; 0000 01F3     if (getchar()== pKalibrasiRB) // jika protokol bukan kalibrasi RB, maka proses kalibrasi dihentikan
+00036a dd12      	RCALL _getchar
+00036b 3de0      	CPI  R30,LOW(0xD0)
+00036c f581      	BRNE _0x133
+                 ; 0000 01F4     {   EnR = 1;    EnG = 0;   EnB = 0;
+00036d 9a97      	SBI  0x12,7
+00036e 9896      	CBI  0x12,6
+00036f 98c0      	CBI  0x18,0
+                 ; 0000 01F5         Kalibrasi(ThresholdR,1);
+000370 e6e0      	LDI  R30,LOW(_ThresholdR)
+000371 e0f1      	LDI  R31,HIGH(_ThresholdR)
+000372 93fa      	ST   -Y,R31
+000373 93ea      	ST   -Y,R30
+000374 e0a1      	LDI  R26,LOW(1)
+000375 de7f      	RCALL _Kalibrasi
+                 ; 0000 01F6         // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna hijau
+                 ; 0000 01F7         if (getchar()== pKalibrasiRB) // jika protokol bukan kalibrasi RB, maka proses kalibrasi dihentikan
+000376 dd06      	RCALL _getchar
+000377 3de0      	CPI  R30,LOW(0xD0)
+000378 f521      	BRNE _0x13A
+                 ; 0000 01F8         {   // Kalibrasi di atas warna biru dilakukan untuk sensor merah dan biru
+                 ; 0000 01F9             EnR = 1;    EnG = 0;   EnB = 0;
+000379 9a97      	SBI  0x12,7
+00037a 9896      	CBI  0x12,6
+00037b 98c0      	CBI  0x18,0
+                 ; 0000 01FA             Kalibrasi(ThresholdR,2);
+00037c e6e0      	LDI  R30,LOW(_ThresholdR)
+00037d e0f1      	LDI  R31,HIGH(_ThresholdR)
+00037e 93fa      	ST   -Y,R31
+00037f 93ea      	ST   -Y,R30
+000380 e0a2      	LDI  R26,LOW(2)
+000381 de73      	RCALL _Kalibrasi
+                 ; 0000 01FB             EnR = 0;    EnG = 0;   EnB = 1;
+000382 9897      	CBI  0x12,7
+000383 9896      	CBI  0x12,6
+000384 9ac0      	SBI  0x18,0
+                 ; 0000 01FC             Kalibrasi(ThresholdB,1);
+000385 e7e0      	LDI  R30,LOW(_ThresholdB)
+000386 e0f1      	LDI  R31,HIGH(_ThresholdB)
+000387 93fa      	ST   -Y,R31
+000388 93ea      	ST   -Y,R30
+000389 e0a1      	LDI  R26,LOW(1)
+00038a de6a      	RCALL _Kalibrasi
+                 ; 0000 01FD             // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna hitam
+                 ; 0000 01FE             if (getchar()== pKalibrasiRB) // jika protokol bukan kalibrasi RB, maka proses kalibrasi dihentikan
+00038b dcf1      	RCALL _getchar
+00038c 3de0      	CPI  R30,LOW(0xD0)
+00038d f479      	BRNE _0x147
+                 ; 0000 01FF             {   // Kalibrasi di atas warna hitam dilakukan untuk sensor biru saja
+                 ; 0000 0200                 EnR = 0;    EnG = 0;   EnB = 1;
+00038e 9897      	CBI  0x12,7
+00038f 9896      	CBI  0x12,6
+000390 9ac0      	SBI  0x18,0
+                 ; 0000 0201                 Kalibrasi(ThresholdB,2);
+000391 e7e0      	LDI  R30,LOW(_ThresholdB)
+000392 e0f1      	LDI  R31,HIGH(_ThresholdB)
+000393 93fa      	ST   -Y,R31
+000394 93ea      	ST   -Y,R30
+000395 e0a2      	LDI  R26,LOW(2)
+000396 de5e      	RCALL _Kalibrasi
+                 ; 0000 0202                 UpdateThresholdR();     // menyimpan data kalibrasi sensor merah ke EEPROM
+000397 de16      	RCALL _UpdateThresholdR
+                 ; 0000 0203                 UpdateThresholdB();     // menyimpan data kalibrasi sensor biru ke EEPROM
+000398 de37      	RCALL _UpdateThresholdB
+                 ; 0000 0204                 _Mode = pKalibrasiRB;
+000399 e1a8      	LDI  R26,LOW(__Mode)
+00039a e0b0      	LDI  R27,HIGH(__Mode)
+00039b ede0      	LDI  R30,LOW(208)
+00039c c084      	RJMP _0x2060003
+                 ; 0000 0205                 return 1;
+                 ; 0000 0206             }
+                 ; 0000 0207         }
+                 _0x147:
+                 ; 0000 0208     } return 0;
+                 _0x13A:
+                 _0x133:
+00039d c086      	RJMP _0x2060002
+                 ; 0000 0209 }
+                 ;
+                 ;char KalibrasiMerahHijau(void)
+                 ; 0000 020C {   /*  Threshold Sensor Merah diambil antara data di atas warna merah dan Hijau
+                 ; 0000 020D         Threshold Sensor Hijau diambil antara data di atas warna biru dan hitam
+                 ; 0000 020E     */
+                 _KalibrasiMerahHijau:
+                 ; 0000 020F     if (getchar()== pKalibrasiRG) // jika protokol bukan kalibrasi RG, maka proses kalibrasi dihentikan
+00039e dcde      	RCALL _getchar
+00039f 3ee0      	CPI  R30,LOW(0xE0)
+0003a0 f581      	BRNE _0x14E
+                 ; 0000 0210     {   // Kalibrasi Di atas warna merah hanya dilakukan untuk sensor merah saja
+                 ; 0000 0211         EnR = 1;    EnG = 0;   EnB = 0;
+0003a1 9a97      	SBI  0x12,7
+0003a2 9896      	CBI  0x12,6
+0003a3 98c0      	CBI  0x18,0
+                 ; 0000 0212         Kalibrasi(ThresholdR,1);
+0003a4 e6e0      	LDI  R30,LOW(_ThresholdR)
+0003a5 e0f1      	LDI  R31,HIGH(_ThresholdR)
+0003a6 93fa      	ST   -Y,R31
+0003a7 93ea      	ST   -Y,R30
+0003a8 e0a1      	LDI  R26,LOW(1)
+0003a9 de4b      	RCALL _Kalibrasi
+                 ; 0000 0213         // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna hijau
+                 ; 0000 0214         if (getchar()== pKalibrasiRG) // jika protokol bukan kalibrasi RG, maka proses kalibrasi dihentikan
+0003aa dcd2      	RCALL _getchar
+0003ab 3ee0      	CPI  R30,LOW(0xE0)
+0003ac f521      	BRNE _0x155
+                 ; 0000 0215         {   // Kalibrasi di atas warna hijau dilakukan untuk sensor merah dan hijau
+                 ; 0000 0216             EnR = 1;    EnG = 0;   EnB = 0;
+0003ad 9a97      	SBI  0x12,7
+0003ae 9896      	CBI  0x12,6
+0003af 98c0      	CBI  0x18,0
+                 ; 0000 0217             Kalibrasi(ThresholdR,2);
+0003b0 e6e0      	LDI  R30,LOW(_ThresholdR)
+0003b1 e0f1      	LDI  R31,HIGH(_ThresholdR)
+0003b2 93fa      	ST   -Y,R31
+0003b3 93ea      	ST   -Y,R30
+0003b4 e0a2      	LDI  R26,LOW(2)
+0003b5 de3f      	RCALL _Kalibrasi
+                 ; 0000 0218             EnR = 0;    EnG = 1;   EnB = 0;
+0003b6 9897      	CBI  0x12,7
+0003b7 9a96      	SBI  0x12,6
+0003b8 98c0      	CBI  0x18,0
+                 ; 0000 0219             Kalibrasi(ThresholdG,1);
+0003b9 e6e8      	LDI  R30,LOW(_ThresholdG)
+0003ba e0f1      	LDI  R31,HIGH(_ThresholdG)
+0003bb 93fa      	ST   -Y,R31
+0003bc 93ea      	ST   -Y,R30
+0003bd e0a1      	LDI  R26,LOW(1)
+0003be de36      	RCALL _Kalibrasi
+                 ; 0000 021A             // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna hitam
+                 ; 0000 021B             if (getchar()== pKalibrasiRG) // jika protokol bukan kalibrasi RG, maka proses kalibrasi dihentikan
+0003bf dcbd      	RCALL _getchar
+0003c0 3ee0      	CPI  R30,LOW(0xE0)
+0003c1 f479      	BRNE _0x162
+                 ; 0000 021C             {   // Kalibrasi di atas warna hitam dilakukan untuk sensor hijau saja
+                 ; 0000 021D                 EnR = 0;    EnG = 1;   EnB = 0;
+0003c2 9897      	CBI  0x12,7
+0003c3 9a96      	SBI  0x12,6
+0003c4 98c0      	CBI  0x18,0
+                 ; 0000 021E                 Kalibrasi(ThresholdG,2);
+0003c5 e6e8      	LDI  R30,LOW(_ThresholdG)
+0003c6 e0f1      	LDI  R31,HIGH(_ThresholdG)
+0003c7 93fa      	ST   -Y,R31
+0003c8 93ea      	ST   -Y,R30
+0003c9 e0a2      	LDI  R26,LOW(2)
+0003ca de2a      	RCALL _Kalibrasi
+                 ; 0000 021F                 UpdateThresholdR();     // menyimpan data kalibrasi sensor merah ke EEPROM
+0003cb dde2      	RCALL _UpdateThresholdR
+                 ; 0000 0220                 UpdateThresholdG();     // menyimpan data kalibrasi sensor hijau ke EEPROM
+0003cc ddf2      	RCALL _UpdateThresholdG
+                 ; 0000 0221                 _Mode = pKalibrasiRG;
+0003cd e1a8      	LDI  R26,LOW(__Mode)
+0003ce e0b0      	LDI  R27,HIGH(__Mode)
+0003cf eee0      	LDI  R30,LOW(224)
+0003d0 c050      	RJMP _0x2060003
+                 ; 0000 0222                 return 1;
+                 ; 0000 0223             }
+                 ; 0000 0224         }
+                 _0x162:
+                 ; 0000 0225     } return 0;
+                 _0x155:
+                 _0x14E:
+0003d1 c052      	RJMP _0x2060002
+                 ; 0000 0226 }
+                 ;
+                 ;
+                 ;char KalibrasiHitamPutihMerah(void)
+                 ; 0000 022A {   /*  Threshold Sensor Merah diambil antara data di atas warna Hitam dan Putih
+                 ; 0000 022B     */
+                 _KalibrasiHitamPutihMerah:
+                 ; 0000 022C     if (getchar()== pKalibrasiHPR) // jika protokol bukan kalibrasi HPR, maka proses kalibrasi dihentikan
+0003d2 dcaa      	RCALL _getchar
+0003d3 3ce0      	CPI  R30,LOW(0xC0)
+0003d4 f4b9      	BRNE _0x169
+                 ; 0000 022D     {   // Kalibrasi Di atas warna Putih
+                 ; 0000 022E         EnR = 1;    EnG = 0;   EnB = 0;
+0003d5 9a97      	SBI  0x12,7
+0003d6 9896      	CBI  0x12,6
+0003d7 98c0      	CBI  0x18,0
+                 ; 0000 022F         Kalibrasi(ThresholdR,1);
+0003d8 e6e0      	LDI  R30,LOW(_ThresholdR)
+0003d9 e0f1      	LDI  R31,HIGH(_ThresholdR)
+0003da 93fa      	ST   -Y,R31
+0003db 93ea      	ST   -Y,R30
+0003dc e0a1      	LDI  R26,LOW(1)
+0003dd de17      	RCALL _Kalibrasi
+                 ; 0000 0230         // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna hitam
+                 ; 0000 0231         if (getchar()== pKalibrasiHPR) // jika protokol bukan kalibrasi HPR, maka proses kalibrasi dihentikan
+0003de dc9e      	RCALL _getchar
+0003df 3ce0      	CPI  R30,LOW(0xC0)
+0003e0 f459      	BRNE _0x170
+                 ; 0000 0232         {   // Kalibrasi di atas warna hitam
+                 ; 0000 0233             Kalibrasi(ThresholdR,2);
+0003e1 e6e0      	LDI  R30,LOW(_ThresholdR)
+0003e2 e0f1      	LDI  R31,HIGH(_ThresholdR)
+0003e3 93fa      	ST   -Y,R31
+0003e4 93ea      	ST   -Y,R30
+0003e5 e0a2      	LDI  R26,LOW(2)
+0003e6 de0e      	RCALL _Kalibrasi
+                 ; 0000 0234             UpdateThresholdR();         // menyimpan data kalibrasi sensor merah ke EEPROM
+0003e7 ddc6      	RCALL _UpdateThresholdR
+                 ; 0000 0235             _Mode = pKalibrasiHPR;
+0003e8 e1a8      	LDI  R26,LOW(__Mode)
+0003e9 e0b0      	LDI  R27,HIGH(__Mode)
+0003ea ece0      	LDI  R30,LOW(192)
+0003eb c035      	RJMP _0x2060003
+                 ; 0000 0236             return 1;
+                 ; 0000 0237         }
+                 ; 0000 0238     } return 0;
+                 _0x170:
+                 _0x169:
+0003ec c037      	RJMP _0x2060002
+                 ; 0000 0239 }
+                 ;
+                 ;char KalibrasiHitamPutihBiru(void)
+                 ; 0000 023C {   /*  Threshold Sensor Biru diambil antara data di atas warna Hitam dan Putih
+                 ; 0000 023D     */
+                 _KalibrasiHitamPutihBiru:
+                 ; 0000 023E     if (getchar()== pKalibrasiHPB) // jika protokol bukan kalibrasi HPB, maka proses kalibrasi dihentikan
+0003ed dc8f      	RCALL _getchar
+0003ee 39e0      	CPI  R30,LOW(0x90)
+0003ef f4b9      	BRNE _0x171
+                 ; 0000 023F     {   // Kalibrasi Di atas warna Putih
+                 ; 0000 0240         EnR = 0;    EnG = 0;   EnB = 1;
+0003f0 9897      	CBI  0x12,7
+0003f1 9896      	CBI  0x12,6
+0003f2 9ac0      	SBI  0x18,0
+                 ; 0000 0241         Kalibrasi(ThresholdB,1);
+0003f3 e7e0      	LDI  R30,LOW(_ThresholdB)
+0003f4 e0f1      	LDI  R31,HIGH(_ThresholdB)
+0003f5 93fa      	ST   -Y,R31
+0003f6 93ea      	ST   -Y,R30
+0003f7 e0a1      	LDI  R26,LOW(1)
+0003f8 ddfc      	RCALL _Kalibrasi
+                 ; 0000 0242         // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna hitam
+                 ; 0000 0243         if (getchar()== pKalibrasiHPB) // jika protokol bukan kalibrasi HPB, maka proses kalibrasi dihentikan
+0003f9 dc83      	RCALL _getchar
+0003fa 39e0      	CPI  R30,LOW(0x90)
+0003fb f459      	BRNE _0x178
+                 ; 0000 0244         {   // Kalibrasi di atas warna hitam
+                 ; 0000 0245             Kalibrasi(ThresholdB,2);
+0003fc e7e0      	LDI  R30,LOW(_ThresholdB)
+0003fd e0f1      	LDI  R31,HIGH(_ThresholdB)
+0003fe 93fa      	ST   -Y,R31
+0003ff 93ea      	ST   -Y,R30
+000400 e0a2      	LDI  R26,LOW(2)
+000401 ddf3      	RCALL _Kalibrasi
+                 ; 0000 0246             UpdateThresholdB();         // menyimpan data kalibrasi sensor biru ke EEPROM
+000402 ddcd      	RCALL _UpdateThresholdB
+                 ; 0000 0247             _Mode = pKalibrasiHPB;
+000403 e1a8      	LDI  R26,LOW(__Mode)
+000404 e0b0      	LDI  R27,HIGH(__Mode)
+000405 e9e0      	LDI  R30,LOW(144)
+000406 c01a      	RJMP _0x2060003
+                 ; 0000 0248             return 1;
+                 ; 0000 0249         }
+                 ; 0000 024A     }return 0;
+                 _0x178:
+                 _0x171:
+000407 c01c      	RJMP _0x2060002
+                 ; 0000 024B }
+                 ;
+                 ;char KalibrasiHitamPutihHijau(void)
+                 ; 0000 024E {   /*  Threshold Sensor Hijau diambil antara data di atas warna Hitam dan Putih
+                 ; 0000 024F     */
+                 _KalibrasiHitamPutihHijau:
+                 ; 0000 0250     if (getchar()== pKalibrasiHPG) // jika protokol bukan kalibrasi HPG, maka proses kalibrasi dihentikan
+000408 dc74      	RCALL _getchar
+000409 3ae0      	CPI  R30,LOW(0xA0)
+00040a f4c9      	BRNE _0x179
+                 ; 0000 0251     {   // Kalibrasi Di atas warna Putih
+                 ; 0000 0252         EnR = 0;    EnG = 1;   EnB = 0;
+00040b 9897      	CBI  0x12,7
+00040c 9a96      	SBI  0x12,6
+00040d 98c0      	CBI  0x18,0
+                 ; 0000 0253         Kalibrasi(ThresholdG,1);
+00040e e6e8      	LDI  R30,LOW(_ThresholdG)
+00040f e0f1      	LDI  R31,HIGH(_ThresholdG)
+000410 93fa      	ST   -Y,R31
+000411 93ea      	ST   -Y,R30
+000412 e0a1      	LDI  R26,LOW(1)
+000413 dde1      	RCALL _Kalibrasi
+                 ; 0000 0254         // menunggu perintah dari master untuk melanjutkan kalibrasi diatas warna hitam
+                 ; 0000 0255         if (getchar()== pKalibrasiHPG) // jika protokol bukan kalibrasi HPG, maka proses kalibrasi dihentikan
+000414 dc68      	RCALL _getchar
+000415 3ae0      	CPI  R30,LOW(0xA0)
+000416 f469      	BRNE _0x180
+                 ; 0000 0256         {   // Kalibrasi di atas warna hitam
+                 ; 0000 0257             Kalibrasi(ThresholdG,2);
+000417 e6e8      	LDI  R30,LOW(_ThresholdG)
+000418 e0f1      	LDI  R31,HIGH(_ThresholdG)
+000419 93fa      	ST   -Y,R31
+00041a 93ea      	ST   -Y,R30
+00041b e0a2      	LDI  R26,LOW(2)
+00041c ddd8      	RCALL _Kalibrasi
+                 ; 0000 0258             UpdateThresholdG();         // menyimpan data kalibrasi sensor hijau ke EEPROM
+00041d dda1      	RCALL _UpdateThresholdG
+                 ; 0000 0259             _Mode = pKalibrasiHPG;
+00041e e1a8      	LDI  R26,LOW(__Mode)
+00041f e0b0      	LDI  R27,HIGH(__Mode)
+000420 eae0      	LDI  R30,LOW(160)
+                 _0x2060003:
+000421 d130      	RCALL __EEPROMWRB
+                 ; 0000 025A             return 1;
+000422 e0e1      	LDI  R30,LOW(1)
+000423 9508      	RET
+                 ; 0000 025B         }
+                 ; 0000 025C     } return 0;
+                 _0x180:
+                 _0x179:
+                 _0x2060002:
+000424 e0e0      	LDI  R30,LOW(0)
+000425 9508      	RET
+                 ; 0000 025D }
+                 ;
+                 ;void main(void)
+                 ; 0000 0260 {
+                 _main:
+                 ; 0000 0261 // Declare your local variables here
+                 ; 0000 0262 unsigned char sData;
+                 ; 0000 0263 
+                 ; 0000 0264 
+                 ; 0000 0265 // Input/Output Ports initialization
+                 ; 0000 0266 // Port B initialization
+                 ; 0000 0267 // Func7=In Func6=In Func5=Out Func4=Out Func3=Out Func2=Out Func1=Out Func0=Out
+                 ; 0000 0268 // State7=T State6=T State5=1 State4=1 State3=1 State2=1 State1=1 State0=0
+                 ; 0000 0269 PORTB=0x3E;
+                 ;	sData -> R17
+000426 e3ee      	LDI  R30,LOW(62)
+000427 bbe8      	OUT  0x18,R30
+                 ; 0000 026A DDRB=0x3F;
+000428 e3ef      	LDI  R30,LOW(63)
+000429 bbe7      	OUT  0x17,R30
+                 ; 0000 026B 
+                 ; 0000 026C // Port C initialization
+                 ; 0000 026D // Func6=In Func5=In Func4=In Func3=In Func2=In Func1=In Func0=In
+                 ; 0000 026E // State6=T State5=T State4=T State3=T State2=T State1=T State0=T
+                 ; 0000 026F PORTC=0x00;
+00042a e0e0      	LDI  R30,LOW(0)
+00042b bbe5      	OUT  0x15,R30
+                 ; 0000 0270 DDRC=0x00;
+00042c bbe4      	OUT  0x14,R30
+                 ; 0000 0271 
+                 ; 0000 0272 // Port D initialization
+                 ; 0000 0273 // Func7=Out Func6=Out Func5=Out Func4=Out Func3=Out Func2=Out Func1=In Func0=In
+                 ; 0000 0274 // State7=0 State6=0 State5=T State4=1 State3=1 State2=1 State1=T State0=T
+                 ; 0000 0275 PORTD=0x1C;
+00042d e1ec      	LDI  R30,LOW(28)
+00042e bbe2      	OUT  0x12,R30
+                 ; 0000 0276 DDRD=0xFC;
+00042f efec      	LDI  R30,LOW(252)
+000430 bbe1      	OUT  0x11,R30
+                 ; 0000 0277 // Timer/Counter 0 initialization
+                 ; 0000 0278 // Clock source: System Clock
+                 ; 0000 0279 // Clock value: Timer 0 Stopped
+                 ; 0000 027A TCCR0=0x00;
+000431 e0e0      	LDI  R30,LOW(0)
+000432 bfe3      	OUT  0x33,R30
+                 ; 0000 027B TCNT0=0x00;
+000433 bfe2      	OUT  0x32,R30
+                 ; 0000 027C 
+                 ; 0000 027D // Timer/Counter 1 initialization
+                 ; 0000 027E // Clock source: System Clock
+                 ; 0000 027F // Clock value: Timer1 Stopped
+                 ; 0000 0280 // Mode: Normal top=0xFFFF
+                 ; 0000 0281 // OC1A output: Discon.
+                 ; 0000 0282 // OC1B output: Discon.
+                 ; 0000 0283 // Noise Canceler: Off
+                 ; 0000 0284 // Input Capture on Falling Edge
+                 ; 0000 0285 // Timer1 Overflow Interrupt: Off
+                 ; 0000 0286 // Input Capture Interrupt: Off
+                 ; 0000 0287 // Compare A Match Interrupt: Off
+                 ; 0000 0288 // Compare B Match Interrupt: Off
+                 ; 0000 0289 TCCR1A=0x00;
+000434 bdef      	OUT  0x2F,R30
+                 ; 0000 028A TCCR1B=0x00;
+000435 bdee      	OUT  0x2E,R30
+                 ; 0000 028B TCNT1H=0x00;
+000436 bded      	OUT  0x2D,R30
+                 ; 0000 028C TCNT1L=0x00;
+000437 bdec      	OUT  0x2C,R30
+                 ; 0000 028D ICR1H=0x00;
+000438 bde7      	OUT  0x27,R30
+                 ; 0000 028E ICR1L=0x00;
+000439 bde6      	OUT  0x26,R30
+                 ; 0000 028F OCR1AH=0x00;
+00043a bdeb      	OUT  0x2B,R30
+                 ; 0000 0290 OCR1AL=0x00;
+00043b bdea      	OUT  0x2A,R30
+                 ; 0000 0291 OCR1BH=0x00;
+00043c bde9      	OUT  0x29,R30
+                 ; 0000 0292 OCR1BL=0x00;
+00043d bde8      	OUT  0x28,R30
+                 ; 0000 0293 
+                 ; 0000 0294 // Timer/Counter 2 initialization
+                 ; 0000 0295 // Clock source: System Clock
+                 ; 0000 0296 // Clock value: Timer2 Stopped
+                 ; 0000 0297 // Mode: Normal top=0xFF
+                 ; 0000 0298 // OC2 output: Disconnected
+                 ; 0000 0299 ASSR=0x00;
+00043e bde2      	OUT  0x22,R30
+                 ; 0000 029A TCCR2=0x00;
+00043f bde5      	OUT  0x25,R30
+                 ; 0000 029B TCNT2=0x00;
+000440 bde4      	OUT  0x24,R30
+                 ; 0000 029C OCR2=0x00;
+000441 bde3      	OUT  0x23,R30
+                 ; 0000 029D 
+                 ; 0000 029E // External Interrupt(s) initialization
+                 ; 0000 029F // INT0: Off
+                 ; 0000 02A0 // INT1: Off
+                 ; 0000 02A1 MCUCR=0x00;
+000442 bfe5      	OUT  0x35,R30
+                 ; 0000 02A2 
+                 ; 0000 02A3 // Timer(s)/Counter(s) Interrupt(s) initialization
+                 ; 0000 02A4 TIMSK=0x00;
+000443 bfe9      	OUT  0x39,R30
+                 ; 0000 02A5 
+                 ; 0000 02A6 // USART initialization
+                 ; 0000 02A7 // Communication Parameters: 8 Data, 1 Stop, No Parity
+                 ; 0000 02A8 // USART Receiver: On
+                 ; 0000 02A9 // USART Transmitter: On
+                 ; 0000 02AA // USART Mode: Asynchronous
+                 ; 0000 02AB // USART Baud Rate: 9600
+                 ; 0000 02AC UCSRA=0x00;
+000444 b9eb      	OUT  0xB,R30
+                 ; 0000 02AD UCSRB=0x98;
+000445 e9e8      	LDI  R30,LOW(152)
+000446 b9ea      	OUT  0xA,R30
+                 ; 0000 02AE UCSRC=0x86;
+000447 e8e6      	LDI  R30,LOW(134)
+000448 bde0      	OUT  0x20,R30
+                 ; 0000 02AF UBRRH=0x00;
+000449 e0e0      	LDI  R30,LOW(0)
+00044a bde0      	OUT  0x20,R30
+                 ; 0000 02B0 UBRRL=0x67;
+00044b e6e7      	LDI  R30,LOW(103)
+00044c b9e9      	OUT  0x9,R30
+                 ; 0000 02B1 
+                 ; 0000 02B2 // Analog Comparator initialization
+                 ; 0000 02B3 // Analog Comparator: Off
+                 ; 0000 02B4 // Analog Comparator Input Capture by Timer/Counter 1: Off
+                 ; 0000 02B5 ACSR=0x80;
+00044d e8e0      	LDI  R30,LOW(128)
+00044e b9e8      	OUT  0x8,R30
+                 ; 0000 02B6 SFIOR=0x00;
+00044f e0e0      	LDI  R30,LOW(0)
+000450 bfe0      	OUT  0x30,R30
+                 ; 0000 02B7 
+                 ; 0000 02B8 // ADC initialization
+                 ; 0000 02B9 // ADC Clock frequency: 500,000 kHz
+                 ; 0000 02BA // ADC Voltage Reference: AREF pin
+                 ; 0000 02BB // Only the 8 most significant bits of
+                 ; 0000 02BC // the AD conversion result are used
+                 ; 0000 02BD ADMUX=ADC_VREF_TYPE & 0xff;
+000451 e2e0      	LDI  R30,LOW(32)
+000452 b9e7      	OUT  0x7,R30
+                 ; 0000 02BE ADCSRA=0x85;        // 500kHz
+000453 e8e5      	LDI  R30,LOW(133)
+000454 b9e6      	OUT  0x6,R30
+                 ; 0000 02BF //ADCSRA=0x8C;        // 1Mhz
+                 ; 0000 02C0 
+                 ; 0000 02C1 // SPI initialization
+                 ; 0000 02C2 // SPI disabled
+                 ; 0000 02C3 SPCR=0x00;
+000455 e0e0      	LDI  R30,LOW(0)
+000456 b9ed      	OUT  0xD,R30
+                 ; 0000 02C4 
+                 ; 0000 02C5 // TWI initialization
+                 ; 0000 02C6 // TWI disabled
+                 ; 0000 02C7 TWCR=0x00;
+000457 bfe6      	OUT  0x36,R30
+                 ; 0000 02C8 
+                 ; 0000 02C9 // Global enable interrupts
+                 ; 0000 02CA 
+                 ; 0000 02CB if (_DeviceAddress==0xFF) _DeviceAddress = 0;   // // nilai antara 0-15
+000458 e1a9      	LDI  R26,LOW(__DeviceAddress)
+000459 e0b0      	LDI  R27,HIGH(__DeviceAddress)
+00045a d0eb      	RCALL __EEPROMRDB
+00045b 3fef      	CPI  R30,LOW(0xFF)
+00045c f421      	BRNE _0x181
+00045d e1a9      	LDI  R26,LOW(__DeviceAddress)
+00045e e0b0      	LDI  R27,HIGH(__DeviceAddress)
+00045f e0e0      	LDI  R30,LOW(0)
+000460 d0f1      	RCALL __EEPROMWRB
+                 ; 0000 02CC DeviceAddress = _DeviceAddress;
+                 _0x181:
+000461 e1a9      	LDI  R26,LOW(__DeviceAddress)
+000462 e0b0      	LDI  R27,HIGH(__DeviceAddress)
+000463 d0e2      	RCALL __EEPROMRDB
+000464 2e4e      	MOV  R4,R30
+                 ; 0000 02CD ReloadThreshold();
+000465 dd1d      	RCALL _ReloadThreshold
+                 ; 0000 02CE 
+                 ; 0000 02CF #asm("sei")
+000466 9478      	sei
+                 ; 0000 02D0 
+                 ; 0000 02D1 while (1)
+                 _0x182:
+                 ; 0000 02D2  { sData=getchar();
+000467 dc15      	RCALL _getchar
+000468 2f1e      	MOV  R17,R30
+                 ; 0000 02D3    if((sData & 0x0F)==_DeviceAddress)
+000469 2fe1      	MOV  R30,R17
+00046a 70ef      	ANDI R30,LOW(0xF)
+00046b 2e0e      	MOV  R0,R30
+00046c e1a9      	LDI  R26,LOW(__DeviceAddress)
+00046d e0b0      	LDI  R27,HIGH(__DeviceAddress)
+00046e d0d7      	RCALL __EEPROMRDB
+00046f 15e0      	CP   R30,R0
+000470 f009      	BREQ PC+2
+000471 c090      	RJMP _0x185
+                 ; 0000 02D4    { switch (sData)
+000472 2fe1      	MOV  R30,R17
+                 ; 0000 02D5      {  case    pBacaSensorRGB:
+000473 37e0      	CPI  R30,LOW(0x70)
+000474 f481      	BRNE _0x189
+                 ; 0000 02D6         {       //ResetThreshold();
+                 ; 0000 02D7                 EnR = 1;    EnG = 0;   EnB = 0;
+000475 9a97      	SBI  0x12,7
+000476 9896      	CBI  0x12,6
+000477 98c0      	CBI  0x18,0
+                 ; 0000 02D8                 putchar(pBacaSensorRGB|DeviceAddress);
+000478 2de4      	MOV  R30,R4
+000479 67e0      	ORI  R30,LOW(0x70)
+00047a 2fae      	MOV  R26,R30
+00047b d088      	RCALL _putchar
+                 ; 0000 02D9                 putchar(BacaSensorMerah());
+00047c dd65      	RCALL _BacaSensorMerah
+00047d 2fae      	MOV  R26,R30
+00047e d085      	RCALL _putchar
+                 ; 0000 02DA                 putchar(BacaSensorHijau());
+00047f dd68      	RCALL _BacaSensorHijau
+000480 2fae      	MOV  R26,R30
+000481 d082      	RCALL _putchar
+                 ; 0000 02DB                 putchar(BacaSensorBiru());
+000482 dd6b      	RCALL _BacaSensorBiru
+000483 2fae      	MOV  R26,R30
+000484 c07c      	RJMP _0x1AA
+                 ; 0000 02DC                 break;
+                 ; 0000 02DD         }
+                 ; 0000 02DE         case    pBacaSensorRG:
+                 _0x189:
+000485 36e0      	CPI  R30,LOW(0x60)
+000486 f451      	BRNE _0x190
+                 ; 0000 02DF         {       putchar(pBacaSensorRG|DeviceAddress);
+000487 2de4      	MOV  R30,R4
+000488 66e0      	ORI  R30,LOW(0x60)
+000489 2fae      	MOV  R26,R30
+00048a d079      	RCALL _putchar
+                 ; 0000 02E0                 putchar(BacaSensorMerah());
+00048b dd56      	RCALL _BacaSensorMerah
+00048c 2fae      	MOV  R26,R30
+00048d d076      	RCALL _putchar
+                 ; 0000 02E1                 putchar(BacaSensorHijau());
+00048e dd59      	RCALL _BacaSensorHijau
+00048f 2fae      	MOV  R26,R30
+000490 c070      	RJMP _0x1AA
+                 ; 0000 02E2                 break;
+                 ; 0000 02E3         }
+                 ; 0000 02E4         case    pBacaSensorRB:
+                 _0x190:
+000491 35e0      	CPI  R30,LOW(0x50)
+000492 f451      	BRNE _0x191
+                 ; 0000 02E5         {       putchar(pBacaSensorRB|DeviceAddress);
+000493 2de4      	MOV  R30,R4
+000494 65e0      	ORI  R30,LOW(0x50)
+000495 2fae      	MOV  R26,R30
+000496 d06d      	RCALL _putchar
+                 ; 0000 02E6                 putchar(BacaSensorMerah());
+000497 dd4a      	RCALL _BacaSensorMerah
+000498 2fae      	MOV  R26,R30
+000499 d06a      	RCALL _putchar
+                 ; 0000 02E7                 putchar(BacaSensorBiru());
+00049a dd53      	RCALL _BacaSensorBiru
+00049b 2fae      	MOV  R26,R30
+00049c c064      	RJMP _0x1AA
+                 ; 0000 02E8                 break;
+                 ; 0000 02E9         }
+                 ; 0000 02EA         case    pBacaSensorGB:
+                 _0x191:
+00049d 33e0      	CPI  R30,LOW(0x30)
+00049e f451      	BRNE _0x192
+                 ; 0000 02EB         {       putchar(pBacaSensorGB|DeviceAddress);
+00049f 2de4      	MOV  R30,R4
+0004a0 63e0      	ORI  R30,LOW(0x30)
+0004a1 2fae      	MOV  R26,R30
+0004a2 d061      	RCALL _putchar
+                 ; 0000 02EC                 putchar(BacaSensorHijau());
+0004a3 dd44      	RCALL _BacaSensorHijau
+0004a4 2fae      	MOV  R26,R30
+0004a5 d05e      	RCALL _putchar
+                 ; 0000 02ED                 putchar(BacaSensorBiru());
+0004a6 dd47      	RCALL _BacaSensorBiru
+0004a7 2fae      	MOV  R26,R30
+0004a8 c058      	RJMP _0x1AA
+                 ; 0000 02EE                 break;
+                 ; 0000 02EF         }
+                 ; 0000 02F0         case    pBacaSensorR:
+                 _0x192:
+0004a9 34e0      	CPI  R30,LOW(0x40)
+0004aa f439      	BRNE _0x193
+                 ; 0000 02F1         {       putchar(pBacaSensorR|DeviceAddress);
+0004ab 2de4      	MOV  R30,R4
+0004ac 64e0      	ORI  R30,0x40
+0004ad 2fae      	MOV  R26,R30
+0004ae d055      	RCALL _putchar
+                 ; 0000 02F2                 putchar(BacaSensorMerah());
+0004af dd32      	RCALL _BacaSensorMerah
+0004b0 2fae      	MOV  R26,R30
+0004b1 c04f      	RJMP _0x1AA
+                 ; 0000 02F3                 break;
+                 ; 0000 02F4         }
+                 ; 0000 02F5         case    pBacaSensorG:
+                 _0x193:
+0004b2 32e0      	CPI  R30,LOW(0x20)
+0004b3 f439      	BRNE _0x194
+                 ; 0000 02F6         {       putchar(pBacaSensorG|DeviceAddress);
+0004b4 2de4      	MOV  R30,R4
+0004b5 62e0      	ORI  R30,0x20
+0004b6 2fae      	MOV  R26,R30
+0004b7 d04c      	RCALL _putchar
+                 ; 0000 02F7                 putchar(BacaSensorHijau());     break;
+0004b8 dd2f      	RCALL _BacaSensorHijau
+0004b9 2fae      	MOV  R26,R30
+0004ba c046      	RJMP _0x1AA
+                 ; 0000 02F8         }
+                 ; 0000 02F9         case    pBacaSensorB:
+                 _0x194:
+0004bb 31e0      	CPI  R30,LOW(0x10)
+0004bc f439      	BRNE _0x195
+                 ; 0000 02FA         {       putchar(pBacaSensorB|DeviceAddress);
+0004bd 2de4      	MOV  R30,R4
+0004be 61e0      	ORI  R30,0x10
+0004bf 2fae      	MOV  R26,R30
+0004c0 d043      	RCALL _putchar
+                 ; 0000 02FB                 putchar(BacaSensorBiru());      break;
+0004c1 dd2c      	RCALL _BacaSensorBiru
+0004c2 2fae      	MOV  R26,R30
+0004c3 c03d      	RJMP _0x1AA
+                 ; 0000 02FC         }
+                 ; 0000 02FD         case    pKalibrasiRGB:
+                 _0x195:
+0004c4 3fe0      	CPI  R30,LOW(0xF0)
+0004c5 f441      	BRNE _0x196
+                 ; 0000 02FE         {       if(KalibrasiRGB())              putchar(pKalibrasiRGB);
+0004c6 de58      	RCALL _KalibrasiRGB
+0004c7 30e0      	CPI  R30,0
+0004c8 f011      	BREQ _0x197
+0004c9 efa0      	LDI  R26,LOW(240)
+0004ca c001      	RJMP _0x1AB
+                 ; 0000 02FF                 else                            putchar(pError);
+                 _0x197:
+0004cb e0a0      	LDI  R26,LOW(0)
+                 _0x1AB:
+0004cc d037      	RCALL _putchar
+                 ; 0000 0300                 break;
+0004cd c034      	RJMP _0x188
+                 ; 0000 0301         }
+                 ; 0000 0302         case    pKalibrasiRB:
+                 _0x196:
+0004ce 3de0      	CPI  R30,LOW(0xD0)
+0004cf f441      	BRNE _0x199
+                 ; 0000 0303         {       if(KalibrasiMerahBiru())        putchar(pKalibrasiRB);
+0004d0 de99      	RCALL _KalibrasiMerahBiru
+0004d1 30e0      	CPI  R30,0
+0004d2 f011      	BREQ _0x19A
+0004d3 eda0      	LDI  R26,LOW(208)
+0004d4 c001      	RJMP _0x1AC
+                 ; 0000 0304                 else                            putchar(pError);
+                 _0x19A:
+0004d5 e0a0      	LDI  R26,LOW(0)
+                 _0x1AC:
+0004d6 d02d      	RCALL _putchar
+                 ; 0000 0305                 break;
+0004d7 c02a      	RJMP _0x188
+                 ; 0000 0306         }
+                 ; 0000 0307         case    pKalibrasiRG:
+                 _0x199:
+0004d8 3ee0      	CPI  R30,LOW(0xE0)
+0004d9 f441      	BRNE _0x19C
+                 ; 0000 0308         {       if(KalibrasiMerahHijau())       putchar(pKalibrasiRG);
+0004da dec3      	RCALL _KalibrasiMerahHijau
+0004db 30e0      	CPI  R30,0
+0004dc f011      	BREQ _0x19D
+0004dd eea0      	LDI  R26,LOW(224)
+0004de c001      	RJMP _0x1AD
+                 ; 0000 0309                 else                            putchar(pError);
+                 _0x19D:
+0004df e0a0      	LDI  R26,LOW(0)
+                 _0x1AD:
+0004e0 d023      	RCALL _putchar
+                 ; 0000 030A                 break;
+0004e1 c020      	RJMP _0x188
+                 ; 0000 030B         }
+                 ; 0000 030C         case    pKalibrasiHPR:
+                 _0x19C:
+0004e2 3ce0      	CPI  R30,LOW(0xC0)
+0004e3 f441      	BRNE _0x19F
+                 ; 0000 030D         {       if(KalibrasiHitamPutihMerah())  putchar(pKalibrasiHPR);
+0004e4 deed      	RCALL _KalibrasiHitamPutihMerah
+0004e5 30e0      	CPI  R30,0
+0004e6 f011      	BREQ _0x1A0
+0004e7 eca0      	LDI  R26,LOW(192)
+0004e8 c001      	RJMP _0x1AE
+                 ; 0000 030E                 else                            putchar(pError);
+                 _0x1A0:
+0004e9 e0a0      	LDI  R26,LOW(0)
+                 _0x1AE:
+0004ea d019      	RCALL _putchar
+                 ; 0000 030F                 break;
+0004eb c016      	RJMP _0x188
+                 ; 0000 0310         }
+                 ; 0000 0311         case    pKalibrasiHPB:
+                 _0x19F:
+0004ec 39e0      	CPI  R30,LOW(0x90)
+0004ed f441      	BRNE _0x1A2
+                 ; 0000 0312         {       if(KalibrasiHitamPutihBiru())   putchar(pKalibrasiHPB);
+0004ee defe      	RCALL _KalibrasiHitamPutihBiru
+0004ef 30e0      	CPI  R30,0
+0004f0 f011      	BREQ _0x1A3
+0004f1 e9a0      	LDI  R26,LOW(144)
+0004f2 c001      	RJMP _0x1AF
+                 ; 0000 0313                 else                            putchar(pError);
+                 _0x1A3:
+0004f3 e0a0      	LDI  R26,LOW(0)
+                 _0x1AF:
+0004f4 d00f      	RCALL _putchar
+                 ; 0000 0314                 break;
+0004f5 c00c      	RJMP _0x188
+                 ; 0000 0315         }
+                 ; 0000 0316         case    pKalibrasiHPG:
+                 _0x1A2:
+0004f6 3ae0      	CPI  R30,LOW(0xA0)
+0004f7 f441      	BRNE _0x1A8
+                 ; 0000 0317         {       if(KalibrasiHitamPutihHijau())  putchar(pKalibrasiHPG);
+0004f8 df0f      	RCALL _KalibrasiHitamPutihHijau
+0004f9 30e0      	CPI  R30,0
+0004fa f011      	BREQ _0x1A6
+0004fb eaa0      	LDI  R26,LOW(160)
+0004fc c001      	RJMP _0x1B0
+                 ; 0000 0318                 else                            putchar(pError);
+                 _0x1A6:
+0004fd e0a0      	LDI  R26,LOW(0)
+                 _0x1B0:
+0004fe d005      	RCALL _putchar
+                 ; 0000 0319                 break;
+0004ff c002      	RJMP _0x188
+                 ; 0000 031A         }
+                 ; 0000 031B         default:
+                 _0x1A8:
+                 ; 0000 031C         {       putchar(pError);
+000500 e0a0      	LDI  R26,LOW(0)
+                 _0x1AA:
+000501 d002      	RCALL _putchar
+                 ; 0000 031D         }
+                 ; 0000 031E      }
+                 _0x188:
+                 ; 0000 031F    }
+                 ; 0000 0320  }
+                 _0x185:
+000502 cf64      	RJMP _0x182
+                 ; 0000 0321 }
+                 _0x1A9:
+000503 cfff      	RJMP _0x1A9
+                 	#ifndef __SLEEP_DEFINED__
+                 	#endif
+                 
+                 	.CSEG
+                 _putchar:
+000504 93aa      	ST   -Y,R26
+                 putchar0:
+000505 9b5d           sbis usr,udre
+000506 cffe           rjmp putchar0
+000507 81e8           ld   r30,y
+000508 b9ec           out  udr,r30
+                 _0x2060001:
+000509 9621      	ADIW R28,1
+00050a 9508      	RET
+                 
+                 	.CSEG
+                 
+                 	.CSEG
+                 
+                 	.DSEG
+                 _ThresholdR:
+000160           	.BYTE 0x8
+                 _ThresholdG:
+000168           	.BYTE 0x8
+                 _ThresholdB:
+000170           	.BYTE 0x8
+                 
+                 	.ESEG
+                 __ThresholdR:
+000000           	.BYTE 0x8
+                 __ThresholdG:
+000008           	.BYTE 0x8
+                 __ThresholdB:
+000010           	.BYTE 0x8
+                 __Mode:
+000018           	.BYTE 0x1
+                 __DeviceAddress:
+000019           	.BYTE 0x1
+                 
+                 	.DSEG
+                 _rx_buffer:
+000178           	.BYTE 0x8
+                 
+                 	.CSEG
+                 
+                 	.CSEG
+                 __ANEGW1:
+00050b 95f1      	NEG  R31
+00050c 95e1      	NEG  R30
+00050d 40f0      	SBCI R31,0
+00050e 9508      	RET
+                 
+                 __MULW12U:
+00050f 9ffa      	MUL  R31,R26
+000510 2df0      	MOV  R31,R0
+000511 9feb      	MUL  R30,R27
+000512 0df0      	ADD  R31,R0
+000513 9fea      	MUL  R30,R26
+000514 2de0      	MOV  R30,R0
+000515 0df1      	ADD  R31,R1
+000516 9508      	RET
+                 
+                 __MULW12:
+000517 d01c      	RCALL __CHKSIGNW
+000518 dff6      	RCALL __MULW12U
+000519 f40e      	BRTC __MULW121
+00051a dff0      	RCALL __ANEGW1
+                 __MULW121:
+00051b 9508      	RET
+                 
+                 __DIVW21U:
+00051c 2400      	CLR  R0
+00051d 2411      	CLR  R1
+00051e e190      	LDI  R25,16
+                 __DIVW21U1:
+00051f 0faa      	LSL  R26
+000520 1fbb      	ROL  R27
+000521 1c00      	ROL  R0
+000522 1c11      	ROL  R1
+000523 1a0e      	SUB  R0,R30
+000524 0a1f      	SBC  R1,R31
+000525 f418      	BRCC __DIVW21U2
+000526 0e0e      	ADD  R0,R30
+000527 1e1f      	ADC  R1,R31
+000528 c001      	RJMP __DIVW21U3
+                 __DIVW21U2:
+000529 60a1      	SBR  R26,1
+                 __DIVW21U3:
+00052a 959a      	DEC  R25
+00052b f799      	BRNE __DIVW21U1
+00052c 01fd      	MOVW R30,R26
+00052d 01d0      	MOVW R26,R0
+00052e 9508      	RET
+                 
+                 __DIVW21:
+00052f d004      	RCALL __CHKSIGNW
+000530 dfeb      	RCALL __DIVW21U
+000531 f40e      	BRTC __DIVW211
+000532 dfd8      	RCALL __ANEGW1
+                 __DIVW211:
+000533 9508      	RET
+                 
+                 __CHKSIGNW:
+000534 94e8      	CLT
+000535 fff7      	SBRS R31,7
+000536 c002      	RJMP __CHKSW1
+000537 dfd3      	RCALL __ANEGW1
+000538 9468      	SET
+                 __CHKSW1:
+000539 ffb7      	SBRS R27,7
+00053a c006      	RJMP __CHKSW2
+00053b 95a0      	COM  R26
+00053c 95b0      	COM  R27
+00053d 9611      	ADIW R26,1
+00053e f800      	BLD  R0,0
+00053f 9403      	INC  R0
+000540 fa00      	BST  R0,0
+                 __CHKSW2:
+000541 9508      	RET
+                 
+                 __GETW1P:
+000542 91ed      	LD   R30,X+
+000543 91fc      	LD   R31,X
+000544 9711      	SBIW R26,1
+000545 9508      	RET
+                 
+                 __EEPROMRDB:
+000546 99e1      	SBIC EECR,EEWE
+000547 cffe      	RJMP __EEPROMRDB
+000548 93ff      	PUSH R31
+000549 b7ff      	IN   R31,SREG
+00054a 94f8      	CLI
+00054b bbae      	OUT  EEARL,R26
+00054c bbbf      	OUT  EEARH,R27
+00054d 9ae0      	SBI  EECR,EERE
+00054e b3ed      	IN   R30,EEDR
+00054f bfff      	OUT  SREG,R31
+000550 91ff      	POP  R31
+000551 9508      	RET
+                 
+                 __EEPROMWRB:
+000552 9be1      	SBIS EECR,EEWE
+000553 c002      	RJMP __EEPROMWRB1
+000554 95a8      	WDR
+000555 cffc      	RJMP __EEPROMWRB
+                 __EEPROMWRB1:
+000556 b79f      	IN   R25,SREG
+000557 94f8      	CLI
+000558 bbae      	OUT  EEARL,R26
+000559 bbbf      	OUT  EEARH,R27
+00055a 9ae0      	SBI  EECR,EERE
+00055b b38d      	IN   R24,EEDR
+00055c 17e8      	CP   R30,R24
+00055d f019      	BREQ __EEPROMWRB0
+00055e bbed      	OUT  EEDR,R30
+00055f 9ae2      	SBI  EECR,EEMWE
+000560 9ae1      	SBI  EECR,EEWE
+                 __EEPROMWRB0:
+000561 bf9f      	OUT  SREG,R25
+000562 9508      	RET
+                 
+                 __SAVELOCR4:
+000563 933a      	ST   -Y,R19
+                 __SAVELOCR3:
+000564 932a      	ST   -Y,R18
+                 __SAVELOCR2:
+000565 931a      	ST   -Y,R17
+000566 930a      	ST   -Y,R16
+000567 9508      	RET
+                 
+                 __LOADLOCR4:
+000568 813b      	LDD  R19,Y+3
+                 __LOADLOCR3:
+000569 812a      	LDD  R18,Y+2
+                 __LOADLOCR2:
+00056a 8119      	LDD  R17,Y+1
+00056b 8108      	LD   R16,Y
+00056c 9508      	RET
+                 
+                 __LOADLOCR2P:
+00056d 9109      	LD   R16,Y+
+00056e 9119      	LD   R17,Y+
+00056f 9508      	RET
+                 
+                 ;END OF CODE MARKER
+                 __END_OF_CODE:
+
+
+RESOURCE USE INFORMATION
+------------------------
+
+Notice:
+The register and instruction counts are symbol table hit counts,
+and hence implicitly used resources are not counted, eg, the
+'lpm' instruction without operands implicitly uses r0 and z,
+none of which are counted.
+
+x,y,z are separate entities in the symbol table and are
+counted separately from r26..r31 here.
+
+.dseg memory usage only counts static data declared with .byte
+
+ATmega8 register use summary:
+r0 :  23 r1 :   6 r2 :   1 r3 :   4 r4 :   9 r5 :   5 r6 :   4 r7 :   0 
+r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
+r16:  29 r17:  80 r18:   2 r19:  12 r20:   0 r21:   0 r22:   4 r23:   0 
+r24:  77 r25:   6 r26: 211 r27:  84 r28:   7 r29:   1 r30: 340 r31: 140 
+x  :  13 y  : 159 z  :  19 
+Registers used: 23 out of 35 (65.7%)
+
+ATmega8 instruction use summary:
+.lds  :   0 .lds.l:   0 .sts  :   0 .sts.l:   0 adc   :  14 add   :  16 
+adiw  :   6 and   :   0 andi  :   4 asr   :   0 bclr  :   0 bld   :   2 
+brbc  :   0 brbs  :   0 brcc  :   1 brcs  :   0 break :   0 breq  :  12 
+brge  :   0 brhc  :   0 brhs  :   0 brid  :   0 brie  :   0 brlo  :   1 
+brlt  :   0 brmi  :   0 brne  :  71 brpl  :   0 brsh  :  22 brtc  :   2 
+brts  :   0 brvc  :   0 brvs  :   0 bset  :   0 bst   :   1 cbi   :  61 
+cbr   :   0 clc   :   0 clh   :   0 cli   :   4 cln   :   0 clr   :   9 
+cls   :   0 clt   :   1 clv   :   0 clz   :   0 com   :   2 cp    :  22 
+cpc   :   0 cpi   :  43 cpse  :   0 dec   :  37 des   :   0 eor   :   0 
+fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 ijmp  :   0 in    :   8 
+inc   :   4 ld    :  18 ldd   :  64 ldi   : 253 lds   :   0 lpm   :   7 
+lsl   :   3 lsr   :   0 mov   :  79 movw  :  17 mul   :   3 muls  :   0 
+mulsu :   0 neg   :   2 nop   :   0 or    :   0 ori   :  16 out   :  53 
+pop   :   3 push  :   3 rcall : 176 ret   :  20 reti  :   1 rjmp  :  78 
+rol   :   5 ror   :   0 sbc   :   9 sbci  :  15 sbi   :  51 sbic  :   1 
+sbis  :   3 sbiw  :   5 sbr   :   1 sbrc  :   0 sbrs  :   2 sec   :   0 
+seh   :   0 sei   :   2 sen   :   0 ser   :   0 ses   :   0 set   :   2 
+sev   :   0 sez   :   0 sleep :   0 spm   :   0 st    :  70 std   :  32 
+sts   :   0 sub   :  17 subi  :  22 swap  :   0 tst   :   1 wdr   :   1 
+
+Instructions used: 56 out of 114 (49.1%)
+
+ATmega8 memory use summary [bytes]:
+Segment   Begin    End      Code   Data   Used    Size   Use%
+---------------------------------------------------------------
+[.cseg] 0x000000 0x000ae0   2756     28   2784    8192  34.0%
+[.dseg] 0x000060 0x000180      0     32     32    1119   2.9%
+[.eseg] 0x000000 0x00001a      0     26     26     512   5.1%
+
+Assembly complete, 0 errors, 4 warnings
